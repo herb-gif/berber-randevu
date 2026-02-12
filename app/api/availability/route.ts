@@ -31,7 +31,7 @@ export async function GET(req: Request) {
   const win = getWorkWindow(date);
   const baseMs = Date.parse(`${date}T00:00:00+03:00`);
   const dayStartISO = new Date(baseMs + win.openMin * 60_000).toISOString();
-  const dayEndISO = new Date(baseMs + win.closeMin * 60_000).toISOString();
+  const dayEndISO = new Date(baseMs + 24 * 60 * 60_000).toISOString();
 
   const svc = await supabase
     .from("services")
@@ -104,23 +104,41 @@ export async function GET(req: Request) {
   const stepMin = 15;
   const slots: string[] = [];
 
-  for (let m = win.openMin; m <= win.lastStartMin; m += stepMin) {
+  // Son başlangıç: hair-only daha erken kapanır.
+  // Hair + başka servis (mixed) => admin karar versin: müşteri alabilsin (other penceresi).
+  const isMixed = needsHair && (needsNiyazi || needsExternal);
+  const lastStartMin = needsHair
+    ? (isMixed ? win.lastStartOtherMin : win.lastStartHairMin)
+    : win.lastStartOtherMin;
+
+
+  // TR(+03) "bugün" ISO (YYYY-MM-DD)
+  const todayTR = new Date(Date.now() + 3 * 60 * 60_000).toISOString().slice(0, 10);
+
+  for (let m = win.openMin; m <= lastStartMin; m += stepMin) {
     const startMs = baseMs + m * 60_000;
     const { segments, endMs } = buildSegments({ startMs, services: ordered as any, barberId } as any);
 
-    if (win.isThursday && endMs > baseMs + win.closeMin * 60_000) continue;
+    // GRACE: sadece bugün için, slot başladıktan sonra 20 dk boyunca göster
+    if (date === todayTR) {
+      const GRACE_MIN = 20;
+      const cutoff = startMs + GRACE_MIN * 60_000;
+      if (Date.now() > cutoff) continue;
+    }
+
+
 
     let ok = true;
 
     for (const seg of segments as any[]) {
       if (seg.resource === "hair") {
-        if (hairBusy.some((b) => overlaps(seg.startMs, seg.endMs, b.s, b.e))) { ok = false; break; }
+        if (hairBusy.some((b: { s: number; e: number }) => overlaps(seg.startMs, seg.endMs, b.s, b.e))) { ok = false; break; }
       } else if (seg.resource === "niyazi") {
-        const c = niyaziBusy.filter((b) => overlaps(seg.startMs, seg.endMs, b.s, b.e)).length;
+        const c = niyaziBusy.filter((b: { s: number; e: number }) => overlaps(seg.startMs, seg.endMs, b.s, b.e)).length;
         if (c >= niyaziCapacity) { ok = false; break; }
       } else {
         // external kapasite = 1
-        const c = externalBusy.filter((b) => overlaps(seg.startMs, seg.endMs, b.s, b.e)).length;
+        const c = externalBusy.filter((b: { s: number; e: number }) => overlaps(seg.startMs, seg.endMs, b.s, b.e)).length;
         if (c >= 1) { ok = false; break; }
       }
     }

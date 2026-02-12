@@ -187,7 +187,7 @@ export default function AdminDashboard() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <select className="rounded-lg border px-3 py-2" value={days} onChange={(e) => setDays(Number(e.target.value))}>
+          <select className="rounded-xl border border-mc-border bg-white px-4 py-2 text-sm text-mc-dark hover:border-mc-bronze transition" value={days} onChange={(e) => setDays(Number(e.target.value))}>
             <option value={1}>1 gün</option>
             <option value={7}>7 gün</option>
             <option value={14}>14 gün</option>
@@ -195,7 +195,7 @@ export default function AdminDashboard() {
             <option value={60}>60 gün</option>
           </select>
 
-          <button onClick={load} className="rounded-lg border px-3 py-2">Yenile</button>
+          <button onClick={load} className="rounded-xl border border-mc-border bg-white px-4 py-2 text-sm text-mc-dark hover:border-mc-bronze transition">Yenile</button>
           <button onClick={logout} className="rounded-lg bg-black px-3 py-2 text-white">Çıkış</button>
         </div>
       </div>
@@ -265,17 +265,18 @@ export default function AdminDashboard() {
                     </td>
 
                     <td className="p-3">
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <button
-                          className="rounded-lg border px-3 py-2"
+                          className="rounded-xl border border-mc-border bg-white px-4 py-2 text-sm text-mc-dark hover:border-mc-bronze transition"
                           onClick={() => setExpandedId(expandedId === r.id ? null : r.id)}
                         >
                           {expandedId === r.id ? "Kapat" : "Detay"}
                         </button>
 
-                        {r.status !== "cancelled" && r.deposit_status !== "paid" && (
-                          <button
-                            className="rounded-lg bg-emerald-600 px-3 py-2 text-white"
+                        {r.status !== "cancelled" &&
+  !["paid","odendi","ödendi","completed","confirmed"].includes(String(r.deposit_status || "").toLowerCase().trim()) && (
+<button
+                            className="rounded-xl bg-mc-black px-4 py-2 text-sm text-mc-bronze border border-mc-bronze hover:bg-mc-bronze hover:text-black transition"
                             onClick={() => markPaid(r.id)}
                           >
                             Ödeme Geldi
@@ -283,7 +284,7 @@ export default function AdminDashboard() {
                         )}
 
                         <button
-                          className="rounded-lg border px-3 py-2"
+                          className="rounded-xl border border-mc-border bg-white px-4 py-2 text-sm text-mc-dark hover:border-mc-bronze transition"
                           onClick={async () => {
                             const pmt = await fetchPayment();
                             if (!pmt) return alert("Ödeme bilgileri alınamadı");
@@ -296,7 +297,7 @@ export default function AdminDashboard() {
                         </button>
 
                         <button
-                          className="rounded-lg border px-3 py-2"
+                          className="rounded-xl border border-mc-border bg-white px-4 py-2 text-sm text-mc-dark hover:border-mc-bronze transition"
                           onClick={async () => {
                             const pmt = await fetchPayment();
                             if (!pmt) return alert("Ödeme bilgileri alınamadı");
@@ -315,7 +316,7 @@ export default function AdminDashboard() {
 
                         {r.status !== "cancelled" && (
                           <button
-                            className="rounded-lg bg-rose-600 px-3 py-2 text-white"
+                            className="rounded-xl bg-white px-4 py-2 text-sm text-rose-700 border border-rose-200 hover:border-rose-400 transition"
                             onClick={() => cancel(r.id)}
                           >
                             İptal

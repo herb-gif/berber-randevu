@@ -61,9 +61,22 @@ export async function POST(req: Request) {
     const workEndMin = 19 * 60;
 
     const startMs = baseMs + startMin * 60_000;
+
+      /* GRACE_GUARD: slot başladıktan sonra 20 dk tolerans */
+    {
+      const GRACE_MIN = 20;
+      const cutoff = startMs + GRACE_MIN * 60_000;
+      if (Date.now() > cutoff) {
+        return NextResponse.json(
+          { error: "Bu saat artık geçti. Lütfen yeni bir saat seçin." },
+          { status: 400 }
+        );
+      }
+    }
+
     // ✅ Çalışma saatleri kuralı (Perşembe özel)
     const win = getWorkWindow(date);
-    if (startMin < win.openMin || startMin > win.lastStartMin) {
+    if (startMin < win.openMin) {
       return NextResponse.json({ error: "Çalışma saatleri dışında" }, { status: 400 });
     }
 
@@ -83,8 +96,16 @@ export async function POST(req: Request) {
 
     const ordered = sortServices(services as any as ServiceRow[]);
     const needsHair = ordered.some((s: any) => normalizeType(s) === "hair");
-    const needsNiyazi = ordered.some((s: any) => resourceFor(normalizeType(s)) === "niyazi");
+    const needsNiyazi = ordered.some((s: any) => resourceFor(s as any) === "niyazi");
     const needsExternal = ordered.some((s: any) => resourceFor(s as any) === "external");
+
+    const isMixed = needsHair && (needsNiyazi || needsExternal);
+
+    // Hair-only kuralı: müşteri hair cutoff sonrası alamaz
+    if (needsHair && !isMixed && startMin > win.lastStartHairMin) {
+      return NextResponse.json({ error: "Berber için bu saatten sonra randevu alınamaz." }, { status: 400 });
+    }
+
 
     if (needsHair && !barberId) {
       return NextResponse.json({ error: "Saç & Sakal için berber seçmelisiniz" }, { status: 400 });
@@ -98,10 +119,6 @@ export async function POST(req: Request) {
 
     // Segmentleri oluştur (ardışık)
     const { segments, endMs } = buildSegments({ startMs, services: ordered as any, barberId });
-
-    if (win.isThursday && endMs > baseMs + win.closeMin * 60_000) {
-      return NextResponse.json({ error: "Perşembe günü randevu 14:00'ten sonra bitemez" }, { status: 400 });
-    }
 
 
     const endMin = Math.round((endMs - baseMs) / 60_000);
@@ -157,10 +174,10 @@ export async function POST(req: Request) {
 
     for (const seg of segments as any[]) {
       if (seg.resource === "hair") {
-        const anyOverlap = hairBusy.some((b) => overlaps(seg.startMs, seg.endMs, b.s, b.e));
+        const anyOverlap = hairBusy.some((b: { s: number; e: number }) => overlaps(seg.startMs, seg.endMs, b.s, b.e));
         if (anyOverlap) return NextResponse.json({ error: "Seçilen saat dolu (berber meşgul)" }, { status: 400 });
       } else {
-        const count = niyaziBusy.filter((b) => overlaps(seg.startMs, seg.endMs, b.s, b.e)).length;
+        const count = niyaziBusy.filter((b: { s: number; e: number }) => overlaps(seg.startMs, seg.endMs, b.s, b.e)).length;
         if (count >= niyaziCapacity) return NextResponse.json({ error: "Seçilen saat dolu (Niyazi meşgul)" }, { status: 400 });
       }
     }
@@ -217,6 +234,10 @@ export async function POST(req: Request) {
     const baseSummary = ordered.map((s: any) => s.name).join(" + ");
     const service_summary = laserText ? `${baseSummary} | Lazer: ${laserText}` : baseSummary;
 
+    // Mixed ve hair cutoff sonrası => admin onayına bırak
+    const lateHairNeedsApproval = isMixed && needsHair && startMin > win.lastStartHairMin;
+    const final_service_summary = lateHairNeedsApproval ? `⚠️ Admin Onay: ` : service_summary;
+
     // 1) appointments insert
     const ins = await supabase
       .from("appointments")
@@ -234,8 +255,8 @@ export async function POST(req: Request) {
         deposit_status,
         deposit_amount,
         total_price,
-        service_summary,
-        reminder_sent: false,
+        final_service_summary,
+                reminder_sent: false,
       }])
       .select("id, deposit_status, deposit_amount, total_price")
       .single();
@@ -258,8 +279,25 @@ export async function POST(req: Request) {
 
     const segIns = await supabase.from("appointment_services").insert(segRows);
     if (segIns.error) {
-      await supabase.from("appointments").update({ status: "cancelled", cancel_reason: "server_error" }).eq("id", appointment_id);
-      return NextResponse.json({ error: segIns.error.message }, { status: 400 });
+      const msg = segIns.error.message || "";
+      const isOverlap =
+        msg.includes("no_overlap_hair_per_barber") ||
+        msg.includes("no_overlap_niyazi") ||
+        msg.includes("no_overlap_external");
+
+      await supabase
+        .from("appointments")
+        .update({ status: "cancelled", cancel_reason: isOverlap ? "slot_taken" : "server_error" })
+        .eq("id", appointment_id);
+
+      if (isOverlap) {
+        return NextResponse.json(
+          { error: "Seçilen saat az önce doldu. Lütfen başka bir saat seçin." },
+          { status: 400 }
+        );
+      }
+
+      return NextResponse.json({ error: msg }, { status: 400 });
     }
 
     // 3) appointment_service_options insert (lazer)

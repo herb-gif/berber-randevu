@@ -9,7 +9,12 @@ export async function POST(req: Request) {
   const { id } = await req.json().catch(() => ({}));
   if (!id) return NextResponse.json({ error: "id gerekli" }, { status: 400 });
 
-  const upd = await supabaseAdmin
+  
+  if (!supabaseAdmin) {
+    return NextResponse.json({ error: "Admin bağlantısı yok (supabaseAdmin)" }, { status: 500 });
+  }
+
+const upd = await supabaseAdmin
     .from("appointments")
     .update({ deposit_status: "paid" })
     .eq("id", id);

@@ -84,10 +84,10 @@ export async function GET(req: Request) {
         end_at: seg.end_at,
         status: seg.status,
         service_id: seg.service_id,
-        service_name: svc?.name ?? null,
-        service_type: svc?.service_type ?? null,
+        service_name: (svc as any)?.name ?? null,
+        service_type: (svc as any)?.service_type ?? null,
         barber_id: seg.barber_id,
-        barber_name: barb?.name ?? null,
+        barber_name: (barb as any)?.name ?? null,
       });
     }
   }

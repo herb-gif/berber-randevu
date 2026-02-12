@@ -52,6 +52,7 @@ function addMinutesToHHMM(hhmm: string, addMin: number) {
   return `${outH}:${outM}`;
 }
 
+
 export default function BookingWidget() {
   const [services, setServices] = useState<Service[]>([]);
   const [barbers, setBarbers] = useState<Barber[]>([]);
@@ -62,9 +63,53 @@ export default function BookingWidget() {
 
   const [date, setDate] = useState<string>("");
   const [slots, setSlots] = useState<string[]>([]);
-  const [picked, setPicked] = useState<string>("");
+  
 
-  const [name, setName] = useState("");
+ const filteredSlots = useMemo(() => {
+  const now = new Date();
+
+  // local today YYYY-MM-DD
+  const todayISO =
+    now.getFullYear() +
+    "-" +
+    String(now.getMonth() + 1).padStart(2, "0") +
+    "-" +
+    String(now.getDate()).padStart(2, "0");
+
+  // date normalize (YYYY-MM-DD ya da dd/mm/yyyy)
+  let selectedISO = String(date || "").trim();
+  if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(selectedISO)) {
+    const parts = selectedISO.split("/");
+    selectedISO = `${parts[2]}-${parts[1].padStart(2, "0")}-${parts[0].padStart(2, "0")}`;
+  }
+
+  if (selectedISO !== todayISO) return slots;
+
+  const GRACE_MIN = 20;
+
+  return slots.filter((hhmm) => {
+    const m = /^(\d{1,2}):(\d{2})$/.exec(hhmm);
+    if (!m) return true;
+
+    const slot = new Date(now);
+    slot.setHours(Number(m[1]), Number(m[2]), 0, 0);
+
+    const slotCutoff = new Date(slot.getTime() + GRACE_MIN * 60 * 1000);
+
+    return now <= slotCutoff;
+  });
+}, [slots, date]);
+
+const [picked, setPicked] = useState<string>("");
+
+  
+  const slotBtnClass = (s: string) =>
+    `inline-flex items-center justify-center px-3 py-2 rounded-xl border text-sm transition select-none ` +
+    (picked === s
+      ? `bg-mc-black text-mc-bronze border-mc-bronze`
+      : `bg-white text-mc-dark border-mc-border hover:border-mc-bronze hover:shadow-[0_0_0_2px_rgba(192,138,90,0.15)] hover:shadow-sm`);
+
+const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
 
   const [loadingSlots, setLoadingSlots] = useState(false);
@@ -286,7 +331,7 @@ export default function BookingWidget() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) return setToast(data.error || "Randevu oluşturulamadı");
 
-      setToast("Randevu oluşturuldu ✅");
+      setToast("Randevunuz alındı ✅ • Ödeme onayı admin tarafından verilecektir.");
       await getSlots(); // slot refresh
       setName("");
       setPhone("");
@@ -299,17 +344,37 @@ export default function BookingWidget() {
     return laserSelectedOptions.some((x) => (x.name || "").toLowerCase().includes("tüm vücut"));
   }, [laserSelectedOptions]);
 
+  const canBook = selectedServiceIds.length > 0 && !!date && !!picked && name.trim().length > 0 && phone.trim().length > 0;
+
+
   return (
-    <div className="rounded-2xl border bg-white p-6 shadow-sm">
+    <div className="min-h-screen bg-mc-black text-mc-bronze hidden md:inline-flex">
+      <div className="mx-auto max-w-2xl px-4 py-10">
+        <div className="flex justify-center mb-6">
+          <div className="text-center">
+            <div className="font-heading text-mc-bronze text-3xl leading-none">Man Cave</div>
+            <div className="text-xs text-neutral-400 mt-2">Hair & Skin • Care Center</div>
+          </div>
+        </div>
+
+        <div className="rounded-2xl bg-white text-black shadow-sm border border-mc-border overflow-hidden">
+          <div className="h-1 bg-mc-bronze" />
+          <div className="p-6 pb-24 md:pb-6">
+    
+          <div className="mt-3 rounded-xl border border-mc-border bg-neutral-50 p-4">
+            <div className="text-sm text-mc-dark">
+              <span className="font-semibold">Depozito:</span> sistemde tanımlı tutar
+            </div>
+            <div className="text-xs text-neutral-600 mt-1">
+              2 saatten az kala iptal edilemez. Ödeme onayı admin tarafından verilecektir.
+            </div>
+          </div>
+<div className="rounded-2xl border bg-white p-6 shadow-sm">
       {toast && (
-        <div className="fixed bottom-5 right-5 z-50 rounded-xl bg-black px-4 py-3 text-sm text-white shadow-lg">
+        <div className="mt-4 rounded-xl border border-mc-bronze/30 bg-white px-4 py-3 text-sm text-mc-dark shadow-sm">
           {toast}
         </div>
       )}
-
-      <p className="text-sm text-neutral-600">
-        Depozito: sistemde tanımlı tutar • 2 saatten az kala iptal edilemez.
-      </p>
 
       <h2 className="mt-6 text-xl font-semibold">Hizmetler</h2>
 
@@ -324,11 +389,18 @@ export default function BookingWidget() {
       <div className="mt-3 space-y-3">
         {activeServices.map((s) => {
           const checked = selectedServiceIds.includes(s.id);
+          const pillClass = "flex items-center justify-between gap-3 w-full rounded-xl border px-4 py-3 transition cursor-pointer select-none " +
+            (checked
+              ? "border-mc-bronze bg-mc-black text-mc-bronze shadow-sm"
+              : "border-mc-border bg-white text-mc-dark hover:border-mc-bronze hover:shadow-[0_0_0_2px_rgba(192,138,90,0.15)]");
+
+          
+          
           return (
-            <label key={s.id} className="flex items-center justify-between gap-4">
-              <span className="flex items-center gap-3">
+            <label key={s.id} className={pillClass}>
+<span className="flex items-center gap-3">
                 <input
-                  type="checkbox"
+                  type="checkbox" className="sr-only"
                   checked={checked}
                   onChange={(e) => {
                     setSelectedServiceIds((prev) =>
@@ -336,7 +408,10 @@ export default function BookingWidget() {
                     );
                   }}
                 />
-                <span>{s.name}</span>
+                <span className="inline-flex items-center gap-2">
+                    <span className="w-4 text-mc-bronze">{checked ? "✓" : ""}</span>
+                    <span>{s.name}</span>
+                  </span>
               </span>
 
               <span className="text-sm text-neutral-500">
@@ -350,7 +425,7 @@ export default function BookingWidget() {
       </div>
 
       {laserServiceId && (
-        <div className="mt-5 rounded-xl border bg-neutral-50 p-4">
+        <div className="mt-5 hidden md:inline-flex rounded-xl border bg-neutral-50 p-4">
           <div className="text-sm font-semibold">Lazer Bölgesi Seçimi</div>
           <div className="mt-2 text-xs text-neutral-600">
             Seçtiğiniz bölgelere göre süre ve fiyat hesaplanır. “Tüm vücut” seçilirse diğerleri kilitlenir.
@@ -365,7 +440,7 @@ export default function BookingWidget() {
               return (
                 <label
                   key={o.id}
-                  className={`flex items-center justify-between gap-3 rounded-lg border bg-white p-3 ${
+                  className={`flex items-center justify-between gap-3 rounded-xl border bg-white p-3 ${
                     disabled ? "opacity-50" : ""
                   }`}
                 >
@@ -404,7 +479,7 @@ export default function BookingWidget() {
           <h2 className="mt-8 text-xl font-semibold">Berber seç</h2>
 
           <select
-            className="mt-3 w-full rounded-lg border px-3 py-2"
+            className="mt-3 w-full rounded-xl border px-3 py-2"
             value={selectedBarberId}
             onChange={(e) => setSelectedBarberId(e.target.value)}
           >
@@ -423,7 +498,7 @@ export default function BookingWidget() {
       <div className="mt-3 flex flex-wrap items-center gap-3">
         <input
           type="date"
-          className="rounded-lg border px-3 py-2"
+          className="rounded-xl border px-3 py-2"
           value={date}
           onChange={(e) => setDate(e.target.value)}
         />
@@ -431,7 +506,7 @@ export default function BookingWidget() {
         <button
           onClick={getSlots}
           disabled={loadingSlots}
-          className="rounded-lg bg-black px-4 py-2 text-white disabled:opacity-60"
+          className="rounded-xl px-6 py-3 bg-mc-black text-mc-bronze border border-mc-bronze hover:bg-mc-bronze hover:text-black transition"
         >
           {loadingSlots ? "Kontrol ediliyor…" : "Uygun Saatleri Göster"}
         </button>
@@ -443,11 +518,11 @@ export default function BookingWidget() {
         <>
           <h3 className="mt-6 font-medium">Uygun Saatler</h3>
           <div className="mt-3 flex flex-wrap gap-2">
-            {slots.map((s) => (
+            {filteredSlots.map((s) => (
               <button
                 key={s}
                 onClick={() => setPicked(s)}
-                className={`rounded border px-3 py-2 ${picked === s ? "bg-black text-white" : "bg-white"}`}
+                className={`rounded border px-3 py-2 ${picked === s ? "bg-black text-mc-bronze" : "bg-white"}`}
               >
                 {s}
               </button>
@@ -461,7 +536,7 @@ export default function BookingWidget() {
                 {previewSegments.map((seg, i) => (
                   <div
                     key={`${seg.name}-${i}`}
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-white border p-2 text-sm"
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-white border p-2 text-sm"
                   >
                     <div className="font-medium">{seg.name}</div>
                     <div className="text-neutral-700">
@@ -479,13 +554,13 @@ export default function BookingWidget() {
       <div className="mt-6 space-y-3">
         <input
           placeholder="Ad Soyad"
-          className="w-full rounded-lg border px-3 py-3"
+          className="w-full rounded-xl border px-3 py-3 focus:outline-none focus:ring-2 focus:ring-mc-bronze/40 focus:border-mc-bronze"
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
         <input
           placeholder="Telefon"
-          className="w-full rounded-lg border px-3 py-3"
+          className="w-full rounded-xl border px-3 py-3 focus:outline-none focus:ring-2 focus:ring-mc-bronze/40 focus:border-mc-bronze"
           value={phone}
           onChange={(e) => {
             const v = e.target.value;
@@ -500,10 +575,33 @@ export default function BookingWidget() {
       <button
         onClick={book}
         disabled={booking}
-        className="mt-5 rounded-lg bg-emerald-600 px-4 py-2 text-white disabled:opacity-60"
+        className="mt-5 hidden md:inline-flex w-full md:w-auto rounded-xl px-6 py-3 bg-mc-black text-mc-bronze border border-mc-bronze hover:bg-mc-bronze hover:text-black transition disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {booking ? "Oluşturuluyor…" : "Randevu Oluştur"}
       </button>
     </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur border-t border-mc-border p-4">
+        <div className="mb-3 flex items-center justify-between text-xs text-neutral-600">
+          <span>Toplam süre: <span className="font-medium text-neutral-900">{totalDurationMin} dk</span></span>
+          {laserTotalPrice > 0 && (
+            <span>Toplam: <span className="font-medium text-neutral-900">{laserTotalPrice} TL</span></span>
+          )}
+        </div>
+
+        <button
+          onClick={book}
+          disabled={!canBook || booking}
+          className="w-full md:w-auto rounded-xl px-6 py-3 bg-mc-black text-mc-bronze border border-mc-bronze hover:bg-mc-bronze hover:text-black transition disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {booking ? "Oluşturuluyor…" : "Randevu Oluştur"}
+        </button>
+      </div>
+
+    </div>
   );
 }
+

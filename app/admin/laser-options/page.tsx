@@ -1,4 +1,5 @@
 "use client";
+import AdminNavTabs from "../ui/AdminNavTabs";
 
 import { useEffect, useMemo, useState } from "react";
 
@@ -19,7 +20,9 @@ export default function AdminLaserOptionsPage() {
   const [loading, setLoading] = useState(true);
   const [unauth, setUnauth] = useState(false);
 
-  async function load() {
+  
+  const [toast, setToast] = useState<string>("");
+async function load() {
     setLoading(true);
     setUnauth(false);
 
@@ -53,7 +56,13 @@ export default function AdminLaserOptionsPage() {
     load();
   }, []);
 
-  async function save(id: string, patch: Partial<Row>) {
+  
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(""), 1500);
+    return () => clearTimeout(t);
+  }, [toast]);
+async function save(id: string, patch: Partial<Row>) {
     const res = await fetch("/api/admin/service-options", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -69,7 +78,8 @@ export default function AdminLaserOptionsPage() {
     const data = await res.json().catch(() => ({}));
     if (!res.ok) return alert(data.error || "Kaydedilemedi");
     await load();
-  }
+      setToast("Kaydedildi ✓");
+      }
 
   const totalActive = useMemo(() => rows.filter((r) => r.is_active).length, [rows]);
 
@@ -85,14 +95,24 @@ export default function AdminLaserOptionsPage() {
   }, [rows]);
 
   return (
-    <main className="min-h-screen bg-neutral-50 p-6">
-      <div className="mx-auto max-w-4xl space-y-4">
+    <main className="min-h-screen bg-mc-black p-6 text-white">
+      <div className="mx-auto max-w-5xl space-y-4 rounded-2xl bg-white p-6 text-black shadow-sm border border-mc-border">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold">Lazer Bölge Fiyatları</h1>
+          <h1 className="text-2xl font-heading text-mc-bronze">Lazer Bölge Fiyatları</h1>
+          <AdminNavTabs />
           <a className="text-sm underline" href="/admin">
             Admin Panel
           </a>
         </div>
+
+          {toast && (
+            <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-xl px-4">
+              <div className="rounded-xl border border-mc-bronze/30 bg-[rgba(192,138,90,0.10)] px-4 py-3 text-sm text-neutral-900 shadow-sm">
+                {toast}
+              </div>
+            </div>
+          )}
+
 
         {unauth && (
           <div className="rounded-xl border bg-amber-50 p-4 text-amber-900">
@@ -109,36 +129,19 @@ export default function AdminLaserOptionsPage() {
           </div>
         )}
 
-        <div className="rounded-2xl border bg-white shadow-sm overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-neutral-50 text-neutral-700">
-              <tr>
-                <th className="p-3 text-left">Bölge</th>
-                <th className="p-3 text-left">Fiyat (TL)</th>
-                <th className="p-3 text-left">Süre (dk)</th>
-                <th className="p-3 text-left">Sıra</th>
-                <th className="p-3 text-left">Aktif</th>
-                <th className="p-3 text-right">İşlem</th>
-              </tr>
-            </thead>
+        <div className="rounded-2xl border border-mc-border bg-white shadow-sm p-4">
+            {loading && (
+              <div className="p-6 text-neutral-500 text-sm">Yükleniyor…</div>
+            )}
 
-            <tbody>
-              {loading && (
-                <tr>
-                  <td className="p-6 text-neutral-500" colSpan={6}>
-                    Yükleniyor…
-                  </td>
-                </tr>
-              )}
-
-              {!loading &&
-                !unauth &&
-                sortedRows.map((r) => (
-                  <LaserRow key={r.id} row={r} onSave={save} />
+            {!loading && !unauth && (
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {sortedRows.map((r) => (
+                  <LaserCard key={r.id} row={r} onSave={save} />
                 ))}
-            </tbody>
-          </table>
-        </div>
+              </div>
+            )}
+          </div>
 
         <p className="text-xs text-neutral-500">
           Not: “Tüm vücut” seçeneği müşteride diğer seçimleri kilitler.
@@ -148,7 +151,7 @@ export default function AdminLaserOptionsPage() {
   );
 }
 
-function LaserRow({
+function LaserCard({
   row,
   onSave,
 }: {
@@ -160,56 +163,71 @@ function LaserRow({
   const [sort, setSort] = useState<number>(Number(row.sort_order ?? 1));
   const [active, setActive] = useState<boolean>(!!row.is_active);
 
-  return (
-    <tr className="border-t">
-      <td className="p-3">{row.name}</td>
+  
+    const [saving, setSaving] = useState(false);
+return (
+      <div className="rounded-2xl border border-mc-border bg-white p-5 shadow-sm hover:shadow transition">
+      <div className="text-base font-semibold text-neutral-900">{row.name}</div>
 
-      <td className="p-3">
-        <input
-          className="w-28 rounded border px-2 py-1"
+        <div className="mt-2 flex flex-wrap gap-2">
+          <span className="text-xs px-2 py-1 rounded-lg border border-mc-border bg-white text-neutral-700">Sıra: {sort}</span>
+          <span className="text-xs px-2 py-1 rounded-lg border border-mc-border bg-white text-neutral-700">{active ? "Aktif" : "Pasif"}</span>
+        </div>
+
+      <div className="mt-4 grid grid-cols-3 gap-3">
+          <div>
+            <div className="text-xs text-neutral-500">Fiyat (TL)</div>
+            <input className="mt-1 w-full rounded-lg border border-mc-border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-mc-bronze\/40 focus:border-mc-bronze"
           type="number"
           value={price}
           onChange={(e) => setPrice(Number(e.target.value))}
         />
-      </td>
+      </div>
 
-      <td className="p-3">
-        <input
-          className="w-24 rounded border px-2 py-1"
+          <div>
+            <div className="text-xs text-neutral-500">Süre (dk)</div>
+            <input className="mt-1 w-full rounded-lg border border-mc-border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-mc-bronze\/40 focus:border-mc-bronze"
           type="number"
           value={dur}
           onChange={(e) => setDur(Number(e.target.value))}
         />
-      </td>
+      </div>
 
-      <td className="p-3">
-        <input
-          className="w-20 rounded border px-2 py-1"
+          <div>
+            <div className="text-xs text-neutral-500">Sıra</div>
+            <input className="mt-1 w-full rounded-lg border border-mc-border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-mc-bronze\/40 focus:border-mc-bronze"
           type="number"
           value={sort}
           onChange={(e) => setSort(Number(e.target.value))}
         />
-      </td>
+      </div>
+        </div>
 
-      <td className="p-3">
-        <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} />
-      </td>
+        <label className="mt-4 inline-flex items-center gap-2 text-sm text-neutral-700">
+          <input className="h-4 w-4 accent-black" type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} />
+          Aktif
+        </label>
 
-      <td className="p-3 text-right">
-        <button
-          className="rounded-lg bg-black px-3 py-2 text-white"
-          onClick={() =>
-            onSave(row.id, {
-              price,
-              duration_min: dur,
-              sort_order: sort,
-              is_active: active,
-            })
-          }
+      <div className="mt-4">
+          <button className="w-full rounded-xl px-4 py-2 text-sm bg-mc-black text-mc-bronze border border-mc-bronze hover:bg-mc-bronze hover:text-black transition"
+          onClick={async () => {
+            if (saving) return;
+            setSaving(true);
+            try {
+              await onSave(row.id, {
+                price,
+                duration_min: dur,
+                sort_order: sort,
+                is_active: active,
+              });
+            } finally {
+              setSaving(false);
+            }
+          }}
         >
           Kaydet
         </button>
-      </td>
-    </tr>
-  );
+        </div>
+    </div>
+    );
 }
