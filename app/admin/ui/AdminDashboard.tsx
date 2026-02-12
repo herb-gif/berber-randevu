@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { buildDepositPaymentMessage, buildApprovalMessage, buildReminderMessage, buildWhatsAppWebUrl } from "@/lib/whatsapp";
 
 type Block = {
   resource: "hair" | "niyazi" | "external" | string;
@@ -55,10 +56,7 @@ function digitsOnly(x: string) {
   return (x || "").replace(/[^0-9]/g, "");
 }
 function waUrl(phone: string, text: string) {
-  const d = digitsOnly(phone);
-  const msg = encodeURIComponent(text);
-  if (d.length >= 10) return `https://wa.me/${d}?text=${msg}`;
-  return `https://wa.me/?text=${msg}`;
+  return buildWhatsAppWebUrl(phone, text);
 }
 
 function depLabel(s?: string | null) {
@@ -95,26 +93,6 @@ async function fetchPayment(): Promise<Payment | null> {
   return data.payment ?? null;
 }
 
-function buildPaymentMsg(r: Row, p: Payment) {
-  const dep = r.deposit_amount ?? "";
-  const when = fmtDT(r.start_at);
-  const svc = r.service_summary || "—";
-  const acc = p.account_name ? `Alıcı: ${p.account_name}\n` : "";
-
-  return (
-    `Merhaba ${r.customer_name},\n\n` +
-    `Randevunuz oluşturuldu. Depozito bilgileri aşağıdadır:\n\n` +
-    `🕒 ${when}\n` +
-    `🧾 ${svc}\n` +
-    `💳 Depozito: ${dep} TL\n\n` +
-    `${p.bank_name}\n` +
-    `${p.iban}\n` +
-    acc +
-    `Açıklama: Randevu - ${r.customer_name} - ${when}\n\n` +
-    `📎 Ödeme dekontunu bu WhatsApp üzerinden iletebilir misiniz?\n` +
-    `✅ Ödeme onayı admin tarafından verilecektir.`
-  );
-}
 
 function minutesBetween(a: string, b: string) {
   const x = Date.parse(a);
@@ -288,20 +266,70 @@ export default function AdminDashboard() {
                           onClick={async () => {
                             const pmt = await fetchPayment();
                             if (!pmt) return alert("Ödeme bilgileri alınamadı");
-                            const msg = buildPaymentMsg(r, pmt);
+                            const msg = buildDepositPaymentMessage(
+  {
+    customerName: r.customer_name,
+    dateISO: r.start_at,
+    serviceSummary: r.service_summary ?? "—",
+    totalPrice: r.total_price ?? 0,
+    depositAmount: r.deposit_amount ?? 0,
+  },
+  pmt
+);
                             const phone = (r.customer_phone_e164 || r.customer_phone || "");
-                            window.open(waUrl(phone, msg), "_blank");
+                            window.open(buildWhatsAppWebUrl(phone, msg), "_blank");
                           }}
                         >
                           Ödeme Mesajı
                         </button>
+
+                          <button
+                            className="rounded-xl border border-mc-border bg-white px-4 py-2 text-sm text-mc-dark hover:border-mc-bronze transition"
+                            onClick={() => {
+                              const phone = (r.customer_phone_e164 || r.customer_phone || "");
+                              const msg = buildApprovalMessage({
+                                customerName: r.customer_name,
+                                date: (r.start_at || "").slice(0, 10),
+                                time: fmtT(r.start_at),
+                                serviceSummary: r.service_summary ?? "—",
+                              });
+                              window.open(buildWhatsAppWebUrl(phone, msg), "_blank");
+                            }}
+                          >
+                            Onay Mesajı
+                          </button>
+
+                          <button
+                            className="rounded-xl border border-mc-border bg-white px-4 py-2 text-sm text-mc-dark hover:border-mc-bronze transition"
+                            onClick={() => {
+                              const phone = (r.customer_phone_e164 || r.customer_phone || "");
+                              const msg = buildReminderMessage({
+                                customerName: r.customer_name,
+                                date: (r.start_at || "").slice(0, 10),
+                                time: fmtT(r.start_at),
+                                serviceSummary: r.service_summary ?? "—",
+                              });
+                              window.open(buildWhatsAppWebUrl(phone, msg), "_blank");
+                            }}
+                          >
+                            Hatırlatma
+                          </button>
 
                         <button
                           className="rounded-xl border border-mc-border bg-white px-4 py-2 text-sm text-mc-dark hover:border-mc-bronze transition"
                           onClick={async () => {
                             const pmt = await fetchPayment();
                             if (!pmt) return alert("Ödeme bilgileri alınamadı");
-                            const msg = buildPaymentMsg(r, pmt);
+                            const msg = buildDepositPaymentMessage(
+  {
+    customerName: r.customer_name,
+    dateISO: r.start_at,
+    serviceSummary: r.service_summary ?? "—",
+    totalPrice: r.total_price ?? 0,
+    depositAmount: r.deposit_amount ?? 0,
+  },
+  pmt
+);
                             try {
                               await navigator.clipboard.writeText(msg);
                               alert("Mesaj kopyalandı ✅");

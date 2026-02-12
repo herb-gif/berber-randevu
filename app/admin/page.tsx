@@ -14,7 +14,14 @@ export default async function AdminPage() {
 
           <AdminNavTabs />
 
-        {isAdmin ? <AdminDashboard /> : <AdminLogin />}
+        
+          <a
+            href="/admin/manual-appointment"
+            className="rounded-xl px-4 py-2 text-sm bg-mc-black text-mc-bronze border border-mc-bronze hover:bg-mc-bronze hover:text-black transition"
+          >
+            ➕ Yeni Randevu Ekle
+          </a>
+{isAdmin ? <AdminDashboard /> : <AdminLogin />}
       </div>
     </main>
   );
