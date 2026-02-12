@@ -57,8 +57,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "date formatı YYYY-MM-DD olmalı" }, { status: 400 });
     }
 
-    const workStartMin = 9 * 60;
-    const workEndMin = 19 * 60;
 
     const startMs = baseMs + startMin * 60_000;
 
@@ -77,8 +75,7 @@ export async function POST(req: Request) {
     // ✅ Çalışma saatleri kuralı (Perşembe özel)
     const win = getWorkWindow(date);
     if (startMin < win.openMin) {
-      return NextResponse.json({ error: "Çalışma saatleri dışında" }, { status: 400 });
-    }
+          }
 
 
     // Hizmetleri çek
@@ -120,14 +117,8 @@ export async function POST(req: Request) {
     // Segmentleri oluştur (ardışık)
     const { segments, endMs } = buildSegments({ startMs, services: ordered as any, barberId });
 
-
-    const endMin = Math.round((endMs - baseMs) / 60_000);
-    if (startMin < workStartMin || endMin > workEndMin) {
-      return NextResponse.json({ error: "Çalışma saatleri dışında" }, { status: 400 });
-    }
-
-    const dayStartISO = new Date(baseMs + workStartMin * 60_000).toISOString();
-    const dayEndISO = new Date(baseMs + workEndMin * 60_000).toISOString();
+    const dayStartISO = new Date(baseMs + win.openMin * 60_000).toISOString();
+    const dayEndISO = new Date(baseMs + 24 * 60 * 60_000).toISOString();
 
     // Niyazi kapasite
     let niyaziCapacity = 1;
@@ -255,8 +246,8 @@ export async function POST(req: Request) {
         deposit_status,
         deposit_amount,
         total_price,
-        final_service_summary,
-                reminder_sent: false,
+        service_summary: final_service_summary,
+        reminder_sent: false,
       }])
       .select("id, deposit_status, deposit_amount, total_price")
       .single();
