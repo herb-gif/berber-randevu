@@ -529,7 +529,10 @@ async function load() {
                           <div className="wa-dropdown relative">
                             <button
                               className="rounded-xl border border-mc-border bg-white px-4 py-2 text-sm text-mc-dark hover:border-mc-bronze transition"
-                              onClick={() => setWaMenuId(waMenuId === r.id ? null : r.id)}
+                              onClick={() => {
+                                  setActionMenuId(null);
+                                  setWaMenuId(waMenuId === r.id ? null : r.id);
+                                }}
                             >
                               WhatsApp ▾
                             </button>
@@ -629,7 +632,10 @@ async function load() {
                           <div className="action-dropdown relative">
                             <button
                               className="rounded-xl border border-mc-border bg-white px-4 py-2 text-sm text-mc-dark hover:border-mc-bronze transition"
-                              onClick={() => setActionMenuId(actionMenuId === r.id ? null : r.id)}
+                              onClick={() => {
+                                  setWaMenuId(null);
+                                  setActionMenuId(actionMenuId === r.id ? null : r.id);
+                                }}
                             >
                               İşlemler ▾
                             </button>
