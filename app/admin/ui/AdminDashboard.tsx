@@ -133,7 +133,9 @@ export default function AdminDashboard() {
     const tableTopRef = useRef<HTMLDivElement | null>(null);
     const [waMenuId, setWaMenuId] = useState<string | null>(null);
 
-  async function load() {
+  
+      const [actionMenuId, setActionMenuId] = useState<string | null>(null);
+async function load() {
     setLoading(true);
     const res = await fetch(`/api/admin/appointments?days=${days}`, { cache: "no-store" });
     const data = await res.json().catch(() => ({}));
@@ -197,6 +199,7 @@ export default function AdminDashboard() {
       function handleClick(e: MouseEvent) {
         const t = e.target as HTMLElement;
         if (!t.closest(".wa-dropdown")) setWaMenuId(null);
+          if (!t.closest(".action-dropdown")) setActionMenuId(null);
       }
       document.addEventListener("click", handleClick);
       return () => document.removeEventListener("click", handleClick);
@@ -522,25 +525,7 @@ export default function AdminDashboard() {
                     </td>
 
                     <td className="p-3">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <button
-                          className="rounded-xl border border-mc-border bg-white px-4 py-2 text-sm text-mc-dark hover:border-mc-bronze transition"
-                          onClick={() => setExpandedId(expandedId === r.id ? null : r.id)}
-                        >
-                          {expandedId === r.id ? "Kapat" : "Detay"}
-                        </button>
-
-                        {r.status !== "cancelled" &&
-  !["paid","odendi","ödendi","completed","confirmed"].includes(String(r.deposit_status || "").toLowerCase().trim()) && (
-<button
-                            className="rounded-xl bg-mc-black px-4 py-2 text-sm text-mc-bronze border border-mc-bronze hover:bg-mc-bronze hover:text-black transition"
-                            onClick={() => markPaid(r.id)}
-                          >
-                            Ödeme Geldi
-                          </button>
-                        )}
-
-                        
+                        <div className="flex flex-wrap items-center gap-2">
                           <div className="wa-dropdown relative">
                             <button
                               className="rounded-xl border border-mc-border bg-white px-4 py-2 text-sm text-mc-dark hover:border-mc-bronze transition"
@@ -637,21 +622,75 @@ export default function AdminDashboard() {
                                   Hatırlatma
                                 </button>
                               </div>
+
+                              )}
+                            </div>
+
+                          <div className="action-dropdown relative">
+                            <button
+                              className="rounded-xl border border-mc-border bg-white px-4 py-2 text-sm text-mc-dark hover:border-mc-bronze transition"
+                              onClick={() => setActionMenuId(actionMenuId === r.id ? null : r.id)}
+                            >
+                              İşlemler ▾
+                            </button>
+
+                            {actionMenuId === r.id && (
+                              <div className="absolute right-0 z-30 mt-2 w-56 overflow-hidden rounded-2xl border border-mc-border bg-white shadow-xl ring-1 ring-black/5">
+                                <button
+                                  className="w-full px-4 py-2 text-left text-sm hover:bg-neutral-100 transition"
+                                  onClick={() => {
+                                    setActionMenuId(null);
+                                    setExpandedId(expandedId === r.id ? null : r.id);
+                                  }}
+                                >
+                                  {expandedId === r.id ? "Detayı Kapat" : "Detayı Aç"}
+                                </button>
+
+                                {r.status !== "cancelled" &&
+                                  !["paid", "odendi", "ödendi", "completed", "confirmed"].includes(
+                                    String(r.deposit_status || "").toLowerCase().trim()
+                                  ) && (
+                                    <button
+                                      className="w-full px-4 py-2 text-left text-sm hover:bg-neutral-100 transition"
+                                      onClick={() => {
+                                        setActionMenuId(null);
+                                        markPaid(r.id);
+                                      }}
+                                    >
+                                      Ödeme Geldi
+                                    </button>
+                                  )}
+
+                                {r.status !== "cancelled" && r.status !== "no_show" && (
+                                  <button
+                                    className="w-full px-4 py-2 text-left text-sm hover:bg-neutral-100 transition"
+                                    onClick={() => {
+                                      setActionMenuId(null);
+                                      markNoShow(r.id);
+                                    }}
+                                  >
+                                    No-show
+                                  </button>
+                                )}
+
+                                <div className="h-px bg-neutral-100" />
+
+                                {r.status !== "cancelled" && (
+                                  <button
+                                    className="w-full px-4 py-2 text-left text-sm text-rose-700 hover:bg-neutral-100 transition"
+                                    onClick={() => {
+                                      setActionMenuId(null);
+                                      cancel(r.id);
+                                    }}
+                                  >
+                                    İptal
+                                  </button>
+                                )}
+                              </div>
                             )}
                           </div>
-
-
-
-                        {r.status !== "cancelled" && (
-                          <button
-                            className="rounded-xl bg-white px-4 py-2 text-sm text-rose-700 border border-rose-200 hover:border-rose-400 transition"
-                            onClick={() => cancel(r.id)}
-                          >
-                            İptal
-                          </button>
-                        )}
-                      </div>
-                    </td>
+                        </div>
+                      </td>
                   </tr>
 
                   {expandedId === r.id && (
