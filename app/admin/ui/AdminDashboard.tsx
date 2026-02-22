@@ -489,19 +489,20 @@ async function load() {
                 <React.Fragment key={r.id}>
                   <tr className={rowClass(r)}>
                     <td className="p-3">
-                      <div className="font-medium">{fmtDT(r.start_at)}</div>
-                      <div className="text-xs text-neutral-500">{fmtDT(r.end_at)} • {totalMin} dk</div>
-                    </td>
+                        <div className="font-medium">{fmtT(r.start_at)}</div>
+                        <div className="text-xs text-neutral-500">{(r.start_at || "").slice(0, 10)} • {totalMin} dk</div>
+                      </td>
 
                     <td className="p-3">
-                      <div className="font-medium">{r.customer_name}</div>
-                      <div className="text-xs text-neutral-500">
-                        {r.customer_phone_e164 || r.customer_phone}
-                      </div>
-                      <div className="mt-1 text-xs text-neutral-500">
-                        Durum: <span className="font-medium">{r.status === "no_show" ? "No-show" : r.status}</span>
-                      </div>
-                      {r.status === "cancelled" && reason && (
+                        <div className="font-medium">{r.customer_name}</div>
+                        <div className="text-xs text-neutral-500">{r.customer_phone_e164 || r.customer_phone}</div>
+
+                        <div className="mt-2">
+                          <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] bg-neutral-50 text-neutral-700">
+                            {r.status === "no_show" ? "No-show" : r.status}
+                          </span>
+                        </div>
+{r.status === "cancelled" && reason && (
                         <div className="mt-1 text-xs">
                           <span className="rounded-full border px-2 py-0.5 bg-neutral-50">{reason}</span>
                         </div>
