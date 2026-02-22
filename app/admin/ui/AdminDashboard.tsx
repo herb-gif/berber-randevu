@@ -99,18 +99,22 @@ async function fetchPayment(): Promise<Payment | null> {
 
 
 function rowClass(r: Row) {
-  const status = String(r.status || "").toLowerCase();
-  const dep = String(r.deposit_status || "").toLowerCase().trim();
+    const status = String(r.status || "").toLowerCase();
+    const dep = String(r.deposit_status || "").toLowerCase().trim();
 
-  if (status === "no_show") return "border-t align-top bg-rose-50/70";
-  if (status === "cancelled") return "border-t align-top bg-neutral-50 text-neutral-500";
+    // Dark-ish "signal strip" (minimal diff): keep row mostly neutral, signal via left border.
+    if (status === "no_show") return "border-t align-top border-l-4 border-rose-300";
+    if (status === "cancelled") return "border-t align-top border-l-4 border-neutral-200 text-neutral-500";
 
-  if (dep === "refunded") return "border-t align-top bg-blue-50/60";
-  if (dep === "forfeited") return "border-t align-top bg-rose-50/50";
-  if (dep === "paid") return "border-t align-top bg-emerald-50/40";
+    if (dep === "refunded") return "border-t align-top border-l-4 border-blue-300";
+    if (dep === "forfeited") return "border-t align-top border-l-4 border-rose-200";
+    if (dep === "paid") return "border-t align-top border-l-4 border-emerald-300";
 
-  return "border-t align-top";
+    if (dep === "pending" || dep === "required") return "border-t align-top border-l-4 border-amber-300";
+
+    return "border-t align-top border-l-4 border-transparent";
 }
+
 function minutesBetween(a: string, b: string) {
   const x = Date.parse(a);
   const y = Date.parse(b);
