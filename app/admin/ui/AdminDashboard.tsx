@@ -502,13 +502,13 @@ async function load() {
                         <div className="text-xs text-neutral-500">{r.customer_phone_e164 || r.customer_phone}</div>
 
                         <div className="mt-2">
-                          <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] bg-neutral-50 text-neutral-700">
+                          <span className="inline-flex items-center rounded-full border border-white/10 px-2 py-0.5 text-[11px] bg-neutral-900 text-neutral-200">
                             {r.status === "no_show" ? "No-show" : r.status}
                           </span>
                         </div>
 {r.status === "cancelled" && reason && (
                         <div className="mt-1 text-xs">
-                          <span className="rounded-full border px-2 py-0.5 bg-neutral-50">{reason}</span>
+                          <span className="rounded-full border border-white/10 px-2 py-0.5 bg-neutral-900 text-neutral-200">{reason}</span>
                         </div>
                       )}
                     </td>
@@ -545,7 +545,7 @@ async function load() {
                             {waMenuId === r.id && (
                               <div className="absolute right-0 z-30 mt-2 w-60 overflow-hidden rounded-2xl border border-white/10 bg-neutral-900 shadow-xl ring-1 ring-black/5">
                                 <button
-                                  className="w-full px-4 py-2 text-left text-sm hover:bg-neutral-100 transition"
+                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
                                   onClick={async () => {
                                     setWaMenuId(null);
                                     const pmt = await fetchPayment();
@@ -568,7 +568,7 @@ async function load() {
                                 </button>
 
                                 <button
-                                  className="w-full px-4 py-2 text-left text-sm hover:bg-neutral-100 transition"
+                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
                                   onClick={async () => {
                                     setWaMenuId(null);
                                     const pmt = await fetchPayment();
@@ -594,10 +594,10 @@ async function load() {
                                   Ödeme Mesajı Kopyala
                                 </button>
 
-                                <div className="h-px bg-neutral-100" />
+                                <div className="h-px bg-white/10" />
 
                                 <button
-                                  className="w-full px-4 py-2 text-left text-sm hover:bg-neutral-100 transition"
+                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
                                   onClick={() => {
                                     setWaMenuId(null);
                                     const phone = (r.customer_phone_e164 || r.customer_phone || "");
@@ -614,7 +614,7 @@ async function load() {
                                 </button>
 
                                 <button
-                                  className="w-full px-4 py-2 text-left text-sm hover:bg-neutral-100 transition"
+                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
                                   onClick={() => {
                                     setWaMenuId(null);
                                     const phone = (r.customer_phone_e164 || r.customer_phone || "");
@@ -648,7 +648,7 @@ async function load() {
                             {actionMenuId === r.id && (
                               <div className="absolute right-0 z-30 mt-2 w-56 overflow-hidden rounded-2xl border border-white/10 bg-neutral-900 shadow-xl ring-1 ring-black/5">
                                 <button
-                                  className="w-full px-4 py-2 text-left text-sm hover:bg-neutral-100 transition"
+                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
                                   onClick={() => {
                                     setActionMenuId(null);
                                     setExpandedId(expandedId === r.id ? null : r.id);
@@ -662,7 +662,7 @@ async function load() {
                                     String(r.deposit_status || "").toLowerCase().trim()
                                   ) && (
                                     <button
-                                      className="w-full px-4 py-2 text-left text-sm hover:bg-neutral-100 transition"
+                                      className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
                                       onClick={() => {
                                         setActionMenuId(null);
                                         markPaid(r.id);
@@ -674,7 +674,7 @@ async function load() {
 
                                 {r.status !== "cancelled" && r.status !== "no_show" && (
                                   <button
-                                    className="w-full px-4 py-2 text-left text-sm hover:bg-neutral-100 transition"
+                                    className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
                                     onClick={() => {
                                       setActionMenuId(null);
                                       markNoShow(r.id);
@@ -684,11 +684,11 @@ async function load() {
                                   </button>
                                 )}
 
-                                <div className="h-px bg-neutral-100" />
+                                <div className="h-px bg-white/10" />
 
                                 {r.status !== "cancelled" && (
                                   <button
-                                    className="w-full px-4 py-2 text-left text-sm text-rose-700 hover:bg-neutral-100 transition"
+                                    className="w-full px-4 py-2 text-left text-sm text-rose-700 hover:bg-white/5 transition"
                                     onClick={() => {
                                       setActionMenuId(null);
                                       cancel(r.id);
