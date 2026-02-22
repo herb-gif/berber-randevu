@@ -357,7 +357,7 @@ async function load() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <select className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-2 text-sm text-mc-dark hover:border-mc-bronze transition" value={days} onChange={(e) => setDays(Number(e.target.value))}>
+          <select className="relative rounded-xl border border-white/10 bg-neutral-900 px-4 py-2 pr-10 text-sm text-neutral-100 hover:bg-neutral-800 hover:border-mc-bronze transition" value={days} onChange={(e) => setDays(Number(e.target.value))}>
             <option value={1}>1 gün</option>
             <option value={7}>7 gün</option>
             <option value={14}>14 gün</option>
@@ -489,7 +489,19 @@ async function load() {
               const reason = cancelReasonLabel(r.cancel_reason ?? null);
               const totalMin = minutesBetween(r.start_at, r.end_at);
 
-              return (
+              
+                const dep = String(r.deposit_status || "").toLowerCase().trim();
+                const startMs = Date.parse(r.start_at);
+                const minsTo = Number.isFinite(startMs) ? Math.floor((startMs - Date.now()) / 60_000) : 999999;
+                const needsDeposit = dep === "pending" || dep === "required";
+                const waDot = dep === "paid"
+                  ? "green"
+                  : needsDeposit && minsTo <= 120
+                    ? "red"
+                    : needsDeposit && minsTo <= 360
+                      ? "amber"
+                      : null;
+return (
                 <React.Fragment key={r.id}>
                   <tr className={rowClass(r)}>
                     <td className="p-3">
@@ -538,9 +550,20 @@ async function load() {
                                   setActionMenuId(null);
                                   setWaMenuId(waMenuId === r.id ? null : r.id);
                                 }}
-                            >
-                              WhatsApp ▾
-                            </button>
+                            >                                WhatsApp ▾
+                                {waDot && (
+                                  <span
+                                    className={
+                                      "absolute right-3 top-1/2 -translate-y-1/2 h-2.5 w-2.5 rounded-full " +
+                                      (waDot === "green"
+                                        ? "bg-emerald-400"
+                                        : waDot === "red"
+                                          ? "bg-rose-400"
+                                          : "bg-amber-400")
+                                    }
+                                  />
+                                )}
+</button>
 
                             {waMenuId === r.id && (
                               <div className="absolute right-0 z-30 mt-2 w-60 overflow-hidden rounded-2xl border border-white/10 bg-neutral-900 shadow-xl ring-1 ring-black/5">
