@@ -349,7 +349,7 @@ async function load() {
   }
 
   return (
-    <div className="rounded-2xl border bg-white p-6 shadow-sm">
+    <div className="rounded-2xl border border-neutral-800 bg-neutral-950 text-neutral-100 p-6 shadow-sm">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-xl font-semibold">Admin Panel</h1>
@@ -357,7 +357,7 @@ async function load() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <select className="rounded-xl border border-mc-border bg-white px-4 py-2 text-sm text-mc-dark hover:border-mc-bronze transition" value={days} onChange={(e) => setDays(Number(e.target.value))}>
+          <select className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-2 text-sm text-mc-dark hover:border-mc-bronze transition" value={days} onChange={(e) => setDays(Number(e.target.value))}>
             <option value={1}>1 gün</option>
             <option value={7}>7 gün</option>
             <option value={14}>14 gün</option>
@@ -365,7 +365,7 @@ async function load() {
             <option value={60}>60 gün</option>
           </select>
 
-          <button onClick={load} className="rounded-xl border border-mc-border bg-white px-4 py-2 text-sm text-mc-dark hover:border-mc-bronze transition">Yenile</button>
+          <button onClick={load} className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-2 text-sm text-mc-dark hover:border-mc-bronze transition">Yenile</button>
           <button onClick={logout} className="rounded-lg bg-black px-3 py-2 text-white">Çıkış</button>
         </div>
       </div>
@@ -373,31 +373,31 @@ async function load() {
       
         {/* Summary Cards */}
         <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-4">
-          <div className="rounded-2xl border border-mc-border bg-white p-4 shadow-sm">
+          <div className="rounded-2xl border border-white/10 bg-neutral-900 p-4 shadow-sm">
             <div className="text-xs text-neutral-500">Bugünkü Randevu</div>
             <div className="mt-1 text-2xl font-semibold">{todaySummary.todayCount}</div>
           </div>
 
-          <div className="rounded-2xl border border-mc-border bg-white p-4 shadow-sm">
+          <div className="rounded-2xl border border-white/10 bg-neutral-900 p-4 shadow-sm">
             <div className="text-xs text-neutral-500">Bugünkü Ciro</div>
             <div className="mt-1 text-2xl font-semibold">
               {todaySummary.todayRevenue.toLocaleString("tr-TR")} TL
             </div>
           </div>
 
-          <div className="rounded-2xl border border-mc-border bg-white p-4 shadow-sm">
+          <div className="rounded-2xl border border-white/10 bg-neutral-900 p-4 shadow-sm">
             <div className="text-xs text-neutral-500">Bekleyen Depozito</div>
             <div className="mt-1 text-2xl font-semibold">{todaySummary.pendingDepositCount}</div>
           </div>
 
-          <div className="rounded-2xl border border-mc-border bg-white p-4 shadow-sm">
+          <div className="rounded-2xl border border-white/10 bg-neutral-900 p-4 shadow-sm">
             <div className="text-xs text-neutral-500">Bugünkü No-show</div>
             <div className="mt-1 text-2xl font-semibold">{todaySummary.noShowCount}</div>
           </div>
         </div>
 
         {/* Filtreler */}
-        <div className="mt-6 rounded-2xl border border-mc-border bg-white p-4 shadow-sm">
+        <div className="mt-6 rounded-2xl border border-white/10 bg-neutral-900 p-4 shadow-sm">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div className="flex-1">
               <div className="text-xs text-neutral-500">Arama</div>
@@ -405,7 +405,7 @@ async function load() {
                 value={filterQ}
                 onChange={(e) => setFilterQ(e.target.value)}
                 placeholder="İsim / telefon / hizmet…"
-                className="mt-1 w-full rounded-xl border border-mc-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-mc-bronze/30 focus:border-mc-bronze"
+                className="mt-1 w-full rounded-xl border border-white/10 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-mc-bronze/30 focus:border-mc-bronze"
               />
             </div>
 
@@ -413,7 +413,7 @@ async function load() {
               <div>
                 <div className="text-xs text-neutral-500">Durum</div>
                 <select
-                  className="mt-1 rounded-xl border border-mc-border bg-white px-3 py-2 text-sm"
+                  className="mt-1 rounded-xl border border-white/10 bg-neutral-900 px-3 py-2 text-sm"
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
                 >
@@ -427,7 +427,7 @@ async function load() {
               <div>
                 <div className="text-xs text-neutral-500">Depozito</div>
                 <select
-                  className="mt-1 rounded-xl border border-mc-border bg-white px-3 py-2 text-sm"
+                  className="mt-1 rounded-xl border border-white/10 bg-neutral-900 px-3 py-2 text-sm"
                   value={filterDep}
                   onChange={(e) => setFilterDep(e.target.value)}
                 >
@@ -443,7 +443,7 @@ async function load() {
 
               <div className="flex items-end">
                 <button
-                  className="mt-1 rounded-xl border border-mc-border bg-white px-3 py-2 text-sm text-mc-dark hover:border-mc-bronze transition"
+                  className="mt-1 rounded-xl border border-white/10 bg-neutral-900 px-3 py-2 text-sm text-mc-dark hover:border-mc-bronze transition"
                   onClick={() => {
                     setFilterQ("");
                     setFilterStatus("all");
@@ -458,7 +458,7 @@ async function load() {
           </div>
 
           <div className="mt-2 text-xs text-neutral-500">
-            Gösterilen: <span className="font-medium text-neutral-900">{viewRows.length}</span>
+            Gösterilen: <span className="font-medium text-neutral-100">{viewRows.length}</span>
           </div>
         </div>
 
@@ -466,7 +466,7 @@ async function load() {
 
 <div className="mt-6 overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="text-left text-neutral-600">
+          <thead className="text-left text-neutral-300">
             <tr>
               <th className="p-3">Zaman</th>
               <th className="p-3">Müşteri</th>
@@ -533,7 +533,7 @@ async function load() {
                         <div className="flex flex-wrap items-center gap-2">
                           <div className="wa-dropdown relative">
                             <button
-                              className="rounded-xl border border-mc-border bg-white px-4 py-2 text-sm text-mc-dark hover:border-mc-bronze transition"
+                              className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-2 text-sm text-mc-dark hover:border-mc-bronze transition"
                               onClick={() => {
                                   setActionMenuId(null);
                                   setWaMenuId(waMenuId === r.id ? null : r.id);
@@ -543,7 +543,7 @@ async function load() {
                             </button>
 
                             {waMenuId === r.id && (
-                              <div className="absolute right-0 z-30 mt-2 w-60 overflow-hidden rounded-2xl border border-mc-border bg-white shadow-xl ring-1 ring-black/5">
+                              <div className="absolute right-0 z-30 mt-2 w-60 overflow-hidden rounded-2xl border border-white/10 bg-neutral-900 shadow-xl ring-1 ring-black/5">
                                 <button
                                   className="w-full px-4 py-2 text-left text-sm hover:bg-neutral-100 transition"
                                   onClick={async () => {
@@ -636,7 +636,7 @@ async function load() {
 
                           <div className="action-dropdown relative">
                             <button
-                              className="rounded-xl border border-mc-border bg-white px-4 py-2 text-sm text-mc-dark hover:border-mc-bronze transition"
+                              className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-2 text-sm text-mc-dark hover:border-mc-bronze transition"
                               onClick={() => {
                                   setWaMenuId(null);
                                   setActionMenuId(actionMenuId === r.id ? null : r.id);
@@ -646,7 +646,7 @@ async function load() {
                             </button>
 
                             {actionMenuId === r.id && (
-                              <div className="absolute right-0 z-30 mt-2 w-56 overflow-hidden rounded-2xl border border-mc-border bg-white shadow-xl ring-1 ring-black/5">
+                              <div className="absolute right-0 z-30 mt-2 w-56 overflow-hidden rounded-2xl border border-white/10 bg-neutral-900 shadow-xl ring-1 ring-black/5">
                                 <button
                                   className="w-full px-4 py-2 text-left text-sm hover:bg-neutral-100 transition"
                                   onClick={() => {
