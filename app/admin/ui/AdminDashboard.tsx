@@ -464,7 +464,7 @@ async function load() {
 
         <div ref={tableTopRef} />
 
-<div className="mt-6 overflow-x-auto">
+<div className="mt-6 overflow-x-auto rounded-2xl border border-white/10 bg-neutral-900">
         <table className="w-full text-sm">
           <thead className="text-left text-neutral-300">
             <tr>
@@ -478,11 +478,11 @@ async function load() {
 
           <tbody>
             {loading && (
-              <tr><td className="p-3 text-neutral-500" colSpan={5}>Yükleniyor…</td></tr>
+              <tr><td className="p-3 text-neutral-400" colSpan={5}>Yükleniyor…</td></tr>
             )}
 
             {!loading && viewRows.length === 0 && (
-              <tr><td className="p-3 text-neutral-500" colSpan={5}>Kayıt yok.</td></tr>
+              <tr><td className="p-3 text-neutral-400" colSpan={5}>Kayıt yok.</td></tr>
             )}
 
             {viewRows.map((r) => {
