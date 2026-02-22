@@ -39,9 +39,8 @@ export async function POST(req: Request) {
   const startMs = Date.parse(one.data.start_at);
   const diffMin = Math.floor((startMs - Date.now()) / 60_000);
   const late = diffMin < 120;
-
-  const nextDeposit = late ? "forfeited" : (one.data.deposit_status ?? "cancelled");
-
+    const currentDeposit = one.data.deposit_status ?? null;
+    const nextDeposit = currentDeposit === "paid" ? "refunded" : currentDeposit;
   // 1) appointments update
   const updA = await supabaseAdmin
     .from("appointments")
