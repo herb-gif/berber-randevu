@@ -512,7 +512,7 @@ async function load() {
                     <td className="p-3">
                       <div className="font-medium">{r.service_summary ?? "—"}</div>
                       {typeof r.total_price === "number" && (
-                        <div className="mt-1 text-xs text-neutral-500">Toplam: {r.total_price} TL</div>
+                        <div className="mt-0.5 text-[11px] text-neutral-500">Toplam • {r.total_price} TL</div>
                       )}
                     </td>
 
@@ -521,7 +521,7 @@ async function load() {
                         {depLabel(r.deposit_status ?? null)}
                       </div>
                       {typeof r.deposit_amount === "number" && (
-                        <div className="mt-1 text-xs text-neutral-500">Tutar: {r.deposit_amount} TL</div>
+                        <div className="mt-0.5 text-[11px] text-neutral-500">Tutar • {r.deposit_amount} TL</div>
                       )}
                     </td>
 
