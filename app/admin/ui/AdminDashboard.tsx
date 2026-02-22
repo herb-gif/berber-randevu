@@ -72,13 +72,13 @@ function depLabel(s?: string | null) {
 }
 function depBadgeClass(s?: string | null) {
   const v = (s || "").toLowerCase();
-  if (v === "paid") return "bg-emerald-50 text-emerald-700 border-emerald-200";
-  if (v === "forfeited") return "bg-rose-50 text-rose-700 border-rose-200";
-    if (v === "refunded") return "bg-blue-50 text-blue-700 border-blue-200";
-  if (v === "required") return "bg-amber-50 text-amber-800 border-amber-200";
-  if (v === "pending") return "bg-neutral-50 text-neutral-700 border-neutral-200";
-  if (v === "cancelled") return "bg-neutral-100 text-neutral-600 border-neutral-200";
-  return "bg-neutral-50 text-neutral-700 border-neutral-200";
+  if (v === "paid") return "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+  if (v === "forfeited") return "bg-rose-500/10 text-rose-400 border-rose-500/20";
+    if (v === "refunded") return "bg-blue-500/10 text-blue-400 border-blue-500/20";
+  if (v === "required") return "bg-amber-500/10 text-amber-400 border-amber-500/20";
+  if (v === "pending") return "bg-neutral-800/40 text-neutral-300 border-neutral-700";
+  if (v === "cancelled") return "bg-neutral-800/40 text-neutral-400 border-neutral-700";
+  return "bg-neutral-800/40 text-neutral-300 border-neutral-700";
 }
 function cancelReasonLabel(r?: string | null) {
   if (!r) return null;
