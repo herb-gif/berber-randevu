@@ -137,7 +137,7 @@ export default function ConfirmationPage() {
   // Deposit countdown: starts when appointment is loaded
   useEffect(() => {
     if (!appt) return;
-    const TOTAL = 15 * 60;
+    const TOTAL = 20 * 60;
     setRemainingSec(TOTAL);
     const it = setInterval(() => {
       setRemainingSec((prev) => {
