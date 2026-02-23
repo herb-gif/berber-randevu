@@ -16,3 +16,9 @@ body {
   background: rgba(192, 138, 90, 0.35);
   color: #ffffff;
 }
+
+/* Dark UI selection fix */
+::selection {
+  background: rgba(192, 138, 90, 0.35);
+  color: #ffffff;
+}
