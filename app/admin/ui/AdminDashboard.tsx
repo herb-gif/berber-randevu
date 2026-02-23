@@ -142,22 +142,21 @@ export default function AdminDashboard() {
   const [days, setDays] = useState(30);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
-    const [filterQ, setFilterQ] = useState("");
-    const [filterStatus, setFilterStatus] = useState("all");
-    const [filterDep, setFilterDep] = useState("all");
 
-    
-      const [filterWhen, setFilterWhen] = useState("all");
-const router = useRouter();
-    const searchParams = useSearchParams();
-    const didInitFiltersRef = useRef(false);
-    const tableTopRef = useRef<HTMLDivElement | null>(null);
-    const [waMenuId, setWaMenuId] = useState<string | null>(null);
+  const [filterQ, setFilterQ] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterDep, setFilterDep] = useState("all");
+  const [filterWhen, setFilterWhen] = useState("all");
 
-  
-      
-      const [toasts, setToasts] = useState<Toast[]>([]);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const didInitFiltersRef = useRef(false);
+  const tableTopRef = useRef<HTMLDivElement | null>(null);
 
+  const [waMenuId, setWaMenuId] = useState<string | null>(null);
+  const [actionMenuId, setActionMenuId] = useState<string | null>(null);
+
+  const [toasts, setToasts] = useState<Toast[]>([]);
   const pushToast = React.useCallback((t: Omit<Toast, "id"> & { id?: string }) => {
     const id =
       t.id ||
@@ -174,8 +173,8 @@ const router = useRouter();
       setToasts((prev) => prev.filter((x) => x.id !== id));
     }, 2600);
   }, []);
-const [actionMenuId, setActionMenuId] = useState<string | null>(null);
-async function load() {
+
+  const load = React.useCallback(async () => {
     setLoading(true);
     const res = await fetch(`/api/admin/appointments?days=${days}`, { cache: "no-store" });
     const data = await res.json().catch(() => ({}));
@@ -186,9 +185,13 @@ async function load() {
     }
     setRows(data.rows ?? []);
     setLoading(false);
-  }
+  }, [days]);
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [days]);
+  useEffect(() => {
+    load();
+  }, [load]);
+
+
 
 
     
@@ -210,7 +213,7 @@ async function load() {
         supabaseBrowser.removeChannel(channel);
       };
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [load, pushToast]);
 useEffect(() => {
       if (didInitFiltersRef.current) return;
       didInitFiltersRef.current = true;
