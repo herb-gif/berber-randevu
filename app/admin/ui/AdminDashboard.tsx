@@ -188,32 +188,67 @@ export default function AdminDashboard() {
   }, [days]);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    const channel = supabaseBrowser
+      .channel("admin-realtime-appointments")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "appointments" },
+        (payload: any) => {
+          const ev = String(payload?.eventType || "").toUpperCase();
+          const n = payload?.new || null;
+          const o = payload?.old || null;
+          const id = (n && n.id) || (o && o.id);
 
+          if (ev === "INSERT") pushToast({ title: "Yeni randevu", detail: "Yeni kayıt eklendi", tone: "ok" });
+          else if (ev === "UPDATE") pushToast({ title: "Güncelleme", detail: "Randevu güncellendi", tone: "warn" });
+          else if (ev === "DELETE") pushToast({ title: "Silindi", detail: "Randevu silindi", tone: "bad" });
+          else pushToast({ title: "Güncelleme", detail: "Randevular güncellendi", tone: "warn" });
 
-
-
-    
-
-    useEffect(() => {
-      const channel = supabaseBrowser
-        .channel("admin-realtime-appointments")
-        .on(
-          "postgres_changes",
-          { event: "*", schema: "public", table: "appointments" },
-          () => {
-            pushToast({ title: "Güncelleme", detail: "Randevular güncellendi", tone: "warn" });
+          if (!id) {
             load();
+            return;
           }
-        )
-        .subscribe();
 
-      return () => {
-        supabaseBrowser.removeChannel(channel);
-      };
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [load, pushToast]);
+          // INSERT: enriched rows come from API (blocks etc.)
+          if (ev === "INSERT") {
+            load();
+            return;
+          }
+
+          // DELETE: remove locally
+          if (ev === "DELETE") {
+            setRows((prev) => prev.filter((r) => r.id !== id));
+            return;
+          }
+
+          // UPDATE: patch minimal fields
+          if (ev === "UPDATE") {
+            setRows((prev) =>
+              prev.map((r) => {
+                if (r.id !== id) return r;
+                const next: any = { ...r };
+                if (n && typeof n.status === "string") next.status = n.status;
+                if (n && typeof n.deposit_status === "string") next.deposit_status = n.deposit_status;
+                if (n && typeof n.start_at === "string") next.start_at = n.start_at;
+                if (n && typeof n.end_at === "string") next.end_at = n.end_at;
+                if (n && typeof n.customer_name === "string") next.customer_name = n.customer_name;
+                if (n && typeof n.customer_phone === "string") next.customer_phone = n.customer_phone;
+                return next as Row;
+              })
+            );
+            return;
+          }
+
+          load();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabaseBrowser.removeChannel(channel);
+    };
+  }, [load, pushToast]);
+
 useEffect(() => {
       if (didInitFiltersRef.current) return;
       didInitFiltersRef.current = true;
