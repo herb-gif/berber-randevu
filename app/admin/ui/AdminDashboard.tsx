@@ -218,18 +218,38 @@ window.setTimeout(() => {
     }, 2600);
   }, []);
 
+  
   const load = React.useCallback(async () => {
     setLoading(true);
-    const res = await fetch(`/api/admin/appointments?days=${days}`, { cache: "no-store" });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
+    try {
+      const res = await fetch(`/api/admin/appointments?days=${days}`, { cache: "no-store" });
+
+      // Bazı durumlarda backend HTML/empty dönebilir → json() patlar
+      const text = await res.text();
+      let data: any = {};
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch (e) {
+        console.error("AdminDashboard load(): JSON parse failed", e, text?.slice?.(0, 200));
+        pushToast({ title: "Hata", detail: "Sunucudan geçersiz yanıt geldi.", tone: "bad" });
+        return;
+      }
+
+      if (!res.ok) {
+        console.error("AdminDashboard load(): API error", res.status, data);
+        pushToast({ title: "Hata", detail: data?.error || `Randevular alınamadı (${res.status})`, tone: "bad" });
+        return;
+      }
+
+      setRows(data.rows ?? []);
+    } catch (e: any) {
+      console.error("AdminDashboard load(): fetch failed", e);
+      pushToast({ title: "Bağlantı", detail: "Sunucuya erişilemedi.", tone: "bad" });
+    } finally {
       setLoading(false);
-      alert(data.error || "Randevular alınamadı");
-      return;
     }
-    setRows(data.rows ?? []);
-    setLoading(false);
-  }, [days]);
+  }, [days, pushToast]);
+
 
   useEffect(() => {
     const flush = () => {
