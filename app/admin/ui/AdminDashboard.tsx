@@ -43,6 +43,9 @@ type Payment = {
   whatsapp_phone_e164?: string | null;
 };
 
+
+
+type Toast = { id: string; title: string; detail?: string; tone?: "ok" | "warn" | "bad" };
 const TZ = "Europe/Istanbul";
 const dtf = new Intl.DateTimeFormat("tr-TR", { timeZone: TZ, dateStyle: "short", timeStyle: "short" });
 const tf = new Intl.DateTimeFormat("tr-TR", { timeZone: TZ, hour: "2-digit", minute: "2-digit" });
@@ -142,7 +145,9 @@ const router = useRouter();
     const [waMenuId, setWaMenuId] = useState<string | null>(null);
 
   
-      const [actionMenuId, setActionMenuId] = useState<string | null>(null);
+      
+      const [toasts, setToasts] = useState<Toast[]>([]);
+const [actionMenuId, setActionMenuId] = useState<string | null>(null);
 async function load() {
     setLoading(true);
     const res = await fetch(`/api/admin/appointments?days=${days}`, { cache: "no-store" });
@@ -368,13 +373,40 @@ return (sortedRows || []).filter((r) => {
 
 
 
-  async function logout() {
+  function pushToast(t: Omit<Toast, "id">) {
+      const id = `${Date.now()}_${Math.random().toString(16).slice(2)}`;
+      const toast: Toast = { id, tone: t.tone ?? "ok", title: t.title, detail: t.detail };
+      setToasts((prev) => [toast, ...(prev || [])].slice(0, 4));
+      window.setTimeout(() => {
+        setToasts((prev) => (prev || []).filter((x) => x.id !== id));
+      }, 2600);
+    }
+
+async function logout() {
     await fetch("/api/admin/logout", { method: "POST" });
     location.reload();
   }
 
   return (
     <div className="rounded-2xl border border-neutral-800 bg-neutral-950 text-neutral-100 p-6 shadow-sm">
+        <div data-toast-container className="fixed right-4 top-4 z-[100] space-y-2">
+          {toasts.map((t) => (
+            <div
+              key={t.id}
+              className={
+                "w-72 rounded-xl border px-3 py-2 text-sm shadow-xl " +
+                (t.tone === "ok"
+                  ? "border-emerald-500/20 bg-neutral-950 shadow-[0_0_0_1px_rgba(52,211,153,0.20)]"
+                  : t.tone === "warn"
+                    ? "border-amber-500/20 bg-neutral-950 shadow-[0_0_0_1px_rgba(251,191,36,0.18)]"
+                    : "border-rose-500/20 bg-neutral-950 shadow-[0_0_0_1px_rgba(251,113,133,0.18)]")
+              }
+            >
+              <div className="font-medium">{t.title}</div>
+              {t.detail ? <div className="mt-0.5 text-xs text-neutral-400">{t.detail}</div> : null}
+            </div>
+          ))}
+        </div>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-xl font-semibold">Admin Panel</h1>
