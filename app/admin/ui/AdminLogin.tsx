@@ -9,8 +9,7 @@ export default function AdminLogin() {
   async function submit() {
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/login", {
-        method: "POST",
+      const res = await fetch("/api/admin/login", { credentials: "include", method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password }),
       });

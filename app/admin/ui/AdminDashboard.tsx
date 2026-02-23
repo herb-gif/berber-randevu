@@ -141,7 +141,7 @@ function playBeep() {
 }
 
 async function fetchPayment(): Promise<Payment | null> {
-  const res = await fetch("/api/admin/payment", { cache: "no-store" });
+  const res = await fetch("/api/admin/payment", { credentials: "include", cache: "no-store" });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) return null;
   return data.payment ?? null;
@@ -222,7 +222,7 @@ window.setTimeout(() => {
   const load = React.useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/admin/appointments?days=${days}`, { cache: "no-store" });
+      const res = await fetch(`/api/admin/appointments?days=${days}`, { credentials: "include", cache: "no-store" });
 
       // Bazı durumlarda backend HTML/empty dönebilir → json() patlar
       const text = await res.text();
@@ -505,8 +505,7 @@ return (sortedRows || []).filter((r) => {
   async function cancel(id: string) {
       if (!confirm("Randevu iptal edilsin mi?")) return;
 
-      const res = await fetch("/api/admin/appointments", {
-        method: "POST",
+      const res = await fetch("/api/admin/appointments", { credentials: "include", method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, action: "cancel" }),
       });
@@ -531,8 +530,7 @@ return (sortedRows || []).filter((r) => {
 
 
   async function markPaid(id: string) {
-      const res = await fetch("/api/admin/appointments", {
-        method: "POST",
+      const res = await fetch("/api/admin/appointments", { credentials: "include", method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, action: "mark_paid" }),
       });
@@ -544,8 +542,7 @@ return (sortedRows || []).filter((r) => {
     }
 
     async function markNoShow(id: string) {
-      const res = await fetch("/api/admin/appointments", {
-        method: "POST",
+      const res = await fetch("/api/admin/appointments", { credentials: "include", method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, action: "no_show" }),
       });
@@ -568,7 +565,7 @@ return (sortedRows || []).filter((r) => {
     }
 
 async function logout() {
-    await fetch("/api/admin/logout", { method: "POST" });
+    await fetch("/api/admin/logout", { credentials: "include", method: "POST" });
     location.reload();
   }
 
