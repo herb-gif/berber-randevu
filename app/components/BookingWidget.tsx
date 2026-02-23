@@ -479,7 +479,57 @@ const slotBtnClass = (t: string) =>
   const canBook = selectedServiceIds.length > 0 && !!date && !!picked && name.trim().length > 0 && phone.trim().length > 0;
 
 
-  return (
+  
+
+    const currentStep = useMemo(() => {
+      const hasServices = selectedServiceIds.length > 0;
+      const needsLaser = !!laserServiceId;
+      const laserOk = !needsLaser || selectedLaserOptionIds.length > 0;
+
+      const needsBarber = hairSelected && activeBarbers.length > 1;
+      const barberOk = !needsBarber || !!selectedBarberId;
+
+      const hasDate = !!date;
+      const hasSlots = slots.length > 0;
+      const hasTime = !!picked;
+
+      const hasContact = name.trim().length > 0 && phone.trim().length > 0;
+
+      // 0 Hizmet
+      if (!hasServices) return 0;
+      // 1 Lazer (varsa)
+      if (needsLaser && !laserOk) return 1;
+      // 2 Berber (gerekirse)
+      if (needsBarber && !barberOk) return 2;
+      // 3 Saat seçimi
+      if (!hasDate || !hasSlots || !hasTime) return 3;
+      // 4 İletişim
+      if (!hasContact) return 4;
+      // 5 Tamam
+      return 5;
+    }, [
+      selectedServiceIds,
+      laserServiceId,
+      selectedLaserOptionIds,
+      hairSelected,
+      activeBarbers,
+      selectedBarberId,
+      date,
+      slots,
+      picked,
+      name,
+      phone,
+    ]);
+
+    const steps = [
+      "Hizmet",
+      laserServiceId ? "Lazer" : null,
+      hairSelected && activeBarbers.length > 1 ? "Berber" : null,
+      "Saat",
+      "Bilgi",
+      "Tamamla",
+    ].filter(Boolean) as string[];
+return (
     <div className="min-h-screen bg-mc-black text-mc-bronze hidden md:inline-flex">
       <div className="mx-auto max-w-2xl px-4 py-10">
         <div className="flex justify-center mb-6">
@@ -494,6 +544,28 @@ const slotBtnClass = (t: string) =>
           <div className="p-6 pb-24 md:pb-6">
     
           <div className="text-xs text-neutral-600 mt-1">
+        <div data-step-progress className="mt-2 flex flex-wrap gap-2">
+          {steps.map((label, i) => {
+            const active = i === currentStep;
+            const done = i < currentStep;
+            return (
+              <div
+                key={label}
+                className={[
+                  "rounded-full border px-3 py-1 text-xs font-semibold transition",
+                  done
+                    ? "border-mc-bronze/40 bg-mc-bronze/10 text-mc-bronze"
+                    : active
+                      ? "border-mc-bronze/35 bg-white/10 text-mc-bronze"
+                      : "border-mc-border bg-white text-neutral-700",
+                ].join(" ")}
+              >
+                {label}
+              </div>
+            );
+          })}
+        </div>
+
 
 
       {toast && (
@@ -542,7 +614,7 @@ const slotBtnClass = (t: string) =>
       </div>
 
       {laserServiceId && (
-        <div className="mt-5 rounded-2xl border border-mc-border bg-white p-4 shadow-sm">
+        <div className="mt-5 rounded-2xl border border-mc-border bg-white p-4 shadow-sm mc-fade-up">
           <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full bg-mc-bronze" />
@@ -695,7 +767,7 @@ const slotBtnClass = (t: string) =>
               );
 
               return (
-                <div className="mt-3 rounded-2xl border border-mc-border bg-white p-3">
+                <div className="mt-3 rounded-2xl border border-mc-border bg-white p-3 mc-fade-up">
                   <div className="flex gap-2">
                     {tabBtn("morning", "Sabah", morning.length)}
                     {tabBtn("noon", "Öğle", noon.length)}
@@ -729,7 +801,7 @@ const slotBtnClass = (t: string) =>
             <div
               ref={previewRef}
               className={[
-                "mt-4 rounded-xl border bg-neutral-50 p-4 transition-all duration-200",
+                "mt-4 rounded-xl border bg-neutral-50 p-4 transition-all duration-200 mc-fade-up",
                 showPreview ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1",
               ].join(" ")}
             >
@@ -753,7 +825,7 @@ const slotBtnClass = (t: string) =>
         </>
       )}
 
-      <div className="mt-6 space-y-3">
+      <div className="mt-6 space-y-3 mc-pop">
         <input
           placeholder="Ad Soyad"
           className="w-full rounded-xl border px-3 py-3 focus:outline-none focus:ring-2 focus:ring-mc-bronze/40 focus:border-mc-bronze"
