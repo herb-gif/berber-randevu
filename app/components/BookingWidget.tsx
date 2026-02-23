@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { buildDepositPaymentMessage, buildWhatsAppWebUrl } from "@/lib/whatsapp";
 
 type Service = {
   id: string; // UUID
@@ -54,6 +56,7 @@ function addMinutesToHHMM(hhmm: string, addMin: number) {
 
 
 export default function BookingWidget() {
+  const router = useRouter();
   const [services, setServices] = useState<Service[]>([]);
   const [barbers, setBarbers] = useState<Barber[]>([]);
   const [loaded, setLoaded] = useState(false);
@@ -63,53 +66,182 @@ export default function BookingWidget() {
 
   const [date, setDate] = useState<string>("");
   const [slots, setSlots] = useState<string[]>([]);
-  
 
- const filteredSlots = useMemo(() => {
-  const now = new Date();
-
-  // local today YYYY-MM-DD
-  const todayISO =
-    now.getFullYear() +
-    "-" +
-    String(now.getMonth() + 1).padStart(2, "0") +
-    "-" +
-    String(now.getDate()).padStart(2, "0");
-
-  // date normalize (YYYY-MM-DD ya da dd/mm/yyyy)
-  let selectedISO = String(date || "").trim();
-  if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(selectedISO)) {
-    const parts = selectedISO.split("/");
-    selectedISO = `${parts[2]}-${parts[1].padStart(2, "0")}-${parts[0].padStart(2, "0")}`;
-  }
-
-  if (selectedISO !== todayISO) return slots;
-
-  const GRACE_MIN = 20;
-
-  return slots.filter((hhmm) => {
-    const m = /^(\d{1,2}):(\d{2})$/.exec(hhmm);
-    if (!m) return true;
-
-    const slot = new Date(now);
-    slot.setHours(Number(m[1]), Number(m[2]), 0, 0);
-
-    const slotCutoff = new Date(slot.getTime() + GRACE_MIN * 60 * 1000);
-
-    return now <= slotCutoff;
-  });
-}, [slots, date]);
-
-const [picked, setPicked] = useState<string>("");
 
   
-  const slotBtnClass = (s: string) =>
-    `inline-flex items-center justify-center px-3 py-2 rounded-xl border text-sm transition select-none ` +
-    (picked === s
-      ? `bg-mc-black text-mc-bronze border-mc-bronze`
+
+  const [timeTab, setTimeTab] = useState<"morning" | "noon" | "evening">("morning");
+  const filteredSlots = useMemo(() => {
+    const now = new Date();
+
+    // local today YYYY-MM-DD
+    const todayISO =
+      now.getFullYear() +
+      "-" +
+      String(now.getMonth() + 1).padStart(2, "0") +
+      "-" +
+      String(now.getDate()).padStart(2, "0");
+
+    // date normalize (YYYY-MM-DD ya da dd/mm/yyyy)
+    let selectedISO = String(date || "").trim();
+    if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(selectedISO)) {
+      const parts = selectedISO.split("/");
+      selectedISO = `${parts[2]}-${parts[1].padStart(2, "0")}-${parts[0].padStart(2, "0")}`;
+    }
+
+    if (selectedISO !== todayISO) return slots;
+
+    const SLOT_GRACE_MIN = 20;
+
+    return slots.filter((hhmm) => {
+      const m = /^(\d{1,2}):(\d{2})$/.exec(hhmm);
+      if (!m) return true;
+
+      const slot = new Date(now);
+      slot.setHours(Number(m[1]), Number(m[2]), 0, 0);
+
+      // slot zamanı + 20dk'ya kadar "alınabilir"
+      const slotCutoff = new Date(slot.getTime() + SLOT_GRACE_MIN * 60 * 1000);
+      return now <= slotCutoff;
+    });
+  }, [slots, date]);
+
+  useEffect(() => {
+    if (!filteredSlots || filteredSlots.length === 0) return;
+
+    const toMin = (t: string) => {
+      const [h, m] = t.split(":").map(Number);
+      return h * 60 + m;
+    };
+
+    const morning = filteredSlots.filter((t) => toMin(t) < 12 * 60);
+    const noon = filteredSlots.filter((t) => toMin(t) >= 12 * 60 && toMin(t) < 17 * 60);
+    const evening = filteredSlots.filter((t) => toMin(t) >= 17 * 60);
+
+    if (timeTab === "morning" && morning.length === 0) {
+      if (noon.length > 0) return setTimeTab("noon");
+      if (evening.length > 0) return setTimeTab("evening");
+    }
+    if (timeTab === "noon" && noon.length === 0) {
+      if (morning.length > 0) return setTimeTab("morning");
+      if (evening.length > 0) return setTimeTab("evening");
+    }
+    if (timeTab === "evening" && evening.length === 0) {
+      if (noon.length > 0) return setTimeTab("noon");
+      if (morning.length > 0) return setTimeTab("morning");
+    }
+  }, [filteredSlots, timeTab]);
+
+  const [picked, setPicked] = useState<string>("");
+
+
+  const previewRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!picked) return;
+    const t = setTimeout(() => {
+      previewRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
+    return () => clearTimeout(t);
+  }, [picked]);
+
+  const [showPreview, setShowPreview] = useState(false);
+
+  useEffect(() => {
+    if (!picked) {
+      setShowPreview(false);
+      return;
+    }
+    // picked seçildiğinde: önce kapalı, sonra 1 frame sonra aç (transition için)
+    setShowPreview(false);
+    const raf = requestAnimationFrame(() => setShowPreview(true));
+    return () => cancelAnimationFrame(raf);
+  }, [picked]);
+
+const slotBtnClass = (t: string) =>
+    `inline-flex items-center justify-center px-3 py-2 rounded-xl border text-sm transition select-none hover:-translate-y-0.5 active:scale-[0.98] duration-150 ` +
+    (picked === t
+      ? `bg-mc-black text-mc-bronze border-mc-bronze shadow-[0_0_0_2px_rgba(192,138,90,0.30)]`
       : `bg-white text-mc-dark border-mc-border hover:border-mc-bronze hover:shadow-[0_0_0_2px_rgba(192,138,90,0.15)] hover:shadow-sm`);
 
-const [name, setName] = useState("");
+
+  function BarberSelectModal() {
+    const [open, setOpen] = useState(false);
+
+    const selected = activeBarbers.find((b) => b.id === selectedBarberId);
+
+    return (
+      <>
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="mt-3 flex w-full items-center justify-between rounded-2xl border border-mc-border bg-white px-4 py-3 text-left hover:border-mc-bronze hover:shadow-[0_0_0_2px_rgba(192,138,90,0.10)] transition"
+        >
+          <div className="min-w-0">
+            <div className="truncate text-sm font-semibold text-neutral-900">
+              {selected ? selected.name : "Berber seç"}
+            </div>
+</div>
+          <span className="text-neutral-400">▾</span>
+        </button>
+
+        {open && (
+          <div className="fixed inset-0 z-50">
+            {/* Backdrop */}
+            <button
+              type="button"
+              className="absolute inset-0 bg-black/40"
+              onClick={() => setOpen(false)}
+              aria-label="Kapat"
+            />
+
+            {/* Bottom sheet / modal */}
+            <div className="absolute bottom-0 left-0 right-0 max-h-[80vh] rounded-t-3xl bg-white p-4 shadow-2xl">
+              <div className="mb-3 flex items-center justify-between">
+                <div className="text-base font-semibold text-neutral-900">Berber Seç</div>
+                <button
+                  type="button"
+                  className="rounded-xl px-3 py-2 text-sm text-neutral-600 hover:bg-neutral-100"
+                  onClick={() => setOpen(false)}
+                >
+                  Kapat
+                </button>
+              </div>
+
+              <div className="space-y-2 overflow-auto pb-2">
+                {activeBarbers.map((b) => {
+                  const active = b.id === selectedBarberId;
+                  return (
+                    <button
+                      key={b.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedBarberId(b.id);
+                        setOpen(false);
+                      }}
+                      className={[
+                        "flex w-full items-center justify-between rounded-2xl border p-3 text-left transition",
+                        active
+                          ? "border-mc-bronze bg-[rgba(192,138,90,0.08)]"
+                          : "border-mc-border bg-white hover:border-mc-bronze/60",
+                      ].join(" ")}
+                    >
+                      <div className="min-w-0">
+                        <div className="truncate text-sm font-semibold text-neutral-900">{b.name}</div>
+</div>
+                      {active && <span className="text-sm font-semibold text-mc-bronze">✓</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+      </>
+    );
+  }
+
+  const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
 
   const [loadingSlots, setLoadingSlots] = useState(false);
@@ -121,6 +253,7 @@ const [name, setName] = useState("");
   const [laserTotalPrice, setLaserTotalPrice] = useState(0);
 
   const [toast, setToast] = useState<string>("");
+  const [waLink, setWaLink] = useState<string>("");
 
   // INIT
   useEffect(() => {
@@ -296,6 +429,7 @@ const [name, setName] = useState("");
   }
 
   async function book() {
+    if (booking) return;
     if (selectedServiceIds.length === 0) return setToast("Hizmet seç");
     if (!date) return setToast("Tarih seç");
     if (!picked) return setToast("Saat seç");
@@ -331,10 +465,8 @@ const [name, setName] = useState("");
       const data = await res.json().catch(() => ({}));
       if (!res.ok) return setToast(data.error || "Randevu oluşturulamadı");
 
-      setToast("Randevunuz alındı ✅ • Ödeme onayı admin tarafından verilecektir.");
-      await getSlots(); // slot refresh
-      setName("");
-      setPhone("");
+      router.push(`/confirmation/${data.id}`);
+        return;
     } finally {
       setBooking(false);
     }
@@ -361,35 +493,20 @@ const [name, setName] = useState("");
           <div className="h-1 bg-mc-bronze" />
           <div className="p-6 pb-24 md:pb-6">
     
-          <div className="mt-3 rounded-xl border border-mc-border bg-neutral-50 p-4">
-            <div className="text-sm text-mc-dark">
-              <span className="font-semibold">Depozito:</span> sistemde tanımlı tutar
-            </div>
-            <div className="text-xs text-neutral-600 mt-1">
-              2 saatten az kala iptal edilemez. Ödeme onayı admin tarafından verilecektir.
-            </div>
-          </div>
-<div className="rounded-2xl border bg-white p-6 shadow-sm">
+          <div className="text-xs text-neutral-600 mt-1">
+
+
       {toast && (
         <div className="mt-4 rounded-xl border border-mc-bronze/30 bg-white px-4 py-3 text-sm text-mc-dark shadow-sm">
           {toast}
         </div>
       )}
 
-      <h2 className="mt-6 text-xl font-semibold">Hizmetler</h2>
-
-      <div className="mt-3 rounded-xl border bg-neutral-50 p-3">
-        <div className="text-xs text-neutral-600">Hizmet sırası</div>
-        <div className="mt-1 text-sm font-medium text-neutral-900">{flowText || "—"}</div>
-        <div className="mt-1 text-xs text-neutral-600">Not: Hizmetler ardışık yapılır.</div>
-      </div>
-
-      {!loaded && <p className="mt-3 text-sm text-neutral-500">Yükleniyor…</p>}
 
       <div className="mt-3 space-y-3">
         {activeServices.map((s) => {
           const checked = selectedServiceIds.includes(s.id);
-          const pillClass = "flex items-center justify-between gap-3 w-full rounded-xl border px-4 py-3 transition cursor-pointer select-none " +
+          const pillClass = "flex items-center justify-between gap-3 w-full rounded-xl border px-4 py-3 transition cursor-pointer select-none hover:-translate-y-0.5 duration-150 " +
             (checked
               ? "border-mc-bronze bg-mc-black text-mc-bronze shadow-sm"
               : "border-mc-border bg-white text-mc-dark hover:border-mc-bronze hover:shadow-[0_0_0_2px_rgba(192,138,90,0.15)]");
@@ -425,13 +542,17 @@ const [name, setName] = useState("");
       </div>
 
       {laserServiceId && (
-        <div className="mt-5 hidden md:inline-flex rounded-xl border bg-neutral-50 p-4">
-          <div className="text-sm font-semibold">Lazer Bölgesi Seçimi</div>
-          <div className="mt-2 text-xs text-neutral-600">
-            Seçtiğiniz bölgelere göre süre ve fiyat hesaplanır. “Tüm vücut” seçilirse diğerleri kilitlenir.
-          </div>
-
-          <div className="mt-3 space-y-2">
+        <div className="mt-5 rounded-2xl border border-mc-border bg-white p-4 shadow-sm">
+          <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-mc-bronze" />
+                <div className="text-sm font-semibold text-neutral-900">Lazer Bölgesi Seçimi</div>
+              </div>
+              {fullBodySelected && (
+                <div className="text-xs font-semibold text-mc-bronze">Tüm vücut seçili</div>
+              )}
+            </div>
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
             {laserOptions.map((o) => {
               const checked = selectedLaserOptionIds.includes(o.id);
               const isFullBody = (o.name || "").toLowerCase().includes("tüm vücut");
@@ -440,10 +561,24 @@ const [name, setName] = useState("");
               return (
                 <label
                   key={o.id}
-                  className={`flex items-center justify-between gap-3 rounded-xl border bg-white p-3 ${
-                    disabled ? "opacity-50" : ""
-                  }`}
+                  className={[
+                    "relative rounded-2xl border p-4 transition",
+                    disabled
+                      ? "cursor-not-allowed"
+                      : "hover:border-mc-bronze hover:shadow-[0_0_0_2px_rgba(192,138,90,0.10)]",
+                    checked
+                      ? "border-mc-bronze bg-[rgba(192,138,90,0.06)]"
+                      : "border-mc-border bg-white",
+                  ].join(" ")}
                 >
+                  {disabled && (
+                    <>
+                      <div className="pointer-events-none absolute inset-0 rounded-2xl bg-neutral-200/35" />
+                      <div className="pointer-events-none absolute right-3 top-3 rounded-full border border-mc-bronze/30 bg-mc-bronze/15 px-2 py-0.5 text-[11px] font-semibold text-mc-bronze backdrop-blur">
+                        Kilitli
+                      </div>
+                    </>
+                  )}
                   <span className="flex items-center gap-3">
                     <input
                       type="checkbox"
@@ -457,7 +592,7 @@ const [name, setName] = useState("");
                         });
                       }}
                     />
-                    <span className="font-medium">{o.name}</span>
+                    <span className={["font-semibold", disabled ? "text-neutral-800" : "text-neutral-900"].join(" ")}>{o.name}</span>
                   </span>
 
                   <span className="text-sm text-neutral-700">
@@ -468,30 +603,38 @@ const [name, setName] = useState("");
             })}
           </div>
 
-          <div className="mt-3 text-sm text-neutral-700">
-            Toplam Lazer Fiyatı: <b>{laserTotalPrice} TL</b> • Lazer süresi: <b>{laserExtraDuration} dk</b>
-          </div>
+          <div className="mt-4 flex items-center justify-between gap-3 rounded-xl border border-mc-bronze/30 bg-[rgba(192,138,90,0.08)] px-4 py-3">
+              <div className="text-sm font-medium text-neutral-900">Toplam Lazer</div>
+              <div className="text-sm text-neutral-900">
+                <b>{laserTotalPrice} TL</b>
+                <span className="text-neutral-600"> • </span>
+                <b>{laserExtraDuration} dk</b>
+              </div>
+            </div>
         </div>
       )}
 
-      {hairSelected && (
-        <>
-          <h2 className="mt-8 text-xl font-semibold">Berber seç</h2>
+  {waLink && (
+    <div className="mt-3 rounded-xl border border-mc-border bg-neutral-50 px-4 py-3">
+      <button
+        onClick={() => {
+          window.open(waLink, "_blank");
+          setWaLink("");
+        }}
+        className="inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm bg-mc-black text-mc-bronze border border-mc-bronze hover:bg-mc-bronze hover:text-black transition"
+      >
+        Ödeme için WhatsApp Mesajı Gönder
+      </button>
+      <div className="mt-1 text-xs text-neutral-600">Butona basınca ödeme mesajı işletmeye gider.</div>
+    </div>
+  )}
 
-          <select
-            className="mt-3 w-full rounded-xl border px-3 py-2"
-            value={selectedBarberId}
-            onChange={(e) => setSelectedBarberId(e.target.value)}
-          >
-            <option value="">Berber seçiniz</option>
-            {activeBarbers.map((b) => (
-              <option key={b.id} value={b.id}>
-                {b.name}
-              </option>
-            ))}
-          </select>
-        </>
-      )}
+      {hairSelected && activeBarbers.length > 1 && (
+          <>
+            <h2 className="mt-8 text-xl font-semibold">Berber seç</h2>
+            <BarberSelectModal />
+          </>
+        )}
 
       <h2 className="mt-8 text-xl font-semibold">Tarih</h2>
 
@@ -516,21 +659,80 @@ const [name, setName] = useState("");
 
       {slots.length > 0 && (
         <>
-          <h3 className="mt-6 font-medium">Uygun Saatler</h3>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {filteredSlots.map((s) => (
-              <button
-                key={s}
-                onClick={() => setPicked(s)}
-                className={`rounded border px-3 py-2 ${picked === s ? "bg-black text-mc-bronze" : "bg-white"}`}
-              >
-                {s}
-              </button>
-            ))}
-          </div>
+          
+            <div className="mt-6 flex items-center justify-between">
+              <h3 className="font-medium">Uygun Saatler</h3>
+              <div className="text-xs text-neutral-500">{filteredSlots.length} seçenek</div>
+            </div>
+
+            {(() => {
+              const toMin = (t: string) => {
+                const [h, m] = t.split(":").map(Number);
+                return h * 60 + m;
+              };
+
+              const morning = filteredSlots.filter((t) => toMin(t) < 12 * 60);
+              const noon = filteredSlots.filter((t) => toMin(t) >= 12 * 60 && toMin(t) < 17 * 60);
+              const evening = filteredSlots.filter((t) => toMin(t) >= 17 * 60);
+
+              const list =
+                timeTab === "morning" ? morning : timeTab === "noon" ? noon : evening;
+
+              const tabBtn = (key: "morning" | "noon" | "evening", label: string, count: number) => (
+                <button
+                  type="button"
+                  onClick={() => setTimeTab(key)}
+                  className={[
+                    "flex-1 rounded-xl px-3 py-2 text-[13px] font-semibold transition active:scale-[0.99]",
+                    timeTab === key
+                      ? "bg-mc-black text-mc-bronze border border-mc-bronze"
+                      : "bg-neutral-100 text-neutral-800 hover:bg-neutral-200",
+                  ].join(" ")}
+                >
+                  {label}
+                  <span className="ml-2 text-[11px] font-medium opacity-70">({count})</span>
+                </button>
+              );
+
+              return (
+                <div className="mt-3 rounded-2xl border border-mc-border bg-white p-3">
+                  <div className="flex gap-2">
+                    {tabBtn("morning", "Sabah", morning.length)}
+                    {tabBtn("noon", "Öğle", noon.length)}
+                    {tabBtn("evening", "Akşam", evening.length)}
+                  </div>
+
+                  <div className="mt-3 grid grid-cols-3 sm:grid-cols-4 gap-2">
+                    {list.length === 0 ? (
+                      <div className="w-full rounded-xl border border-dashed border-neutral-200 bg-neutral-50 px-4 py-4 text-sm text-neutral-600">
+                        Bu aralıkta uygun saat yok.
+                      </div>
+                    ) : (
+                      list.map((t) => (
+                        <button
+                          key={t}
+                          type="button"
+                          onClick={() => setPicked(t)}
+                          className={slotBtnClass(t)}
+                        >
+                          {t}
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
+
 
           {picked && previewSegments.length > 0 && (
-            <div className="mt-4 rounded-xl border bg-neutral-50 p-4">
+            <div
+              ref={previewRef}
+              className={[
+                "mt-4 rounded-xl border bg-neutral-50 p-4 transition-all duration-200",
+                showPreview ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1",
+              ].join(" ")}
+            >
               <div className="text-sm font-semibold">Tahmini Akış</div>
               <div className="mt-2 space-y-2">
                 {previewSegments.map((seg, i) => (
@@ -577,7 +779,7 @@ const [name, setName] = useState("");
         disabled={booking}
         className="mt-5 hidden md:inline-flex w-full md:w-auto rounded-xl px-6 py-3 bg-mc-black text-mc-bronze border border-mc-bronze hover:bg-mc-bronze hover:text-black transition disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {booking ? "Oluşturuluyor…" : "Randevu Oluştur"}
+        {booking ? "Oluşturuluyor…" : "Randevuyu Tamamla"}
       </button>
     </div>
           </div>
@@ -597,7 +799,7 @@ const [name, setName] = useState("");
           disabled={!canBook || booking}
           className="w-full md:w-auto rounded-xl px-6 py-3 bg-mc-black text-mc-bronze border border-mc-bronze hover:bg-mc-bronze hover:text-black transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {booking ? "Oluşturuluyor…" : "Randevu Oluştur"}
+          {booking ? "Oluşturuluyor…" : "Randevuyu Tamamla"}
         </button>
       </div>
 

@@ -1,0 +1,408 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import { useParams } from "next/navigation";
+
+type Appointment = {
+  id: string;
+  customer_name: string;
+  start_at: string;
+  end_at: string;
+  created_at?: string | null;
+  deposit_status?: string | null;
+  status?: string | null;
+  barber_name: string | null;
+  service_summary: string | null;
+  total_price: number | null;
+  deposit_amount: number | null;
+};
+
+type Payment =
+  | {
+      bank_name: string;
+      iban: string;
+      account_name?: string | null;
+      note?: string | null;
+      whatsapp_phone_e164?: string | null;
+    }
+  | null;
+
+const TZ = "Europe/Istanbul";
+const dtf = new Intl.DateTimeFormat("tr-TR", { timeZone: TZ, dateStyle: "short", timeStyle: "short" });
+const tf = new Intl.DateTimeFormat("tr-TR", { timeZone: TZ, hour: "2-digit", minute: "2-digit" });
+
+function fmtDT(iso: string) {
+  try {
+    return dtf.format(new Date(iso));
+  } catch {
+    return iso;
+  }
+}
+function fmtT(iso: string) {
+  try {
+    return tf.format(new Date(iso));
+  } catch {
+    return iso;
+  }
+}
+
+export default function ConfirmationPage() {
+  const params = useParams();
+  const id =
+    typeof (params as any)?.id === "string"
+      ? String((params as any).id)
+      : Array.isArray((params as any)?.id)
+        ? String((params as any).id[0])
+        : "";
+
+  const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState("");
+  const [appt, setAppt] = useState<Appointment | null>(null);
+  const [payment, setPayment] = useState<Payment>(null);
+
+  const [showConfetti, setShowConfetti] = useState(true);
+  const [remainingSec, setRemainingSec] = useState<number | null>(null);
+
+  // Confetti auto-hide
+  useEffect(() => {
+    const t = setTimeout(() => setShowConfetti(false), 1200);
+    return () => clearTimeout(t);
+  }, []);
+
+  // Fetch (never stuck) + abort timeouts
+  useEffect(() => {
+    let cancelled = false;
+
+    // hard timeout: 8s
+    const hard = setTimeout(() => {
+      if (cancelled) return;
+      setToast((t) => t || "Bağlantı yavaş. Lütfen sayfayı yenileyin.");
+      setLoading(false);
+    }, 8000);
+
+    const ctrl1 = new AbortController();
+    const ctrl2 = new AbortController();
+    const t1 = setTimeout(() => ctrl1.abort(), 6000);
+    const t2 = setTimeout(() => ctrl2.abort(), 6000);
+
+    (async () => {
+      try {
+        if (!id) {
+          setToast("Geçersiz randevu ID");
+          return;
+        }
+
+        const a = await fetch(`/api/confirmation?id=${encodeURIComponent(id)}`, {
+          cache: "no-store",
+          signal: ctrl1.signal,
+        });
+        const aj = await a.json().catch(() => ({}));
+        if (!a.ok) {
+          setToast(aj.error || "Randevu bulunamadı");
+          return;
+        }
+        if (!cancelled) setAppt(aj.appointment);
+
+        const pr = await fetch(`/api/payment`, { cache: "no-store", signal: ctrl2.signal });
+        const pj = await pr.json().catch(() => ({}));
+        if (!cancelled) setPayment(pj.payment ?? null);
+      } catch (e: any) {
+        // AbortError dev modda normal; loglamayalım
+        if (e?.name !== "AbortError") console.error("confirmation load failed", e);
+        if (!cancelled) {
+          setToast(
+            e?.name === "AbortError"
+              ? "Bağlantı zaman aşımına uğradı. Lütfen tekrar deneyin."
+              : "Bir hata oluştu. Lütfen tekrar deneyin."
+          );
+        }
+      } finally {
+        clearTimeout(t1);
+        clearTimeout(t2);
+        clearTimeout(hard);
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(hard);
+      ctrl1.abort();
+      ctrl2.abort();
+    };
+  }, [id]);
+
+  // Deposit countdown: starts when appointment is loaded
+  useEffect(() => {
+    if (!appt) return;
+    const TOTAL = 15 * 60;
+    setRemainingSec(TOTAL);
+    const it = setInterval(() => {
+      setRemainingSec((prev) => {
+        if (typeof prev !== "number") return TOTAL;
+        return Math.max(0, prev - 1);
+      });
+    }, 1000);
+    return () => clearInterval(it);
+  }, [appt?.id]);
+
+  const cleanPhone = useMemo(() => {
+    if (!payment?.whatsapp_phone_e164) return "";
+    return String(payment.whatsapp_phone_e164).replace(/[^0-9]/g, "");
+  }, [payment]);
+
+  const message = useMemo(() => {
+    if (!appt || !payment) return "";
+    const dep = Number(appt.deposit_amount || 0);
+    const when = fmtDT(appt.start_at);
+    return `Selam, ben ${appt.customer_name}. ${when} randevumun ${dep} TL depozito ödemesini yaptım. Dekontu aşağıda paylaşıyorum.`;
+  }, [appt, payment]);
+
+  const waWebUrl = useMemo(() => {
+    if (!cleanPhone || !message) return "";
+    return `https://web.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(message)}`;
+  }, [cleanPhone, message]);
+
+  const waAppUrl = useMemo(() => {
+    if (!cleanPhone || !message) return "";
+    return `whatsapp://send?phone=${cleanPhone}&text=${encodeURIComponent(message)}`;
+  }, [cleanPhone, message]);
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-mc-black text-mc-bronze">
+        <div className="mx-auto max-w-xl px-4 py-14 text-center text-neutral-200">Yükleniyor…</div>
+      </main>
+    );
+  }
+
+  return (
+    <main className="min-h-screen bg-mc-black text-mc-bronze">
+      <div className="mx-auto max-w-xl px-4 py-14">
+        <div className="relative text-center">
+          {showConfetti && <ConfettiBurst />}
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-mc-bronze/40 bg-mc-bronze/15 text-mc-bronze shadow-[0_0_0_6px_rgba(192,138,90,0.08)]">
+            <span className="text-3xl leading-none">✓</span>
+          </div>
+          <h1 className="mt-5 font-heading text-4xl text-mc-bronze">Randevunuz Oluşturuldu</h1>
+          <p className="mt-2 text-sm text-neutral-300">Depozito ödemeniz sonrası randevunuz kesinleşecektir.</p>
+        </div>
+
+        {toast && (
+          <div className="mt-6 rounded-xl border border-mc-bronze/30 bg-white/10 px-4 py-3 text-sm text-neutral-200">
+            {toast}
+          </div>
+        )}
+
+        {appt && (
+          <div className="mt-8 rounded-3xl border border-mc-border bg-white text-black shadow-sm overflow-hidden">
+            <div className="h-1 bg-mc-bronze" />
+            <div className="p-6 space-y-3">
+              <Row k="Tarih/Saat" v={fmtDT(appt.start_at)} />
+              <Row k="Bitiş" v={fmtT(appt.end_at)} />
+              {appt.barber_name && <Row k="Berber" v={appt.barber_name} />}
+              <ServiceRow summary={appt.service_summary || "—"} />
+              <Row k="Toplam" v={`${appt.total_price || 0} TL`} />
+              <Row k="Depozito" v={`${appt.deposit_amount || 0} TL`} strong />
+            </div>
+          </div>
+        )}
+
+        {payment && (
+          <div className="mt-6 rounded-3xl border border-mc-border bg-white text-black shadow-sm overflow-hidden">
+            <div className="h-1 bg-mc-bronze" />
+            <div className="p-6 space-y-4">
+              <div className="text-lg font-semibold">Depozito Bilgileri</div>
+
+              {/* Countdown inside deposit card */}
+              {appt &&
+                typeof remainingSec === "number" &&
+                String(appt.deposit_status || "").toLowerCase() !== "paid" &&
+                (remainingSec > 0 ? (
+                  <div
+                    className={[
+                      "mt-3 rounded-2xl border px-4 py-3 text-sm text-neutral-200 transition bg-black/20",
+                      remainingSec <= 300 ? "border-rose-200/40 bg-rose-50/10" : "border-mc-bronze/25 bg-white/10",
+                    ].join(" ")}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-sm font-semibold text-mc-bronze">Depozito için kalan süre:</span>
+
+                      <span
+                        className={[
+                          "inline-flex items-center rounded-full px-3 py-1 font-mono text-lg font-bold tracking-wide",
+                          remainingSec <= 300
+                            ? "bg-rose-50/20 text-rose-200 border border-rose-200/40 animate-pulse"
+                            : "bg-mc-bronze/15 text-mc-bronze border border-mc-bronze/30",
+                        ].join(" ")}
+                      >
+                        {String(Math.floor(remainingSec / 60)).padStart(2, "0")}:
+                        {String(remainingSec % 60).padStart(2, "0")}
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mt-3 rounded-2xl border border-amber-200/30 bg-amber-50/10 px-4 py-3 text-sm text-neutral-200">
+                    <span className="font-semibold text-mc-bronze">Depozito süresi doldu.</span>{" "}
+                    İşletme sizinle iletişime geçecektir.
+                  </div>
+                ))}
+
+              <CopyRow label="IBAN" value={payment.iban || ""} />
+              {payment.account_name && <CopyRow label="Alıcı" value={payment.account_name} />}
+              <CopyRow label="Açıklama" value={`Randevu - ${appt?.customer_name} - ${fmtDT(appt?.start_at || "")}`} />
+            </div>
+          </div>
+        )}
+
+        {waWebUrl && (
+          <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <a
+              href={waWebUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex w-full items-center justify-center rounded-xl px-6 py-3 bg-white text-black font-semibold border border-mc-border hover:border-mc-bronze transition"
+            >
+              WhatsApp Web’de Aç
+            </a>
+            <a
+              href={waAppUrl}
+              className="inline-flex w-full items-center justify-center rounded-xl px-6 py-3 bg-mc-bronze text-black font-semibold hover:opacity-90 transition"
+            >
+              Uygulamada Aç
+            </a>
+          </div>
+        )}
+
+        {appt && (
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <a
+              href={(() => {
+                const text = encodeURIComponent("Man Cave Randevu");
+                const details = encodeURIComponent(
+                  `Hizmet: ${appt.service_summary || "—"}\nDepozito: ${Number(appt.deposit_amount || 0)} TL`
+                );
+                const start = new Date(appt.start_at);
+                const end = new Date(appt.end_at);
+                const fmt = (d: Date) => d.toISOString().replace(/[-:]/g, "").replace(".000", "");
+                const dates = `${fmt(start)}/${fmt(end)}`;
+                return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${text}&details=${details}&dates=${dates}`;
+              })()}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex w-full items-center justify-center rounded-xl px-6 py-3 bg-white text-black font-semibold border border-mc-border hover:border-mc-bronze transition"
+            >
+              Google Takvime Ekle
+            </a>
+
+            <a
+              href={`/api/appointment-ics?id=${encodeURIComponent(id)}`}
+              className="inline-flex w-full items-center justify-center rounded-xl px-6 py-3 bg-white text-black font-semibold border border-mc-border hover:border-mc-bronze transition"
+            >
+              Apple / ICS İndir
+            </a>
+          </div>
+        )}
+
+        <a href="/" className="mt-4 block text-center text-sm text-neutral-300 underline">
+          Yeni randevu oluştur
+        </a>
+      </div>
+    </main>
+  );
+}
+
+function Row({ k, v, strong }: { k: string; v: string; strong?: boolean }) {
+  const isDeposit = k.toLowerCase().includes("depozito");
+  return (
+    <div className={`flex items-center justify-between ${strong ? "font-semibold" : ""}`}>
+      <span className="text-sm text-neutral-600">{k}</span>
+      <span className={["text-sm text-right", isDeposit ? "text-mc-bronze font-semibold" : "text-neutral-900"].join(" ")}>
+        {v}
+      </span>
+    </div>
+  );
+}
+
+function ServiceRow({ summary }: { summary: string }) {
+  const parts = (() => {
+    const raw = (summary || "—").trim();
+    if (raw.includes("+")) return raw.split("+").map((x) => x.trim()).filter(Boolean);
+    if (raw.includes(",")) return raw.split(",").map((x) => x.trim()).filter(Boolean);
+    return [raw];
+  })();
+
+  return (
+    <div className="flex items-start justify-between gap-4">
+      <span className="text-sm text-neutral-600">Hizmet</span>
+      <div className="text-right">
+        {parts.length <= 1 ? (
+          <div className="text-sm text-neutral-900">{parts[0]}</div>
+        ) : (
+          <ul className="space-y-1 text-sm text-neutral-900">
+            {parts.map((x, i) => (
+              <li key={`${x}-${i}`}>• {x}</li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function CopyRow({ label, value }: { label: string; value: string }) {
+  const [copied, setCopied] = useState(false);
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1200);
+    } catch {}
+  }
+
+  return (
+    <div className="flex items-center justify-between gap-4 rounded-xl border px-4 py-3">
+      <div>
+        <div className="text-xs text-neutral-500">{label}</div>
+        <div className="font-mono text-sm break-all">{value}</div>
+      </div>
+      <button
+        onClick={copy}
+        className={[
+          "rounded-lg border px-3 py-1 text-xs transition",
+          copied ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "hover:bg-neutral-100",
+        ].join(" ")}
+      >
+        {copied ? "Kopyalandı!" : "Kopyala"}
+      </button>
+    </div>
+  );
+}
+
+function ConfettiBurst() {
+  const pieces = Array.from({ length: 18 });
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      <style>{`
+        @keyframes confettiFall {
+          0% { transform: translateY(-10px) rotate(0deg); opacity: 1; }
+          100% { transform: translateY(160px) rotate(180deg); opacity: 0; }
+        }
+      `}</style>
+      {pieces.map((_, i) => (
+        <span
+          key={i}
+          className="absolute top-0 h-2 w-1.5 rounded-sm bg-mc-bronze/90"
+          style={{
+            left: `${(i * 100) / pieces.length}%`,
+            animation: `confettiFall 1.1s ease-out forwards`,
+            animationDelay: `${(i % 6) * 0.03}s`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
