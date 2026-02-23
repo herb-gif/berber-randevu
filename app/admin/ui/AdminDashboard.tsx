@@ -94,6 +94,14 @@ function cancelReasonLabel(r?: string | null) {
   return `⚫ ${r}`;
 }
 
+
+function toastToneClass(tone?: Toast["tone"]) {
+  const t = tone || "ok";
+  if (t === "ok") return "border-emerald-500/20 bg-emerald-500/10 text-emerald-200";
+  if (t === "warn") return "border-amber-500/20 bg-amber-500/10 text-amber-200";
+  return "border-rose-500/20 bg-rose-500/10 text-rose-200";
+}
+
 async function fetchPayment(): Promise<Payment | null> {
   const res = await fetch("/api/admin/payment", { cache: "no-store" });
   const data = await res.json().catch(() => ({}));
@@ -149,6 +157,23 @@ const router = useRouter();
   
       
       const [toasts, setToasts] = useState<Toast[]>([]);
+
+  const pushToast = React.useCallback((t: Omit<Toast, "id"> & { id?: string }) => {
+    const id =
+      t.id ||
+      (globalThis.crypto && "randomUUID" in crypto ? crypto.randomUUID() : String(Date.now() + Math.random()));
+
+    const toast: Toast = { id, title: t.title, detail: t.detail, tone: t.tone || "ok" };
+
+    setToasts((prev) => {
+      const next = [...prev, toast];
+      return next.length > 4 ? next.slice(next.length - 4) : next;
+    });
+
+    window.setTimeout(() => {
+      setToasts((prev) => prev.filter((x) => x.id !== id));
+    }, 2600);
+  }, []);
 const [actionMenuId, setActionMenuId] = useState<string | null>(null);
 async function load() {
     setLoading(true);
@@ -391,17 +416,6 @@ return (sortedRows || []).filter((r) => {
           };
         })
       );
-    }
-
-
-
-  function pushToast(t: Omit<Toast, "id">) {
-      const id = `${Date.now()}_${Math.random().toString(16).slice(2)}`;
-      const toast: Toast = { id, tone: t.tone ?? "ok", title: t.title, detail: t.detail };
-      setToasts((prev) => [toast, ...(prev || [])].slice(0, 4));
-      window.setTimeout(() => {
-        setToasts((prev) => (prev || []).filter((x) => x.id !== id));
-      }, 2600);
     }
 
 async function logout() {
