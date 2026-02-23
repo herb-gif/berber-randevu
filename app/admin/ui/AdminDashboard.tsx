@@ -357,7 +357,7 @@ async function load() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <select className="relative rounded-xl border border-white/10 bg-neutral-900 px-4 py-2 pr-10 text-sm text-neutral-100 hover:bg-neutral-800 hover:border-mc-bronze transition" value={days} onChange={(e) => setDays(Number(e.target.value))}>
+          <select className={`relative rounded-xl border border-white/10 bg-neutral-900 px-4 py-2 pr-10 text-sm text-neutral-100 hover:bg-neutral-800 hover:border-mc-bronze transition`} value={days} onChange={(e) => setDays(Number(e.target.value))}>
             <option value={1}>1 gün</option>
             <option value={7}>7 gün</option>
             <option value={14}>14 gün</option>
@@ -501,6 +501,14 @@ async function load() {
                     : needsDeposit && minsTo <= 360
                       ? "amber"
                       : null;
+                const waBtnTone =
+                  waDot === "green"
+                    ? "ring-1 ring-emerald-400/40"
+                    : waDot === "red"
+                      ? "ring-1 ring-rose-400/40"
+                      : waDot === "amber"
+                        ? "ring-1 ring-amber-400/40"
+                        : "";
 return (
                 <React.Fragment key={r.id}>
                   <tr className={rowClass(r)}>
