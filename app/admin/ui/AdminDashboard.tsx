@@ -47,7 +47,7 @@ type Payment = {
 
 
 
-type Toast = { id: string; title: string; detail?: string; tone?: "ok" | "warn" | "bad" };
+type Toast = { id: string; title: string; detail?: string; tone?: "ok" | "warn" | "bad"; createdAt?: number };
 const TZ = "Europe/Istanbul";
 const dtf = new Intl.DateTimeFormat("tr-TR", { timeZone: TZ, dateStyle: "short", timeStyle: "short" });
 const tf = new Intl.DateTimeFormat("tr-TR", { timeZone: TZ, hour: "2-digit", minute: "2-digit" });
@@ -60,6 +60,23 @@ function fmtT(iso: string) {
 }
 function digitsOnly(x: string) {
   return (x || "").replace(/[^0-9]/g, "");
+
+      <style jsx global>{`
+        .mc-toast { animation: mcToastIn 180ms ease-out both; }
+        @keyframes mcToastIn {
+          from { opacity: 0; transform: translateX(10px); }
+          to { opacity: 1; transform: translateX(0); }
+        }
+        .mc-toast .mc-toast-bar { transform-origin: left; animation: mcToastBar 2600ms linear both; background: rgba(255,255,255,0.45); }
+        @keyframes mcToastBar {
+          from { transform: scaleX(1); }
+          to { transform: scaleX(0); }
+        }
+        /* tone glow */
+        .mc-toast.border-emerald-500\/20 { box-shadow: 0 0 18px rgba(16,185,129,0.22); }
+        .mc-toast.border-amber-500\/20 { box-shadow: 0 0 18px rgba(245,158,11,0.18); }
+        .mc-toast.border-rose-500\/20 { box-shadow: 0 0 18px rgba(244,63,94,0.18); }
+      `}</style>
 }
 function waUrl(phone: string, text: string) {
   return buildWhatsAppWebUrl(phone, text);
@@ -100,6 +117,27 @@ function toastToneClass(tone?: Toast["tone"]) {
   if (t === "ok") return "border-emerald-500/20 bg-emerald-500/10 text-emerald-200";
   if (t === "warn") return "border-amber-500/20 bg-amber-500/10 text-amber-200";
   return "border-rose-500/20 bg-rose-500/10 text-rose-200";
+}
+
+
+function playBeep() {
+  try {
+    const Ctx = (window as any).AudioContext || (window as any).webkitAudioContext;
+    if (!Ctx) return;
+    const ctx = new Ctx();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = "sine";
+    o.frequency.value = 880;
+    g.gain.value = 0.0001;
+    o.connect(g);
+    g.connect(ctx.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.08, ctx.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.12);
+    o.stop(ctx.currentTime + 0.14);
+    o.onended = () => ctx.close?.();
+  } catch {}
 }
 
 async function fetchPayment(): Promise<Payment | null> {
@@ -160,19 +198,22 @@ export default function AdminDashboard() {
   const [actionMenuId, setActionMenuId] = useState<string | null>(null);
 
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const [toastSoundEnabled, setToastSoundEnabled] = useState(false);
   const pushToast = React.useCallback((t: Omit<Toast, "id"> & { id?: string }) => {
     const id =
       t.id ||
       (globalThis.crypto && "randomUUID" in crypto ? crypto.randomUUID() : String(Date.now() + Math.random()));
 
-    const toast: Toast = { id, title: t.title, detail: t.detail, tone: t.tone || "ok" };
+    const toast: Toast = { id, title: t.title, detail: t.detail, tone: t.tone || "ok", createdAt: Date.now() };
 
     setToasts((prev) => {
       const next = [...prev, toast];
       return next.length > 4 ? next.slice(next.length - 4) : next;
     });
 
-    window.setTimeout(() => {
+    
+    if (toastSoundEnabled && (toast.tone || "ok") === "ok") playBeep();
+window.setTimeout(() => {
       setToasts((prev) => prev.filter((x) => x.id !== id));
     }, 2600);
   }, []);
