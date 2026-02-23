@@ -131,7 +131,9 @@ export default function AdminDashboard() {
     const [filterStatus, setFilterStatus] = useState("all");
     const [filterDep, setFilterDep] = useState("all");
 
-    const router = useRouter();
+    
+      const [filterWhen, setFilterWhen] = useState("all");
+const router = useRouter();
     const searchParams = useSearchParams();
     const didInitFiltersRef = useRef(false);
     const tableTopRef = useRef<HTMLDivElement | null>(null);
@@ -163,10 +165,14 @@ async function load() {
       const st = searchParams.get("status") || "all";
       const dep = searchParams.get("dep") || "all";
 
-      setFilterQ(q);
+      
+        const when = searchParams.get("when") || "all";
+setFilterQ(q);
       setFilterStatus(st);
       setFilterDep(dep);
-      // eslint-disable-next-line react-hooks/exhaustive-deps
+      
+        setFilterWhen(when);
+// eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchParams]);
 
     useEffect(() => {
@@ -182,17 +188,20 @@ async function load() {
       if (filterDep !== "all") params.set("dep", filterDep);
       else params.delete("dep");
 
-      const qs = params.toString();
+      
+        if (filterWhen !== "all") params.set("when", filterWhen);
+        else params.delete("when");
+const qs = params.toString();
       router.replace(qs ? `/admin?${qs}` : "/admin");
       // eslint-disable-next-line react-hooks/exhaustive-deps
 
-}, [filterQ, filterStatus, filterDep]);
+}, [filterQ, filterStatus, filterDep, filterWhen]);
 
     useEffect(() => {
       // Filtre değişince tabloya kaydır
       tableTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [filterQ, filterStatus, filterDep]);
+    }, [filterQ, filterStatus, filterDep, filterWhen]);
 
 
 
@@ -249,7 +258,12 @@ async function load() {
     const viewRows = useMemo(() => {
       const q = filterQ.trim().toLowerCase();
 
-      return (sortedRows || []).filter((r) => {
+      
+
+        const todayKey = new Date().toLocaleDateString("en-CA", { timeZone: TZ });
+        const tomorrowKey = new Date(Date.now() + 24 * 60 * 60 * 1000).toLocaleDateString("en-CA", { timeZone: TZ });
+        const weekEndKey = new Date(Date.now() + 6 * 24 * 60 * 60 * 1000).toLocaleDateString("en-CA", { timeZone: TZ });
+return (sortedRows || []).filter((r) => {
         const st = String(r.status || "").toLowerCase();
         const dep = String(r.deposit_status || "").toLowerCase().trim();
 
@@ -261,6 +275,15 @@ async function load() {
             if (dep !== filterDep) return false;
           }
         }
+          // Tarih preset filtresi
+          const dayKey = new Date(r.start_at).toLocaleDateString("en-CA", { timeZone: TZ });
+          if (filterWhen === "today" && dayKey !== todayKey) return false;
+          if (filterWhen === "tomorrow" && dayKey !== tomorrowKey) return false;
+          if (filterWhen === "week") {
+            if (dayKey < todayKey || dayKey > weekEndKey) return false;
+          }
+
+
 
         if (!q) return true;
 
@@ -274,7 +297,7 @@ async function load() {
 
         return hay.includes(q);
       });
-    }, [sortedRows, filterQ, filterStatus, filterDep]);
+    }, [sortedRows, filterQ, filterStatus, filterDep, filterWhen]);
 
   async function cancel(id: string) {
       if (!confirm("Randevu iptal edilsin mi?")) return;
@@ -399,7 +422,40 @@ async function load() {
         {/* Filtreler */}
         <div className="mt-6 rounded-2xl border border-white/10 bg-neutral-900 p-4 shadow-sm">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div className="flex-1">
+            <div className="mb-3 flex flex-wrap items-center gap-2">
+                <button
+                  className={`rounded-full border px-3 py-1 text-xs transition ${
+                    filterWhen === "today"
+                      ? "border-mc-bronze bg-mc-bronze/10 text-mc-bronze"
+                      : "border-white/10 bg-neutral-900 text-neutral-200 hover:bg-neutral-800"
+                  }`}
+                  onClick={() => setFilterWhen(filterWhen === "today" ? "all" : "today")}
+                >
+                  Bugün
+                </button>
+                <button
+                  className={`rounded-full border px-3 py-1 text-xs transition ${
+                    filterWhen === "tomorrow"
+                      ? "border-mc-bronze bg-mc-bronze/10 text-mc-bronze"
+                      : "border-white/10 bg-neutral-900 text-neutral-200 hover:bg-neutral-800"
+                  }`}
+                  onClick={() => setFilterWhen(filterWhen === "tomorrow" ? "all" : "tomorrow")}
+                >
+                  Yarın
+                </button>
+                <button
+                  className={`rounded-full border px-3 py-1 text-xs transition ${
+                    filterWhen === "week"
+                      ? "border-mc-bronze bg-mc-bronze/10 text-mc-bronze"
+                      : "border-white/10 bg-neutral-900 text-neutral-200 hover:bg-neutral-800"
+                  }`}
+                  onClick={() => setFilterWhen(filterWhen === "week" ? "all" : "week")}
+                >
+                  Bu hafta
+                </button>
+              </div>
+
+              <div className="flex-1">
               <div className="text-xs text-neutral-500">Arama</div>
               <input
                 value={filterQ}
@@ -448,7 +504,8 @@ async function load() {
                     setFilterQ("");
                     setFilterStatus("all");
                     setFilterDep("all");
-                  }}
+                      setFilterWhen("all");
+}}
                 >
                   Temizle
                 </button>
