@@ -153,6 +153,9 @@ export default function AdminDashboard() {
   const didInitFiltersRef = useRef(false);
   const tableTopRef = useRef<HTMLDivElement | null>(null);
 
+
+  const rtQueueRef = useRef<any[]>([]);
+  const rtTimerRef = useRef<number | null>(null);
   const [waMenuId, setWaMenuId] = useState<string | null>(null);
   const [actionMenuId, setActionMenuId] = useState<string | null>(null);
 
@@ -188,63 +191,110 @@ export default function AdminDashboard() {
   }, [days]);
 
   useEffect(() => {
+    const flush = () => {
+      const batch = rtQueueRef.current.splice(0);
+      rtTimerRef.current = null;
+
+      if (batch.length === 0) return;
+
+      // summarize events (single toast)
+      const counts = { INSERT: 0, UPDATE: 0, DELETE: 0, OTHER: 0 };
+      for (const payload of batch) {
+        const ev = String(payload?.eventType || "").toUpperCase();
+        if (ev === "INSERT") counts.INSERT++;
+        else if (ev === "UPDATE") counts.UPDATE++;
+        else if (ev === "DELETE") counts.DELETE++;
+        else counts.OTHER++;
+      }
+
+      const parts: string[] = [];
+      if (counts.UPDATE) parts.push(`${counts.UPDATE} güncelleme`);
+      if (counts.INSERT) parts.push(`${counts.INSERT} yeni`);
+      if (counts.DELETE) parts.push(`${counts.DELETE} silme`);
+      if (counts.OTHER) parts.push(`${counts.OTHER} değişim`);
+
+      const detail = parts.join(" • ");
+      const tone = counts.DELETE ? "bad" : counts.INSERT ? "ok" : "warn";
+      pushToast({ title: "Realtime", detail: detail || "Güncelleme", tone });
+
+      // If any INSERT exists, safest: refetch once (enriched API rows)
+      if (counts.INSERT > 0) {
+        load();
+        return;
+      }
+
+      // Otherwise: patch updates/deletes in batch
+      let didMutate = false;
+      // We'll do deletes first
+      const delIds = new Set<string>();
+      for (const payload of batch) {
+        const ev = String(payload?.eventType || "").toUpperCase();
+        if (ev !== "DELETE") continue;
+        const o = payload?.old || null;
+        const id = o && o.id;
+        if (id) delIds.add(String(id));
+      }
+      if (delIds.size > 0) {
+        didMutate = true;
+        setRows((prev) => prev.filter((r) => !delIds.has(r.id)));
+      }
+
+      // Updates
+      const updates: any[] = [];
+      for (const payload of batch) {
+        const ev = String(payload?.eventType || "").toUpperCase();
+        if (ev !== "UPDATE") continue;
+        const n = payload?.new || null;
+        const id = n && n.id;
+        if (id) updates.push(n);
+      }
+      if (updates.length > 0) {
+        didMutate = true;
+        const byId = new Map<string, any>();
+        for (const n of updates) byId.set(String(n.id), n);
+
+        setRows((prev) =>
+          prev.map((r) => {
+            const n = byId.get(r.id);
+            if (!n) return r;
+            const next: any = { ...r };
+            if (typeof n.status === "string") next.status = n.status;
+            if (typeof n.deposit_status === "string") next.deposit_status = n.deposit_status;
+            if (typeof n.start_at === "string") next.start_at = n.start_at;
+            if (typeof n.end_at === "string") next.end_at = n.end_at;
+            if (typeof n.customer_name === "string") next.customer_name = n.customer_name;
+            if (typeof n.customer_phone === "string") next.customer_phone = n.customer_phone;
+            return next as Row;
+          })
+        );
+      }
+
+      // If we couldn't confidently patch anything, refetch once
+      if (!didMutate) {
+        load();
+      }
+    };
+
     const channel = supabaseBrowser
       .channel("admin-realtime-appointments")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "appointments" },
         (payload: any) => {
-          const ev = String(payload?.eventType || "").toUpperCase();
-          const n = payload?.new || null;
-          const o = payload?.old || null;
-          const id = (n && n.id) || (o && o.id);
+          rtQueueRef.current.push(payload);
 
-          if (ev === "INSERT") pushToast({ title: "Yeni randevu", detail: "Yeni kayıt eklendi", tone: "ok" });
-          else if (ev === "UPDATE") pushToast({ title: "Güncelleme", detail: "Randevu güncellendi", tone: "warn" });
-          else if (ev === "DELETE") pushToast({ title: "Silindi", detail: "Randevu silindi", tone: "bad" });
-          else pushToast({ title: "Güncelleme", detail: "Randevular güncellendi", tone: "warn" });
-
-          if (!id) {
-            load();
-            return;
-          }
-
-          // INSERT: enriched rows come from API (blocks etc.)
-          if (ev === "INSERT") {
-            load();
-            return;
-          }
-
-          // DELETE: remove locally
-          if (ev === "DELETE") {
-            setRows((prev) => prev.filter((r) => r.id !== id));
-            return;
-          }
-
-          // UPDATE: patch minimal fields
-          if (ev === "UPDATE") {
-            setRows((prev) =>
-              prev.map((r) => {
-                if (r.id !== id) return r;
-                const next: any = { ...r };
-                if (n && typeof n.status === "string") next.status = n.status;
-                if (n && typeof n.deposit_status === "string") next.deposit_status = n.deposit_status;
-                if (n && typeof n.start_at === "string") next.start_at = n.start_at;
-                if (n && typeof n.end_at === "string") next.end_at = n.end_at;
-                if (n && typeof n.customer_name === "string") next.customer_name = n.customer_name;
-                if (n && typeof n.customer_phone === "string") next.customer_phone = n.customer_phone;
-                return next as Row;
-              })
-            );
-            return;
-          }
-
-          load();
+          if (rtTimerRef.current != null) return;
+          rtTimerRef.current = window.setTimeout(flush, 300);
         }
       )
       .subscribe();
 
     return () => {
+      if (rtTimerRef.current != null) {
+        window.clearTimeout(rtTimerRef.current);
+        rtTimerRef.current = null;
+      }
+      rtQueueRef.current = [];
       supabaseBrowser.removeChannel(channel);
     };
   }, [load, pushToast]);
