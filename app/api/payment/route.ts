@@ -6,7 +6,6 @@ export async function GET() {
   const { data, error } = await supabase
     .from("payment_settings")
     .select("bank_name, iban, account_name, note, whatsapp_phone_e164")
-    .eq("is_active", true)
     .order("created_at", { ascending: false })
     .limit(1);
 
