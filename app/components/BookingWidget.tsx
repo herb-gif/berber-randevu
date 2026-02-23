@@ -543,7 +543,7 @@ return (
           <div className="h-1 bg-mc-bronze" />
           <div className="p-6 pb-24 md:pb-6">
     
-          <div className="mt-2">
+          <div className="text-xs text-neutral-600 mt-1">
         <div data-step-progress className="mt-2 flex flex-wrap gap-2">
           {steps.map((label, i) => {
             const active = i === currentStep;
