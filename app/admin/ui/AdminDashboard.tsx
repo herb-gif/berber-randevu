@@ -687,575 +687,135 @@ return (
 </button>
 
                             {waMenuId === r.id && (
-                              <div className="absolute right-0 z-30 mt-2 w-60 overflow-hidden rounded-2xl border border-white/10 bg-neutral-900 shadow-xl ring-1 ring-black/5">
-
-                                  {/* Smart order */}
+                                <div className="absolute right-0 z-30 mt-2 w-60 overflow-hidden rounded-2xl border border-white/10 bg-neutral-900 shadow-xl ring-1 ring-black/5">
                                   {(() => {
                                     const needsDeposit = dep === "pending" || dep === "required";
+                                    const paidSet = new Set(["paid", "odendi", "ödendi", "completed", "confirmed"]);
+                                    const isPaid = paidSet.has(dep);
+
+                                    const openPaymentMsg = async (mode: "open" | "copy") => {
+                                      setWaMenuId(null);
+                                      const pmt = await fetchPayment();
+                                      if (!pmt) return alert("Ödeme bilgileri alınamadı");
+                                      const msg = buildDepositPaymentMessage(
+                                        {
+                                          customerName: r.customer_name,
+                                          dateISO: r.start_at,
+                                          serviceSummary: r.service_summary ?? "—",
+                                          totalPrice: r.total_price ?? 0,
+                                          depositAmount: r.deposit_amount ?? 0,
+                                        },
+                                        pmt
+                                      );
+                                      const phone = (r.customer_phone_e164 || r.customer_phone || "");
+                                      if (mode === "open") {
+                                        window.open(buildWhatsAppWebUrl(phone, msg), "_blank");
+                                        return;
+                                      }
+                                      try {
+                                        await navigator.clipboard.writeText(msg);
+                                        alert("Mesaj kopyalandı ✅");
+                                      } catch {
+                                        alert("Kopyalanamadı");
+                                      }
+                                    };
+
+                                    const openApproval = () => {
+                                      setWaMenuId(null);
+                                      const phone = (r.customer_phone_e164 || r.customer_phone || "");
+                                      const msg = buildApprovalMessage({
+                                        customerName: r.customer_name,
+                                        date: (r.start_at || "").slice(0, 10),
+                                        time: fmtT(r.start_at),
+                                        serviceSummary: r.service_summary ?? "—",
+                                      });
+                                      window.open(buildWhatsAppWebUrl(phone, msg), "_blank");
+                                    };
+
+                                    const openReminder = () => {
+                                      setWaMenuId(null);
+                                      const phone = (r.customer_phone_e164 || r.customer_phone || "");
+                                      const msg = buildReminderMessage({
+                                        customerName: r.customer_name,
+                                        date: (r.start_at || "").slice(0, 10),
+                                        time: fmtT(r.start_at),
+                                        serviceSummary: r.service_summary ?? "—",
+                                      });
+                                      window.open(buildWhatsAppWebUrl(phone, msg), "_blank");
+                                    };
+
                                     if (needsDeposit) {
                                       return (
                                         <>
-                                <button
-                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
-                                  onClick={async () => {
-                                    setWaMenuId(null);
-                                    const pmt = await fetchPayment();
-                                    if (!pmt) return alert("Ödeme bilgileri alınamadı");
-                                    const msg = buildDepositPaymentMessage(
-                                      {
-                                        customerName: r.customer_name,
-                                        dateISO: r.start_at,
-                                        serviceSummary: r.service_summary ?? "—",
-                                        totalPrice: r.total_price ?? 0,
-                                        depositAmount: r.deposit_amount ?? 0,
-                                      },
-                                      pmt
-                                    );
-                                    const phone = (r.customer_phone_e164 || r.customer_phone || "");
-                                    window.open(buildWhatsAppWebUrl(phone, msg), "_blank");
-                                  }}
-                                >
-                                  Ödeme Mesajı Aç
-                                </button>
+                                          <button
+                                            className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
+                                            onClick={() => openPaymentMsg("open")}
+                                          >
+                                            Ödeme Mesajı Aç
+                                          </button>
+                                          <button
+                                            className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
+                                            onClick={() => openPaymentMsg("copy")}
+                                          >
+                                            Ödeme Mesajı Kopyala
+                                          </button>
 
-                                
-                                <button
-                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
-                                  onClick={async () => {
-                                    setWaMenuId(null);
-                                    const pmt = await fetchPayment();
-                                    if (!pmt) return alert("Ödeme bilgileri alınamadı");
-                                    const msg = buildDepositPaymentMessage(
-                                      {
-                                        customerName: r.customer_name,
-                                        dateISO: r.start_at,
-                                        serviceSummary: r.service_summary ?? "—",
-                                        totalPrice: r.total_price ?? 0,
-                                        depositAmount: r.deposit_amount ?? 0,
-                                      },
-                                      pmt
-                                    );
-                                    const phone = (r.customer_phone_e164 || r.customer_phone || "");
-                                    window.open(buildWhatsAppWebUrl(phone, msg), "_blank");
-                                  }}
-                                >
-                                  Ödeme Mesajı Aç
-                                </button>
+                                          <div className="h-px bg-white/10" />
 
-                                <button
-                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
-                                  onClick={async () => {
-                                    setWaMenuId(null);
-                                    const pmt = await fetchPayment();
-                                    if (!pmt) return alert("Ödeme bilgileri alınamadı");
-                                    const msg = buildDepositPaymentMessage(
-                                      {
-                                        customerName: r.customer_name,
-                                        dateISO: r.start_at,
-                                        serviceSummary: r.service_summary ?? "—",
-                                        totalPrice: r.total_price ?? 0,
-                                        depositAmount: r.deposit_amount ?? 0,
-                                      },
-                                      pmt
-                                    );
-                                    try {
-                                      await navigator.clipboard.writeText(msg);
-                                      alert("Mesaj kopyalandı ✅");
-                                    } catch {
-                                      alert("Kopyalanamadı");
-                                    }
-                                  }}
-                                >
-                                  Ödeme Mesajı Kopyala
-                                </button>
-
-                                
-                                  <div className="h-px bg-white/10" />
-
-                                <button
-                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
-                                  onClick={async () => {
-                                    setWaMenuId(null);
-                                    const pmt = await fetchPayment();
-                                    if (!pmt) return alert("Ödeme bilgileri alınamadı");
-                                    const msg = buildDepositPaymentMessage(
-                                      {
-                                        customerName: r.customer_name,
-                                        dateISO: r.start_at,
-                                        serviceSummary: r.service_summary ?? "—",
-                                        totalPrice: r.total_price ?? 0,
-                                        depositAmount: r.deposit_amount ?? 0,
-                                      },
-                                      pmt
-                                    );
-                                    const phone = (r.customer_phone_e164 || r.customer_phone || "");
-                                    window.open(buildWhatsAppWebUrl(phone, msg), "_blank");
-                                  }}
-                                >
-                                  Ödeme Mesajı Aç
-                                </button>
-
-                                <button
-                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
-                                  onClick={async () => {
-                                    setWaMenuId(null);
-                                    const pmt = await fetchPayment();
-                                    if (!pmt) return alert("Ödeme bilgileri alınamadı");
-                                    const msg = buildDepositPaymentMessage(
-                                      {
-                                        customerName: r.customer_name,
-                                        dateISO: r.start_at,
-                                        serviceSummary: r.service_summary ?? "—",
-                                        totalPrice: r.total_price ?? 0,
-                                        depositAmount: r.deposit_amount ?? 0,
-                                      },
-                                      pmt
-                                    );
-                                    try {
-                                      await navigator.clipboard.writeText(msg);
-                                      alert("Mesaj kopyalandı ✅");
-                                    } catch {
-                                      alert("Kopyalanamadı");
-                                    }
-                                  }}
-                                >
-                                  Ödeme Mesajı Kopyala
-                                </button>
-
-                                <div className="h-px bg-white/10" />
-
-                                <button
-                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
-                                  onClick={() => {
-                                    setWaMenuId(null);
-                                    const phone = (r.customer_phone_e164 || r.customer_phone || "");
-                                    const msg = buildApprovalMessage({
-                                      customerName: r.customer_name,
-                                      date: (r.start_at || "").slice(0, 10),
-                                      time: fmtT(r.start_at),
-                                      serviceSummary: r.service_summary ?? "—",
-                                    });
-                                    window.open(buildWhatsAppWebUrl(phone, msg), "_blank");
-                                  }}
-                                >
-                                  Onay Mesajı
-                                </button>
-
-                                
-                                <button
-                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
-                                  onClick={async () => {
-                                    setWaMenuId(null);
-                                    const pmt = await fetchPayment();
-                                    if (!pmt) return alert("Ödeme bilgileri alınamadı");
-                                    const msg = buildDepositPaymentMessage(
-                                      {
-                                        customerName: r.customer_name,
-                                        dateISO: r.start_at,
-                                        serviceSummary: r.service_summary ?? "—",
-                                        totalPrice: r.total_price ?? 0,
-                                        depositAmount: r.deposit_amount ?? 0,
-                                      },
-                                      pmt
-                                    );
-                                    const phone = (r.customer_phone_e164 || r.customer_phone || "");
-                                    window.open(buildWhatsAppWebUrl(phone, msg), "_blank");
-                                  }}
-                                >
-                                  Ödeme Mesajı Aç
-                                </button>
-
-                                <button
-                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
-                                  onClick={async () => {
-                                    setWaMenuId(null);
-                                    const pmt = await fetchPayment();
-                                    if (!pmt) return alert("Ödeme bilgileri alınamadı");
-                                    const msg = buildDepositPaymentMessage(
-                                      {
-                                        customerName: r.customer_name,
-                                        dateISO: r.start_at,
-                                        serviceSummary: r.service_summary ?? "—",
-                                        totalPrice: r.total_price ?? 0,
-                                        depositAmount: r.deposit_amount ?? 0,
-                                      },
-                                      pmt
-                                    );
-                                    try {
-                                      await navigator.clipboard.writeText(msg);
-                                      alert("Mesaj kopyalandı ✅");
-                                    } catch {
-                                      alert("Kopyalanamadı");
-                                    }
-                                  }}
-                                >
-                                  Ödeme Mesajı Kopyala
-                                </button>
-
-                                <div className="h-px bg-white/10" />
-
-                                <button
-                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
-                                  onClick={() => {
-                                    setWaMenuId(null);
-                                    const phone = (r.customer_phone_e164 || r.customer_phone || "");
-                                    const msg = buildApprovalMessage({
-                                      customerName: r.customer_name,
-                                      date: (r.start_at || "").slice(0, 10),
-                                      time: fmtT(r.start_at),
-                                      serviceSummary: r.service_summary ?? "—",
-                                    });
-                                    window.open(buildWhatsAppWebUrl(phone, msg), "_blank");
-                                  }}
-                                >
-                                  Onay Mesajı
-                                </button>
-
-                                <button
-                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
-                                  onClick={() => {
-                                    setWaMenuId(null);
-                                    const phone = (r.customer_phone_e164 || r.customer_phone || "");
-                                    const msg = buildReminderMessage({
-                                      customerName: r.customer_name,
-                                      date: (r.start_at || "").slice(0, 10),
-                                      time: fmtT(r.start_at),
-                                      serviceSummary: r.service_summary ?? "—",
-                                    });
-                                    window.open(buildWhatsAppWebUrl(phone, msg), "_blank");
-                                  }}
-                                >
-                                  Hatırlatma
-                                </button>                                        </>
+                                          <button
+                                            className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
+                                            onClick={openApproval}
+                                          >
+                                            Onay Mesajı
+                                          </button>
+                                          <button
+                                            className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
+                                            onClick={openReminder}
+                                          >
+                                            Hatırlatma
+                                          </button>
+                                        </>
                                       );
                                     }
-                                    const paidSet = new Set(["paid","odendi","ödendi","completed","confirmed"]);
-                                    if (paidSet.has(dep)) {
+
+                                    // Paid veya diğer durumlar: Onay + Hatırlatma
+                                    if (isPaid) {
                                       return (
                                         <>
-                                <button
-                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
-                                  onClick={async () => {
-                                    setWaMenuId(null);
-                                    const pmt = await fetchPayment();
-                                    if (!pmt) return alert("Ödeme bilgileri alınamadı");
-                                    const msg = buildDepositPaymentMessage(
-                                      {
-                                        customerName: r.customer_name,
-                                        dateISO: r.start_at,
-                                        serviceSummary: r.service_summary ?? "—",
-                                        totalPrice: r.total_price ?? 0,
-                                        depositAmount: r.deposit_amount ?? 0,
-                                      },
-                                      pmt
-                                    );
-                                    const phone = (r.customer_phone_e164 || r.customer_phone || "");
-                                    window.open(buildWhatsAppWebUrl(phone, msg), "_blank");
-                                  }}
-                                >
-                                  Ödeme Mesajı Aç
-                                </button>
-
-                                <button
-                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
-                                  onClick={async () => {
-                                    setWaMenuId(null);
-                                    const pmt = await fetchPayment();
-                                    if (!pmt) return alert("Ödeme bilgileri alınamadı");
-                                    const msg = buildDepositPaymentMessage(
-                                      {
-                                        customerName: r.customer_name,
-                                        dateISO: r.start_at,
-                                        serviceSummary: r.service_summary ?? "—",
-                                        totalPrice: r.total_price ?? 0,
-                                        depositAmount: r.deposit_amount ?? 0,
-                                      },
-                                      pmt
-                                    );
-                                    try {
-                                      await navigator.clipboard.writeText(msg);
-                                      alert("Mesaj kopyalandı ✅");
-                                    } catch {
-                                      alert("Kopyalanamadı");
-                                    }
-                                  }}
-                                >
-                                  Ödeme Mesajı Kopyala
-                                </button>
-
-                                <div className="h-px bg-white/10" />
-
-                                <button
-                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
-                                  onClick={() => {
-                                    setWaMenuId(null);
-                                    const phone = (r.customer_phone_e164 || r.customer_phone || "");
-                                    const msg = buildApprovalMessage({
-                                      customerName: r.customer_name,
-                                      date: (r.start_at || "").slice(0, 10),
-                                      time: fmtT(r.start_at),
-                                      serviceSummary: r.service_summary ?? "—",
-                                    });
-                                    window.open(buildWhatsAppWebUrl(phone, msg), "_blank");
-                                  }}
-                                >
-                                  Onay Mesajı
-                                </button>
-
-                                
-                                  <div className="h-px bg-white/10" />
-
-                                <button
-                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
-                                  onClick={async () => {
-                                    setWaMenuId(null);
-                                    const pmt = await fetchPayment();
-                                    if (!pmt) return alert("Ödeme bilgileri alınamadı");
-                                    const msg = buildDepositPaymentMessage(
-                                      {
-                                        customerName: r.customer_name,
-                                        dateISO: r.start_at,
-                                        serviceSummary: r.service_summary ?? "—",
-                                        totalPrice: r.total_price ?? 0,
-                                        depositAmount: r.deposit_amount ?? 0,
-                                      },
-                                      pmt
-                                    );
-                                    const phone = (r.customer_phone_e164 || r.customer_phone || "");
-                                    window.open(buildWhatsAppWebUrl(phone, msg), "_blank");
-                                  }}
-                                >
-                                  Ödeme Mesajı Aç
-                                </button>
-
-                                <button
-                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
-                                  onClick={async () => {
-                                    setWaMenuId(null);
-                                    const pmt = await fetchPayment();
-                                    if (!pmt) return alert("Ödeme bilgileri alınamadı");
-                                    const msg = buildDepositPaymentMessage(
-                                      {
-                                        customerName: r.customer_name,
-                                        dateISO: r.start_at,
-                                        serviceSummary: r.service_summary ?? "—",
-                                        totalPrice: r.total_price ?? 0,
-                                        depositAmount: r.deposit_amount ?? 0,
-                                      },
-                                      pmt
-                                    );
-                                    try {
-                                      await navigator.clipboard.writeText(msg);
-                                      alert("Mesaj kopyalandı ✅");
-                                    } catch {
-                                      alert("Kopyalanamadı");
-                                    }
-                                  }}
-                                >
-                                  Ödeme Mesajı Kopyala
-                                </button>
-
-                                <div className="h-px bg-white/10" />
-
-                                <button
-                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
-                                  onClick={() => {
-                                    setWaMenuId(null);
-                                    const phone = (r.customer_phone_e164 || r.customer_phone || "");
-                                    const msg = buildApprovalMessage({
-                                      customerName: r.customer_name,
-                                      date: (r.start_at || "").slice(0, 10),
-                                      time: fmtT(r.start_at),
-                                      serviceSummary: r.service_summary ?? "—",
-                                    });
-                                    window.open(buildWhatsAppWebUrl(phone, msg), "_blank");
-                                  }}
-                                >
-                                  Onay Mesajı
-                                </button>
-
-                                <button
-                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
-                                  onClick={() => {
-                                    setWaMenuId(null);
-                                    const phone = (r.customer_phone_e164 || r.customer_phone || "");
-                                    const msg = buildReminderMessage({
-                                      customerName: r.customer_name,
-                                      date: (r.start_at || "").slice(0, 10),
-                                      time: fmtT(r.start_at),
-                                      serviceSummary: r.service_summary ?? "—",
-                                    });
-                                    window.open(buildWhatsAppWebUrl(phone, msg), "_blank");
-                                  }}
-                                >
-                                  Hatırlatma
-                                </button>                                        </>
+                                          <button
+                                            className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
+                                            onClick={openApproval}
+                                          >
+                                            Onay Mesajı
+                                          </button>
+                                          <button
+                                            className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
+                                            onClick={openReminder}
+                                          >
+                                            Hatırlatma
+                                          </button>
+                                        </>
                                       );
                                     }
+
                                     return (
                                       <>
-                                <button
-                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
-                                  onClick={async () => {
-                                    setWaMenuId(null);
-                                    const pmt = await fetchPayment();
-                                    if (!pmt) return alert("Ödeme bilgileri alınamadı");
-                                    const msg = buildDepositPaymentMessage(
-                                      {
-                                        customerName: r.customer_name,
-                                        dateISO: r.start_at,
-                                        serviceSummary: r.service_summary ?? "—",
-                                        totalPrice: r.total_price ?? 0,
-                                        depositAmount: r.deposit_amount ?? 0,
-                                      },
-                                      pmt
-                                    );
-                                    const phone = (r.customer_phone_e164 || r.customer_phone || "");
-                                    window.open(buildWhatsAppWebUrl(phone, msg), "_blank");
-                                  }}
-                                >
-                                  Ödeme Mesajı Aç
-                                </button>
-
-                                <button
-                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
-                                  onClick={async () => {
-                                    setWaMenuId(null);
-                                    const pmt = await fetchPayment();
-                                    if (!pmt) return alert("Ödeme bilgileri alınamadı");
-                                    const msg = buildDepositPaymentMessage(
-                                      {
-                                        customerName: r.customer_name,
-                                        dateISO: r.start_at,
-                                        serviceSummary: r.service_summary ?? "—",
-                                        totalPrice: r.total_price ?? 0,
-                                        depositAmount: r.deposit_amount ?? 0,
-                                      },
-                                      pmt
-                                    );
-                                    try {
-                                      await navigator.clipboard.writeText(msg);
-                                      alert("Mesaj kopyalandı ✅");
-                                    } catch {
-                                      alert("Kopyalanamadı");
-                                    }
-                                  }}
-                                >
-                                  Ödeme Mesajı Kopyala
-                                </button>
-
-                                <div className="h-px bg-white/10" />
-
-                                <button
-                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
-                                  onClick={() => {
-                                    setWaMenuId(null);
-                                    const phone = (r.customer_phone_e164 || r.customer_phone || "");
-                                    const msg = buildApprovalMessage({
-                                      customerName: r.customer_name,
-                                      date: (r.start_at || "").slice(0, 10),
-                                      time: fmtT(r.start_at),
-                                      serviceSummary: r.service_summary ?? "—",
-                                    });
-                                    window.open(buildWhatsAppWebUrl(phone, msg), "_blank");
-                                  }}
-                                >
-                                  Onay Mesajı
-                                </button>
-
-                                
-                                  <div className="h-px bg-white/10" />
-
-                                <button
-                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
-                                  onClick={async () => {
-                                    setWaMenuId(null);
-                                    const pmt = await fetchPayment();
-                                    if (!pmt) return alert("Ödeme bilgileri alınamadı");
-                                    const msg = buildDepositPaymentMessage(
-                                      {
-                                        customerName: r.customer_name,
-                                        dateISO: r.start_at,
-                                        serviceSummary: r.service_summary ?? "—",
-                                        totalPrice: r.total_price ?? 0,
-                                        depositAmount: r.deposit_amount ?? 0,
-                                      },
-                                      pmt
-                                    );
-                                    const phone = (r.customer_phone_e164 || r.customer_phone || "");
-                                    window.open(buildWhatsAppWebUrl(phone, msg), "_blank");
-                                  }}
-                                >
-                                  Ödeme Mesajı Aç
-                                </button>
-
-                                <button
-                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
-                                  onClick={async () => {
-                                    setWaMenuId(null);
-                                    const pmt = await fetchPayment();
-                                    if (!pmt) return alert("Ödeme bilgileri alınamadı");
-                                    const msg = buildDepositPaymentMessage(
-                                      {
-                                        customerName: r.customer_name,
-                                        dateISO: r.start_at,
-                                        serviceSummary: r.service_summary ?? "—",
-                                        totalPrice: r.total_price ?? 0,
-                                        depositAmount: r.deposit_amount ?? 0,
-                                      },
-                                      pmt
-                                    );
-                                    try {
-                                      await navigator.clipboard.writeText(msg);
-                                      alert("Mesaj kopyalandı ✅");
-                                    } catch {
-                                      alert("Kopyalanamadı");
-                                    }
-                                  }}
-                                >
-                                  Ödeme Mesajı Kopyala
-                                </button>
-
-                                <div className="h-px bg-white/10" />
-
-                                <button
-                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
-                                  onClick={() => {
-                                    setWaMenuId(null);
-                                    const phone = (r.customer_phone_e164 || r.customer_phone || "");
-                                    const msg = buildApprovalMessage({
-                                      customerName: r.customer_name,
-                                      date: (r.start_at || "").slice(0, 10),
-                                      time: fmtT(r.start_at),
-                                      serviceSummary: r.service_summary ?? "—",
-                                    });
-                                    window.open(buildWhatsAppWebUrl(phone, msg), "_blank");
-                                  }}
-                                >
-                                  Onay Mesajı
-                                </button>
-
-                                <button
-                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
-                                  onClick={() => {
-                                    setWaMenuId(null);
-                                    const phone = (r.customer_phone_e164 || r.customer_phone || "");
-                                    const msg = buildReminderMessage({
-                                      customerName: r.customer_name,
-                                      date: (r.start_at || "").slice(0, 10),
-                                      time: fmtT(r.start_at),
-                                      serviceSummary: r.service_summary ?? "—",
-                                    });
-                                    window.open(buildWhatsAppWebUrl(phone, msg), "_blank");
-                                  }}
-                                >
-                                  Hatırlatma
-                                </button>                                      </>
+                                        <button
+                                          className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
+                                          onClick={openApproval}
+                                        >
+                                          Onay Mesajı
+                                        </button>
+                                        <button
+                                          className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
+                                          onClick={openReminder}
+                                        >
+                                          Hatırlatma
+                                        </button>
+                                      </>
                                     );
                                   })()}
-
-                              </div>
-
+                                </div>
                               )}
                             </div>
 
