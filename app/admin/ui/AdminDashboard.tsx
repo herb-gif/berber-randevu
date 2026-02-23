@@ -444,7 +444,7 @@ async function logout() {
             <option value={60}>60 gün</option>
           </select>
 
-          <button onClick={load} className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-2 text-sm text-mc-dark hover:border-mc-bronze transition">Yenile</button>
+          <button onClick={load} className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-2 text-sm text-neutral-100 hover:bg-neutral-800 hover:border-mc-bronze transition">Yenile</button>
           <button onClick={logout} className="rounded-lg bg-black px-3 py-2 text-white">Çıkış</button>
         </div>
       </div>
@@ -555,7 +555,7 @@ async function logout() {
 
               <div className="flex items-end">
                 <button
-                  className="mt-1 rounded-xl border border-white/10 bg-neutral-900 px-3 py-2 text-sm text-mc-dark hover:border-mc-bronze transition"
+                  className="mt-1 rounded-xl border border-white/10 bg-neutral-900 px-3 py-2 text-sm text-neutral-100 hover:bg-neutral-800 hover:border-mc-bronze transition"
                   onClick={() => {
                     setFilterQ("");
                     setFilterStatus("all");
@@ -666,7 +666,7 @@ return (
                         <div className="flex flex-wrap items-center gap-2">
                           <div className="wa-dropdown relative">
                             <button
-                              className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-2 text-sm text-mc-dark hover:border-mc-bronze transition"
+                              className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-2 text-sm text-neutral-100 hover:bg-neutral-800 hover:border-mc-bronze transition"
                               onClick={() => {
                                   setActionMenuId(null);
                                   setWaMenuId(waMenuId === r.id ? null : r.id);
@@ -821,7 +821,7 @@ return (
 
                           <div className="action-dropdown relative">
                             <button
-                              className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-2 text-sm text-mc-dark hover:border-mc-bronze transition"
+                              className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-2 text-sm text-neutral-100 hover:bg-neutral-800 hover:border-mc-bronze transition"
                               onClick={() => {
                                   setWaMenuId(null);
                                   setActionMenuId(actionMenuId === r.id ? null : r.id);
