@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
+
+import { supabaseBrowser } from "@/lib/supabaseBrowser";
 import { buildDepositPaymentMessage, buildApprovalMessage, buildReminderMessage, buildWhatsAppWebUrl } from "@/lib/whatsapp";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -164,7 +166,27 @@ async function load() {
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [days]);
 
 
+    
+
     useEffect(() => {
+      const channel = supabaseBrowser
+        .channel("admin-realtime-appointments")
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "appointments" },
+          () => {
+            pushToast({ title: "Güncelleme", detail: "Randevular güncellendi", tone: "warn" });
+            load();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabaseBrowser.removeChannel(channel);
+      };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+useEffect(() => {
       if (didInitFiltersRef.current) return;
       didInitFiltersRef.current = true;
 
