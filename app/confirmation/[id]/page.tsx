@@ -197,7 +197,7 @@ export default function ConfirmationPage() {
         )}
 
         {appt && (
-          <div className="mt-8 rounded-3xl border border-mc-border bg-white text-black shadow-sm overflow-hidden">
+          <div className="mt-8 rounded-3xl border border-white/10 bg-neutral-900 text-neutral-100 shadow-sm overflow-hidden">
             <div className="h-1 bg-mc-bronze" />
             <div className="p-6 space-y-3">
               <Row k="Tarih/Saat" v={fmtDT(appt.start_at)} />
@@ -211,7 +211,7 @@ export default function ConfirmationPage() {
         )}
 
         {payment && (
-          <div className="mt-6 rounded-3xl border border-mc-border bg-white text-black shadow-sm overflow-hidden">
+          <div className="mt-6 rounded-3xl border border-white/10 bg-neutral-900 text-neutral-100 shadow-sm overflow-hidden">
             <div className="h-1 bg-mc-bronze" />
             <div className="p-6 space-y-4">
               <div className="text-lg font-semibold">Depozito Bilgileri</div>
@@ -263,7 +263,7 @@ export default function ConfirmationPage() {
               href={waWebUrl}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex w-full items-center justify-center rounded-xl px-6 py-3 bg-white text-black font-semibold border border-mc-border hover:border-mc-bronze transition"
+              className="inline-flex w-full items-center justify-center rounded-xl px-6 py-3 bg-neutral-900 text-neutral-100 font-semibold border border-white/10 hover:border-mc-bronze hover:bg-neutral-800 transition"
             >
               WhatsApp Web’de Aç
             </a>
@@ -292,14 +292,14 @@ export default function ConfirmationPage() {
               })()}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex w-full items-center justify-center rounded-xl px-6 py-3 bg-white text-black font-semibold border border-mc-border hover:border-mc-bronze transition"
+              className="inline-flex w-full items-center justify-center rounded-xl px-6 py-3 bg-neutral-900 text-neutral-100 font-semibold border border-white/10 hover:border-mc-bronze hover:bg-neutral-800 transition"
             >
               Google Takvime Ekle
             </a>
 
             <a
               href={`/api/appointment-ics?id=${encodeURIComponent(id)}`}
-              className="inline-flex w-full items-center justify-center rounded-xl px-6 py-3 bg-white text-black font-semibold border border-mc-border hover:border-mc-bronze transition"
+              className="inline-flex w-full items-center justify-center rounded-xl px-6 py-3 bg-neutral-900 text-neutral-100 font-semibold border border-white/10 hover:border-mc-bronze hover:bg-neutral-800 transition"
             >
               Apple / ICS İndir
             </a>
@@ -318,8 +318,8 @@ function Row({ k, v, strong }: { k: string; v: string; strong?: boolean }) {
   const isDeposit = k.toLowerCase().includes("depozito");
   return (
     <div className={`flex items-center justify-between ${strong ? "font-semibold" : ""}`}>
-      <span className="text-sm text-neutral-600">{k}</span>
-      <span className={["text-sm text-right", isDeposit ? "text-mc-bronze font-semibold" : "text-neutral-900"].join(" ")}>
+      <span className="text-sm text-neutral-400">{k}</span>
+      <span className={["text-sm text-right", isDeposit ? "text-mc-bronze font-semibold" : "text-neutral-100"].join(" ")}>
         {v}
       </span>
     </div>
@@ -336,12 +336,12 @@ function ServiceRow({ summary }: { summary: string }) {
 
   return (
     <div className="flex items-start justify-between gap-4">
-      <span className="text-sm text-neutral-600">Hizmet</span>
+      <span className="text-sm text-neutral-400">Hizmet</span>
       <div className="text-right">
         {parts.length <= 1 ? (
-          <div className="text-sm text-neutral-900">{parts[0]}</div>
+          <div className="text-sm text-neutral-100">{parts[0]}</div>
         ) : (
-          <ul className="space-y-1 text-sm text-neutral-900">
+          <ul className="space-y-1 text-sm text-neutral-100">
             {parts.map((x, i) => (
               <li key={`${x}-${i}`}>• {x}</li>
             ))}
@@ -364,16 +364,16 @@ function CopyRow({ label, value }: { label: string; value: string }) {
   }
 
   return (
-    <div className="flex items-center justify-between gap-4 rounded-xl border px-4 py-3">
+    <div className="flex items-center justify-between gap-4 rounded-xl border border-white/10 bg-neutral-950/40 px-4 py-3">
       <div>
-        <div className="text-xs text-neutral-500">{label}</div>
+        <div className="text-xs text-neutral-400">{label}</div>
         <div className="font-mono text-sm break-all">{value}</div>
       </div>
       <button
         onClick={copy}
         className={[
           "rounded-lg border px-3 py-1 text-xs transition",
-          copied ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "hover:bg-neutral-100",
+          copied ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-200" : "hover:bg-white/5 border-white/10 text-neutral-200",
         ].join(" ")}
       >
         {copied ? "Kopyalandı!" : "Kopyala"}
