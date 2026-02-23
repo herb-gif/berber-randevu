@@ -503,11 +503,11 @@ async function load() {
                       : null;
                 const waBtnTone =
                   waDot === "green"
-                    ? "ring-1 ring-emerald-400/40"
+                    ? "border-emerald-400/40 shadow-[0_0_0_1px_rgba(52,211,153,0.25),0_0_18px_rgba(52,211,153,0.18)]"
                     : waDot === "red"
-                      ? "ring-1 ring-rose-400/40"
+                      ? "border-rose-400/40 shadow-[0_0_0_1px_rgba(251,113,133,0.25),0_0_18px_rgba(251,113,133,0.18)]"
                       : waDot === "amber"
-                        ? "ring-1 ring-amber-400/40"
+                        ? "border-amber-400/40 shadow-[0_0_0_1px_rgba(251,191,36,0.22),0_0_18px_rgba(251,191,36,0.16)]"
                         : "";
 return (
                 <React.Fragment key={r.id}>
