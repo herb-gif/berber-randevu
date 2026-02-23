@@ -183,6 +183,15 @@ export default function ConfirmationPage() {
       <div className="mx-auto max-w-xl px-4 py-14">
         <div className="relative text-center">
           {showConfetti && <ConfettiBurst />}
+
+            <div className="mb-8 flex justify-center">
+              <img
+                src="/brand/logo-bronze.png"
+                alt="Man Cave Logo"
+                className="h-20 w-auto object-contain opacity-95"
+              />
+            </div>
+
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-mc-bronze/40 bg-mc-bronze/15 text-mc-bronze shadow-[0_0_0_6px_rgba(192,138,90,0.08)]">
             <span className="text-3xl leading-none">✓</span>
           </div>
