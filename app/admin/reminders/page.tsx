@@ -35,7 +35,7 @@ export default function AdminRemindersPage() {
       q.set("daysAhead", String(daysAhead));
       if (includeSent) q.set("includeSent", "1");
 
-      const res = await fetch(`/api/admin/reminders?${q.toString()}`, { cache: "no-store" });
+      const res = await fetch(`/api/admin/reminders?${q.toString()}`, { credentials: "include", cache: "no-store" });
       const data = await res.json().catch(() => ({}));
       if (res.status === 401) {
         window.location.href = "/admin";
@@ -60,8 +60,7 @@ export default function AdminRemindersPage() {
   }, [toast]);
 
   async function markSent(id: string, sent: boolean) {
-    const res = await fetch("/api/admin/reminders", {
-      method: "POST",
+    const res = await fetch("/api/admin/reminders", { credentials: "include", cache: "no-store", method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id, sent }),
     });

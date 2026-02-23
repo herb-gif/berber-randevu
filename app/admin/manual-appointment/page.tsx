@@ -191,8 +191,7 @@ export default function AdminManualAppointmentPage() {
 
     setSaving(true);
     try {
-      const res = await fetch("/api/admin/manual-appointment", {
-        method: "POST",
+      const res = await fetch("/api/admin/manual-appointment", { credentials: "include", cache: "no-store", method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           serviceIds: selectedServiceIds,
@@ -203,8 +202,7 @@ export default function AdminManualAppointmentPage() {
           time: finalTime,
           laser_option_ids: selectedLaserOptionIds,
           deposit_status: depositStatus,
-          deposit_amount: depositAmount,
-        }),
+          deposit_amount: depositAmount, }),
       });
 
       const data = await res.json().catch(() => ({}));

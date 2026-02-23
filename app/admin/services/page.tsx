@@ -31,7 +31,7 @@ export default function AdminServicesPage() {
     setLoading(true);
     setUnauth(false);
 
-    const res = await fetch("/api/admin/services", { cache: "no-store" });
+    const res = await fetch("/api/admin/services", { credentials: "include", cache: "no-store" });
 
     if (res.status === 401) {
       setUnauth(true);
@@ -65,8 +65,7 @@ export default function AdminServicesPage() {
   }, [toast]);
 
   async function save(id: string, patch: SavePatch) {
-    const res = await fetch("/api/admin/services", {
-      method: "POST",
+    const res = await fetch("/api/admin/services", { credentials: "include", cache: "no-store", method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id, ...patch }),
     });

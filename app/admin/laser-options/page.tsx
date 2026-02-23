@@ -28,7 +28,7 @@ async function load() {
 
     const res = await fetch(
       `/api/admin/service-options?service_id=${encodeURIComponent(LASER_SERVICE_ID)}`,
-      { cache: "no-store" }
+      { credentials: "include", cache: "no-store" }
     );
 
     if (res.status === 401) {
@@ -63,8 +63,7 @@ async function load() {
     return () => clearTimeout(t);
   }, [toast]);
 async function save(id: string, patch: Partial<Row>) {
-    const res = await fetch("/api/admin/service-options", {
-      method: "POST",
+    const res = await fetch("/api/admin/service-options", { credentials: "include", cache: "no-store", method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id, ...patch }),
     });
