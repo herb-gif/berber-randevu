@@ -193,6 +193,7 @@ export default function AdminDashboard() {
   const tableTopRef = useRef<HTMLDivElement | null>(null);
 
 
+  const didFirstLoadRef = useRef(false);
   const rtQueueRef = useRef<any[]>([]);
   const rtTimerRef = useRef<number | null>(null);
   const [waMenuId, setWaMenuId] = useState<string | null>(null);
@@ -266,7 +267,14 @@ window.setTimeout(() => {
 
 
 
+  
+  // First mount: load once (StrictMode-safe)
   useEffect(() => {
+    if (didFirstLoadRef.current) return;
+    didFirstLoadRef.current = true;
+    load();
+  }, [load]);
+useEffect(() => {
     const flush = () => {
       const batch = rtQueueRef.current.splice(0);
       rtTimerRef.current = null;
