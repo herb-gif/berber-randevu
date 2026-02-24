@@ -179,6 +179,7 @@ export default function AdminDashboard() {
   const [rows, setRows] = useState<Row[]>([]);
   const [days, setDays] = useState(30);
   const [loading, setLoading] = useState(true);
+  const [lastLoadError, setLastLoadError] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const [filterQ, setFilterQ] = useState("");
@@ -219,36 +220,50 @@ window.setTimeout(() => {
   }, []);
 
   
+  
   const load = React.useCallback(async () => {
     setLoading(true);
+    setLastLoadError(null);
     try {
-      const res = await fetch(`/api/admin/appointments?days=${days}`, { credentials: "include", cache: "no-store" });
+      const res = await fetch(`/api/admin/appointments?days=${days}`, {
+        cache: "no-store",
+        credentials: "include",
+      });
 
-      // Bazı durumlarda backend HTML/empty dönebilir → json() patlar
       const text = await res.text();
       let data: any = {};
       try {
         data = text ? JSON.parse(text) : {};
-      } catch (e) {
-        console.error("AdminDashboard load(): JSON parse failed", e, text?.slice?.(0, 200));
+      } catch {
+        setLastLoadError("Sunucudan geçersiz yanıt geldi.");
         pushToast({ title: "Hata", detail: "Sunucudan geçersiz yanıt geldi.", tone: "bad" });
         return;
       }
 
       if (!res.ok) {
-        console.error("AdminDashboard load(): API error", res.status, data);
-        pushToast({ title: "Hata", detail: data?.error || `Randevular alınamadı (${res.status})`, tone: "bad" });
+        const msg = data?.error || `Randevular alınamadı (${res.status})`;
+        setLastLoadError(msg);
+        pushToast({ title: "Hata", detail: msg, tone: "bad" });
+
+        // 401 ise admin session yok demektir
+        if (res.status === 401) {
+          // istersen otomatik login sayfasına atabiliriz:
+          // window.location.href = "/admin";
+        }
         return;
       }
 
       setRows(data.rows ?? []);
     } catch (e: any) {
-      console.error("AdminDashboard load(): fetch failed", e);
-      pushToast({ title: "Bağlantı", detail: "Sunucuya erişilemedi.", tone: "bad" });
+      const msg = "Sunucuya erişilemedi.";
+      setLastLoadError(msg);
+      pushToast({ title: "Bağlantı", detail: msg, tone: "bad" });
+      console.error("AdminDashboard load() failed:", e);
     } finally {
       setLoading(false);
     }
   }, [days, pushToast]);
+
 
 
   useEffect(() => {
