@@ -115,6 +115,8 @@ export default function AdminManualAppointmentPage() {
 
         alert((data as any)?.error || "Kaydedilemedi");
         return;
+      }alert((data as any)?.error || "Kaydedilemedi");
+        return;
       }setLaserOptions((data.options ?? []).map((o: any) => ({ ...o, id: String(o.id), service_id: String(o.service_id) })));
   }
 
