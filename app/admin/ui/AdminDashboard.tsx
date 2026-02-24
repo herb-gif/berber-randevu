@@ -187,7 +187,7 @@ function minutesBetween(a: string, b: string) {
 export default function AdminDashboard() {
   const [rows, setRows] = useState<Row[]>([]);
   const rowsRef = useRef<Row[]>([]);
-  const [flashIds, setFlashIds] = useState<Record<string, number>>({});
+  const [flashIds, setFlashIds] = useState<Record<string, { at: number; tone: 'paid' | 'bad' | 'normal' }>>({});
 
   useEffect(() => {
     rowsRef.current = rows;
@@ -238,10 +238,10 @@ window.setTimeout(() => {
   
   
   
-  const flashRow = React.useCallback((id: string) => {
+  const flashRow = React.useCallback((id: string, tone?: 'paid' | 'bad' | 'normal') => {
     if (!id) return;
     const now = Date.now();
-    setFlashIds((prev) => ({ ...prev, [id]: now }));
+    setFlashIds((prev) => ({ ...prev, [id]: { at: now, tone: tone || 'normal' } }));
     window.setTimeout(() => {
       setFlashIds((prev) => {
         if (!prev[id]) return prev;
@@ -382,7 +382,14 @@ useEffect(() => {
 
         
         // highlight updated rows
-        for (const k of byId.keys()) flashRow(k);
+        for (const k of byId.keys()) {
+          const n = byId.get(k);
+          const dep = String(n?.deposit_status || "").toLowerCase().trim();
+          const st = String(n?.status || "").toLowerCase().trim();
+          if (dep === "paid" || dep === "odendi" || dep === "ödendi" || dep === "completed" || dep === "confirmed") flashRow(k, "paid");
+          else if (st === "no_show") flashRow(k, "bad");
+          else flashRow(k, "normal");
+        }
 setRows((prev) =>
           prev.map((r) => {
             const n = byId.get(r.id);
@@ -874,7 +881,7 @@ async function logout() {
                         : "";
 return (
                 <React.Fragment key={r.id}>
-                  <tr className={[rowClass(r), flashIds[r.id] ? "mc-row-flash" : ""].join(" ")}>
+                  <tr className={[rowClass(r), flashIds[r.id] ? (flashIds[r.id].tone === "paid" ? "mc-row-flash-paid" : flashIds[r.id].tone === "bad" ? "mc-row-flash-bad" : "mc-row-flash") : ""].join(" ")}>
                     <td className="p-3">
                         <div className="font-medium">{fmtT(r.start_at)}</div>
                         <div className="text-xs text-neutral-500">{(r.start_at || "").slice(0, 10)} • {totalMin} dk</div>
