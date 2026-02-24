@@ -106,18 +106,10 @@ export default function AdminManualAppointmentPage() {
     const res = await fetch(`/api/service-options?service_id=${encodeURIComponent(laserId)}`, { cache: "no-store" });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-        // Slot already taken (DB unique constraint)
-        if (res.status === 409) {
-          alert((data as any)?.error || "Bu saat artık dolu. Liste yenileniyor…");
-          window.location.href = "/admin?toast=slot_taken";
-          return;
-        }
-
-        alert((data as any)?.error || "Kaydedilemedi");
-        return;
-      }alert((data as any)?.error || "Kaydedilemedi");
-        return;
-      }setLaserOptions((data.options ?? []).map((o: any) => ({ ...o, id: String(o.id), service_id: String(o.service_id) })));
+      setToast(data.error || "Lazer seçenekleri alınamadı");
+      return;
+    }
+    setLaserOptions((data.options ?? []).map((o: any) => ({ ...o, id: String(o.id), service_id: String(o.service_id) })));
   }
 
   useEffect(() => {
@@ -179,16 +171,7 @@ export default function AdminManualAppointmentPage() {
 
       const res = await fetch(`/api/availability?${q.toString()}`, { cache: "no-store" });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        if (res.status === 409) {
-          setToast(data.error || "Bu saat artık dolu. Admin paneline dönülüyor…");
-          window.setTimeout(() => {
-            window.location.href = "/admin?toast=slot_taken";
-          }, 350);
-          return;
-        }
-        return setToast(data.error || "Oluşturulamadı");
-      }
+      if (!res.ok) return setToast(data.error || "Uygun saatler alınamadı");
       setSlots(data.slots ?? []);
     } finally {
       setLoadingSlots(false);
@@ -208,35 +191,22 @@ export default function AdminManualAppointmentPage() {
 
     setSaving(true);
     try {
-      const res = await fetch("/api/admin/manual-appointment", {
-          method: "POST",
-          credentials: "include",
-          cache: "no-store",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            serviceIds: selectedServiceIds,
-            barberId: hairSelected ? selectedBarberId : null,
-            customer_name: name,
-            customer_phone: phone,
-            date,
-            time: finalTime,
-            laser_option_ids: selectedLaserOptionIds,
-            deposit_status: depositStatus,
-            deposit_amount: depositAmount,
-          }),
-        });
+      const res = await fetch("/api/admin/manual-appointment", { credentials: "include", cache: "no-store", method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          serviceIds: selectedServiceIds,
+          barberId: hairSelected ? selectedBarberId : null,
+          customer_name: name,
+          customer_phone: phone,
+          date,
+          time: finalTime,
+          laser_option_ids: selectedLaserOptionIds,
+          deposit_status: depositStatus,
+          deposit_amount: depositAmount, }),
+      });
 
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-          if (res.status === 409) {
-            setToast(data.error || "Bu saat artık dolu. Admin paneline dönülüyor…");
-            window.setTimeout(() => {
-              window.location.href = "/admin?toast=slot_taken";
-            }, 350);
-            return;
-          }
-          return setToast(data.error || "Oluşturulamadı");
-        }
+      if (!res.ok) return setToast(data.error || "Oluşturulamadı");
 
       setToast(`Manuel randevu eklendi ✅ (#${String(data.id).slice(0, 6)})`);
       setPicked("");
