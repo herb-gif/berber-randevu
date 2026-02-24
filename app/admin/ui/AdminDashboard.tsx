@@ -185,6 +185,24 @@ function minutesBetween(a: string, b: string) {
 }
 
 export default function AdminDashboard() {
+  const [toasts, setToasts] = useState<Toast[]>([]);
+
+  const pushToast = React.useCallback((t: Omit<Toast, "id"> & { id?: string }) => {
+    const id =
+      t.id ||
+      (globalThis.crypto && "randomUUID" in crypto ? crypto.randomUUID() : String(Date.now() + Math.random()));
+
+    const toast: Toast = { id, title: t.title, detail: t.detail, tone: t.tone || "ok" };
+
+    setToasts((prev) => {
+      const next = [...prev, toast];
+      return next.length > 4 ? next.slice(next.length - 4) : next;
+    });
+
+    window.setTimeout(() => {
+      setToasts((prev) => prev.filter((x) => x.id !== id));
+    }, 2600);
+  }, []);
   const didInitFiltersRef = useRef(false);
   const tableTopRef = useRef<HTMLDivElement | null>(null);
   const rtQueueRef = useRef<any[]>([]);
