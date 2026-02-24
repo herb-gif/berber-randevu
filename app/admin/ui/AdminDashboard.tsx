@@ -190,127 +190,12 @@ export default function AdminDashboard() {
   const [flashIds, setFlashIds] = useState<Record<string, { at: number; tone: 'paid' | 'bad' | 'normal' }>>({});
 
   useEffect(() => {
-    rowsRef.current = rows;
-  }, [rows]);
-  const [days, setDays] = useState(30);
-  const [loading, setLoading] = useState(true);
-  const [lastLoadError, setLastLoadError] = useState<string | null>(null);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-
-  const [filterQ, setFilterQ] = useState("");
-  const [filterStatus, setFilterStatus] = useState("all");
-  const [filterDep, setFilterDep] = useState("all");
-  const [filterWhen, setFilterWhen] = useState("all");
-
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const didInitFiltersRef = useRef(false);
-  const tableTopRef = useRef<HTMLDivElement | null>(null);
-
-
-  const didFirstLoadRef = useRef(false);
-  const rtQueueRef = useRef<any[]>([]);
-  const rtTimerRef = useRef<number | null>(null);
-  const [waMenuId, setWaMenuId] = useState<string | null>(null);
-  const [actionMenuId, setActionMenuId] = useState<string | null>(null);
-
-  const [toasts, setToasts] = useState<Toast[]>([]);
-  const [toastSoundEnabled, setToastSoundEnabled] = useState(false);
-  const pushToast = React.useCallback((t: Omit<Toast, "id"> & { id?: string }) => {
-    const id =
-      t.id ||
-      (globalThis.crypto && "randomUUID" in crypto ? crypto.randomUUID() : String(Date.now() + Math.random()));
-
-    const toast: Toast = { id, title: t.title, detail: t.detail, tone: t.tone || "ok", createdAt: Date.now() };
-
-    setToasts((prev) => {
-      const next = [...prev, toast];
-      return next.length > 4 ? next.slice(next.length - 4) : next;
-    });
-
-    
-    if (toastSoundEnabled && (toast.tone || "ok") === "ok") playBeep();
-window.setTimeout(() => {
-      setToasts((prev) => prev.filter((x) => x.id !== id));
-    }, 2600);
-  }, []);
-
-  
-  
-  
-  const flashRow = React.useCallback((id: string, tone?: 'paid' | 'bad' | 'normal') => {
-    if (!id) return;
-    const now = Date.now();
-    setFlashIds((prev) => ({ ...prev, [id]: { at: now, tone: tone || 'normal' } }));
-    window.setTimeout(() => {
-      setFlashIds((prev) => {
-        if (!prev[id]) return prev;
-        const next = { ...prev };
-        delete next[id];
-        return next;
-      });
-    }, 1500);
-  }, []);
-const load = React.useCallback(async () => {
-    setLoading(true);
-    setLastLoadError(null);
-    try {
-      const res = await fetch(`/api/admin/appointments?days=${days}`, {
-        cache: "no-store",
-        credentials: "include",
-      });
-
-      const text = await res.text();
-      let data: any = {};
-      try {
-        data = text ? JSON.parse(text) : {};
-      } catch {
-        setLastLoadError("Sunucudan geçersiz yanıt geldi.");
-        pushToast({ title: "Hata", detail: "Sunucudan geçersiz yanıt geldi.", tone: "bad" });
-        return;
-      }
-
-      if (!res.ok) {
-        const msg = data?.error || `Randevular alınamadı (${res.status})`;
-        setLastLoadError(msg);
-        pushToast({ title: "Hata", detail: msg, tone: "bad" });
-
-        // 401 ise admin session yok demektir
-        if (res.status === 401) {
-          // istersen otomatik login sayfasına atabiliriz:
-          // window.location.href = "/admin";
-        }
-        return;
-      }
-
-      setRows(data.rows ?? []);
-    } catch (e: any) {
-      const msg = "Sunucuya erişilemedi.";
-      setLastLoadError(msg);
-      pushToast({ title: "Bağlantı", detail: msg, tone: "bad" });
-      console.error("AdminDashboard load() failed:", e);
-    } finally {
-      setLoading(false);
-    }
-  }, [days, pushToast]);
-
-
-
-  
-  // First mount: load once (StrictMode-safe)
-  useEffect(() => {
-    if (didFirstLoadRef.current) return;
-    didFirstLoadRef.current = true;
-    load();
-  }, [load]);
-useEffect(() => {
     const flush = async () => {
       const batch = rtQueueRef.current.splice(0);
       rtTimerRef.current = null;
 
       if (batch.length === 0) return;
 
-      // summarize events (single toast)
       const counts = { INSERT: 0, UPDATE: 0, DELETE: 0, OTHER: 0 };
       for (const payload of batch) {
         const ev = String(payload?.eventType || "").toUpperCase();
@@ -330,29 +215,18 @@ useEffect(() => {
       const tone = counts.DELETE ? "bad" : counts.INSERT ? "ok" : "warn";
       pushToast({ title: "Realtime", detail: detail || "Güncelleme", tone });
 
-      
-      // If any INSERT exists, safest: refetch once (enriched API rows)
+      // INSERT: refetch once + flash new rows
       if (counts.INSERT > 0) {
         const beforeIds = new Set(rowsRef.current.map((r) => r.id));
-
         await load();
-
         const afterIds = new Set(rowsRef.current.map((r) => r.id));
-
         for (const id of afterIds) {
-          if (!beforeIds.has(id)) {
-            flashRow(id);
-          }
+          if (!beforeIds.has(id)) flashRow(id, "normal");
         }
-
         return;
       }
-      }
 
-
-      // Otherwise: patch updates/deletes in batch
-      let didMutate = false;
-      // We'll do deletes first
+      // DELETE first
       const delIds = new Set<string>();
       for (const payload of batch) {
         const ev = String(payload?.eventType || "").toUpperCase();
@@ -362,11 +236,10 @@ useEffect(() => {
         if (id) delIds.add(String(id));
       }
       if (delIds.size > 0) {
-        didMutate = true;
         setRows((prev) => prev.filter((r) => !delIds.has(r.id)));
       }
 
-      // Updates
+      // UPDATE patch + special pulse
       const updates: any[] = [];
       for (const payload of batch) {
         const ev = String(payload?.eventType || "").toUpperCase();
@@ -375,13 +248,12 @@ useEffect(() => {
         const id = n && n.id;
         if (id) updates.push(n);
       }
+
       if (updates.length > 0) {
-        didMutate = true;
         const byId = new Map<string, any>();
         for (const n of updates) byId.set(String(n.id), n);
 
-        
-        // highlight updated rows
+        // highlight updated rows (paid/no_show special)
         for (const k of byId.keys()) {
           const n = byId.get(k);
           const dep = String(n?.deposit_status || "").toLowerCase().trim();
@@ -390,7 +262,8 @@ useEffect(() => {
           else if (st === "no_show") flashRow(k, "bad");
           else flashRow(k, "normal");
         }
-setRows((prev) =>
+
+        setRows((prev) =>
           prev.map((r) => {
             const n = byId.get(r.id);
             if (!n) return r;
@@ -406,8 +279,8 @@ setRows((prev) =>
         );
       }
 
-      // If we couldn't confidently patch anything, refetch once
-      if (!didMutate) {
+      // If nothing mutated (rare), refetch once
+      if (delIds.size === 0 && updates.length === 0) {
         load();
       }
     };
@@ -419,9 +292,10 @@ setRows((prev) =>
         { event: "*", schema: "public", table: "appointments" },
         (payload: any) => {
           rtQueueRef.current.push(payload);
-
           if (rtTimerRef.current != null) return;
-          rtTimerRef.current = window.setTimeout(flush, 300);
+          rtTimerRef.current = window.setTimeout(() => {
+            flush();
+          }, 300);
         }
       )
       .subscribe();
@@ -434,7 +308,7 @@ setRows((prev) =>
       rtQueueRef.current = [];
       supabaseBrowser.removeChannel(channel);
     };
-  }, [load, pushToast]);
+  }, [load, pushToast, flashRow]);
 
 useEffect(() => {
       if (didInitFiltersRef.current) return;
