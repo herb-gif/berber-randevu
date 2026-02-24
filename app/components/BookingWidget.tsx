@@ -463,7 +463,15 @@ const slotBtnClass = (t: string) =>
       });
 
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) return setToast(data.error || "Randevu oluşturulamadı");
+      if (!res.ok) {
+        if (res.status === 409) {
+          setToast(data.error || "Bu saat artık dolu. Saatleri yeniliyorum…");
+          setPicked("");
+          await getSlots();
+          return;
+        }
+        return setToast(data.error || "Randevu oluşturulamadı");
+      }
 
       router.push(`/confirmation/${data.id}`);
         return;
