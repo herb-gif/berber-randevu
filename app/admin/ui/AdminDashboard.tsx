@@ -203,7 +203,39 @@ export default function AdminDashboard() {
       setToasts((prev) => prev.filter((x) => x.id !== id));
     }, 2600);
   }, []);
-  const didInitFiltersRef = useRef(false);
+  
+  const load = React.useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/admin/appointments?days=${days}`, {
+        cache: "no-store",
+        credentials: "include",
+      });
+      const text = await res.text();
+      let data: any = {};
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        pushToast({ title: "Hata", detail: "Sunucudan geçersiz yanıt geldi.", tone: "bad" });
+        return;
+      }
+      if (!res.ok) {
+        pushToast({ title: "Hata", detail: data?.error || `Randevular alınamadı (${res.status})`, tone: "bad" });
+        return;
+      }
+      setRows(data.rows ?? []);
+    } catch (e) {
+      pushToast({ title: "Bağlantı", detail: "Sunucuya erişilemedi.", tone: "bad" });
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  }, [days, pushToast]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+const didInitFiltersRef = useRef(false);
   const tableTopRef = useRef<HTMLDivElement | null>(null);
   const rtQueueRef = useRef<any[]>([]);
   const rtTimerRef = useRef<number | null>(null);
