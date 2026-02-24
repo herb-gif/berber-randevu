@@ -240,6 +240,7 @@ const didInitFiltersRef = useRef(false);
   const rtQueueRef = useRef<any[]>([]);
   const rtTimerRef = useRef<number | null>(null);
   const [rows, setRows] = useState<Row[]>([]);
+  const [loading, setLoading] = useState(true);
   const rowsRef = useRef<Row[]>([]);
   const [flashIds, setFlashIds] = useState<Record<string, { at: number; tone: 'paid' | 'bad' | 'normal' }>>({});
 
