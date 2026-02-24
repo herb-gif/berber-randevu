@@ -325,11 +325,24 @@ useEffect(() => {
       const tone = counts.DELETE ? "bad" : counts.INSERT ? "ok" : "warn";
       pushToast({ title: "Realtime", detail: detail || "Güncelleme", tone });
 
+      
       // If any INSERT exists, safest: refetch once (enriched API rows)
       if (counts.INSERT > 0) {
-        load();
+        const beforeIds = new Set(rows.map((r) => r.id));
+        load().then(() => {
+          // small delay to ensure state updated
+          setTimeout(() => {
+            const afterIds = new Set((rows || []).map((r: any) => r.id));
+            for (const id of afterIds) {
+              if (!beforeIds.has(id)) {
+                flashRow(id);
+              }
+            }
+          }, 50);
+        });
         return;
       }
+
 
       // Otherwise: patch updates/deletes in batch
       let didMutate = false;
