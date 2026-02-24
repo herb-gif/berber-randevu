@@ -205,6 +205,8 @@ export default function AdminDashboard() {
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterDep, setFilterDep] = useState("all");
   const [filterWhen, setFilterWhen] = useState("all");
+  const [waMenuId, setWaMenuId] = useState<string | null>(null);
+  const [actionMenuId, setActionMenuId] = useState<string | null>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   const pushToast = React.useCallback((t: Omit<Toast, "id"> & { id?: string }) => {
