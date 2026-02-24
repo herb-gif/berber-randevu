@@ -185,6 +185,10 @@ function minutesBetween(a: string, b: string) {
 }
 
 export default function AdminDashboard() {
+  const didInitFiltersRef = useRef(false);
+  const tableTopRef = useRef<HTMLDivElement | null>(null);
+  const rtQueueRef = useRef<any[]>([]);
+  const rtTimerRef = useRef<number | null>(null);
   const [rows, setRows] = useState<Row[]>([]);
   const rowsRef = useRef<Row[]>([]);
   const [flashIds, setFlashIds] = useState<Record<string, { at: number; tone: 'paid' | 'bad' | 'normal' }>>({});
