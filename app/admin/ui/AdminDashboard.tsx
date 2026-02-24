@@ -186,7 +186,12 @@ function minutesBetween(a: string, b: string) {
 
 export default function AdminDashboard() {
   const [rows, setRows] = useState<Row[]>([]);
+  const rowsRef = useRef<Row[]>([]);
   const [flashIds, setFlashIds] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    rowsRef.current = rows;
+  }, [rows]);
   const [days, setDays] = useState(30);
   const [loading, setLoading] = useState(true);
   const [lastLoadError, setLastLoadError] = useState<string | null>(null);
@@ -328,19 +333,20 @@ useEffect(() => {
       
       // If any INSERT exists, safest: refetch once (enriched API rows)
       if (counts.INSERT > 0) {
-        const beforeIds = new Set(rows.map((r) => r.id));
-        load().then(() => {
-          // small delay to ensure state updated
-          setTimeout(() => {
-            const afterIds = new Set((rows || []).map((r: any) => r.id));
-            for (const id of afterIds) {
-              if (!beforeIds.has(id)) {
-                flashRow(id);
-              }
-            }
-          }, 50);
-        });
+        const beforeIds = new Set(rowsRef.current.map((r) => r.id));
+
+        await load();
+
+        const afterIds = new Set(rowsRef.current.map((r) => r.id));
+
+        for (const id of afterIds) {
+          if (!beforeIds.has(id)) {
+            flashRow(id);
+          }
+        }
+
         return;
+      }
       }
 
 
