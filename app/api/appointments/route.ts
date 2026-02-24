@@ -269,6 +269,15 @@ export async function POST(req: Request) {
     }));
 
     const segIns = await supabase.from("appointment_services").insert(segRows);
+
+    if (segIns.error) {
+      const code = (segIns.error as any)?.code;
+      // Unique violation (DB constraint) -> slot already taken
+      if (code === "23505") {
+        return NextResponse.json({ error: "Bu saat artık dolu." }, { status: 409 });
+      }
+      return NextResponse.json({ error: segIns.error.message }, { status: 400 });
+    }
     if (segIns.error) {
       const msg = segIns.error.message || "";
       const isOverlap =
