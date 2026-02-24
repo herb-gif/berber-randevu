@@ -106,10 +106,16 @@ export default function AdminManualAppointmentPage() {
     const res = await fetch(`/api/service-options?service_id=${encodeURIComponent(laserId)}`, { cache: "no-store" });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      setToast(data.error || "Lazer seçenekleri alınamadı");
-      return;
-    }
-    setLaserOptions((data.options ?? []).map((o: any) => ({ ...o, id: String(o.id), service_id: String(o.service_id) })));
+        // Slot already taken (DB unique constraint)
+        if (res.status === 409) {
+          alert((data as any)?.error || "Bu saat artık dolu. Liste yenileniyor…");
+          window.location.href = "/admin";
+          return;
+        }
+
+        alert((data as any)?.error || "Kaydedilemedi");
+        return;
+      }setLaserOptions((data.options ?? []).map((o: any) => ({ ...o, id: String(o.id), service_id: String(o.service_id) })));
   }
 
   useEffect(() => {
