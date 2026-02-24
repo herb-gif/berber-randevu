@@ -464,12 +464,16 @@ const slotBtnClass = (t: string) =>
 
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        if (res.status === 409) {
-          setToast(data.error || "Bu saat artık dolu. Saatleri yeniliyorum…");
+        const msg = String(data.error || "");
+        const looksTaken = res.status === 409 || /meşgul|mesgul|dolu|taken|slot/i.test(msg);
+
+        if (looksTaken) {
+          setToast(msg || "Bu saat artık dolu. Saatleri yeniliyorum…");
           setPicked("");
           await getSlots();
           return;
         }
+
         return setToast(data.error || "Randevu oluşturulamadı");
       }
 
