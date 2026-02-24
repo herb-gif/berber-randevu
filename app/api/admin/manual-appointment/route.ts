@@ -257,7 +257,7 @@ if (segIns.error) {
         .eq("id", appointment_id);
 
       if (isOverlap) {
-        return NextResponse.json({ error: "Seçilen saat az önce doldu. Lütfen başka bir saat seçin." }, { status: 400 });
+        return NextResponse.json({ error: "Bu saat artık dolu."}, { status: 409 });
       }
       return NextResponse.json({ error: msg }, { status: 400 });
     }

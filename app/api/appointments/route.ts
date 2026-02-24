@@ -291,8 +291,8 @@ if (segIns.error) {
 
       if (isOverlap) {
         return NextResponse.json(
-          { error: "Seçilen saat az önce doldu. Lütfen başka bir saat seçin." },
-          { status: 400 }
+          { error: "Bu saat artık dolu."},
+          { status: 409 }
         );
       }
 
