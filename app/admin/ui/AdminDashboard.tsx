@@ -263,6 +263,7 @@ const didInitFiltersRef = useRef(false);
   const rtTimerRef = useRef<number | null>(null);
   const [rows, setRows] = useState<Row[]>([]);
 
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   useEffect(() => {
     rowsRef.current = rows;
   }, [rows]);
