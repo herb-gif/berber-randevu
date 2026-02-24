@@ -185,11 +185,6 @@ function minutesBetween(a: string, b: string) {
 }
 
 export default function AdminDashboard() {
-
-  useEffect(() => {
-    rowsRef.current = rows;
-  }, [rows]);
-
   const flashRow = React.useCallback((id: string, tone?: "paid" | "bad" | "normal") => {
     if (!id) return;
     const now = Date.now();
@@ -259,6 +254,10 @@ const didInitFiltersRef = useRef(false);
   const rtQueueRef = useRef<any[]>([]);
   const rtTimerRef = useRef<number | null>(null);
   const [rows, setRows] = useState<Row[]>([]);
+
+  useEffect(() => {
+    rowsRef.current = rows;
+  }, [rows]);
   const [loading, setLoading] = useState(true);
   const rowsRef = useRef<Row[]>([]);
   const [flashIds, setFlashIds] = useState<Record<string, { at: number; tone: 'paid' | 'bad' | 'normal' }>>({});
