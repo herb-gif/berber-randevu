@@ -76,6 +76,15 @@ function digitsOnly(x: string) {
         .mc-toast.border-emerald-500\/20 { box-shadow: 0 0 18px rgba(16,185,129,0.22); }
         .mc-toast.border-amber-500\/20 { box-shadow: 0 0 18px rgba(245,158,11,0.18); }
         .mc-toast.border-rose-500\/20 { box-shadow: 0 0 18px rgba(244,63,94,0.18); }
+        .mc-row-flash {
+          animation: mcRowFlash 1500ms ease-out both;
+        }
+        @keyframes mcRowFlash {
+          0% { box-shadow: 0 0 0 0 rgba(212,175,55,0.0); background: rgba(212,175,55,0.00); }
+          15% { box-shadow: 0 0 0 2px rgba(212,175,55,0.35); background: rgba(212,175,55,0.08); }
+          100% { box-shadow: 0 0 0 0 rgba(212,175,55,0.0); background: rgba(212,175,55,0.00); }
+        }
+
       `}</style>
 }
 function waUrl(phone: string, text: string) {
@@ -177,6 +186,7 @@ function minutesBetween(a: string, b: string) {
 
 export default function AdminDashboard() {
   const [rows, setRows] = useState<Row[]>([]);
+  const [flashIds, setFlashIds] = useState<Record<string, number>>({});
   const [days, setDays] = useState(30);
   const [loading, setLoading] = useState(true);
   const [lastLoadError, setLastLoadError] = useState<string | null>(null);
@@ -222,7 +232,21 @@ window.setTimeout(() => {
 
   
   
-  const load = React.useCallback(async () => {
+  
+  const flashRow = React.useCallback((id: string) => {
+    if (!id) return;
+    const now = Date.now();
+    setFlashIds((prev) => ({ ...prev, [id]: now }));
+    window.setTimeout(() => {
+      setFlashIds((prev) => {
+        if (!prev[id]) return prev;
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+    }, 1500);
+  }, []);
+const load = React.useCallback(async () => {
     setLoading(true);
     setLastLoadError(null);
     try {
@@ -337,7 +361,10 @@ useEffect(() => {
         const byId = new Map<string, any>();
         for (const n of updates) byId.set(String(n.id), n);
 
-        setRows((prev) =>
+        
+        // highlight updated rows
+        for (const k of byId.keys()) flashRow(k);
+setRows((prev) =>
           prev.map((r) => {
             const n = byId.get(r.id);
             if (!n) return r;
@@ -828,7 +855,7 @@ async function logout() {
                         : "";
 return (
                 <React.Fragment key={r.id}>
-                  <tr className={rowClass(r)}>
+                  <tr className={[rowClass(r), flashIds[r.id] ? "mc-row-flash" : ""].join(" ")}>
                     <td className="p-3">
                         <div className="font-medium">{fmtT(r.start_at)}</div>
                         <div className="text-xs text-neutral-500">{(r.start_at || "").slice(0, 10)} • {totalMin} dk</div>
