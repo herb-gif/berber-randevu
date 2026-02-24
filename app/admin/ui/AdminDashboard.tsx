@@ -185,6 +185,24 @@ function minutesBetween(a: string, b: string) {
 }
 
 export default function AdminDashboard() {
+
+  useEffect(() => {
+    rowsRef.current = rows;
+  }, [rows]);
+
+  const flashRow = React.useCallback((id: string, tone?: "paid" | "bad" | "normal") => {
+    if (!id) return;
+    const now = Date.now();
+    setFlashIds((prev) => ({ ...prev, [id]: { at: now, tone: tone || "normal" } }));
+    window.setTimeout(() => {
+      setFlashIds((prev) => {
+        if (!prev[id]) return prev;
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+    }, 1500);
+  }, []);
   const [days, setDays] = useState(30);
   const [toasts, setToasts] = useState<Toast[]>([]);
 
