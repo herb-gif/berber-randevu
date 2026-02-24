@@ -304,7 +304,7 @@ const load = React.useCallback(async () => {
     load();
   }, [load]);
 useEffect(() => {
-    const flush = () => {
+    const flush = async () => {
       const batch = rtQueueRef.current.splice(0);
       rtTimerRef.current = null;
 
