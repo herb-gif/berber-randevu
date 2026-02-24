@@ -401,6 +401,27 @@ setFilterQ(q);
 // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchParams]);
 
+  // One-shot toast via query param (e.g. /admin?toast=slot_taken)
+  useEffect(() => {
+    const t = searchParams.get("toast");
+    if (!t) return;
+
+    if (t === "slot_taken") {
+      pushToast({ title: "Slot doldu", detail: "Bu saat başkası tarafından alındı. Liste güncellendi.", tone: "warn" });
+    } else {
+      pushToast({ title: "Bilgi", detail: String(t), tone: "warn" });
+    }
+
+    // remove toast param so it won't repeat on refresh
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("toast");
+    const qs = params.toString();
+    router.replace(qs ? `/admin?${qs}` : "/admin");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+
+
     useEffect(() => {
       // State -> URL
       const params = new URLSearchParams(searchParams.toString());

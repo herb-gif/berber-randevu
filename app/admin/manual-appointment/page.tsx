@@ -109,7 +109,7 @@ export default function AdminManualAppointmentPage() {
         // Slot already taken (DB unique constraint)
         if (res.status === 409) {
           alert((data as any)?.error || "Bu saat artık dolu. Liste yenileniyor…");
-          window.location.href = "/admin";
+          window.location.href = "/admin?toast=slot_taken";
           return;
         }
 
