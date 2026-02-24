@@ -235,9 +235,8 @@ export async function POST(req: Request) {
       status: "booked",
     }));
 
-    const segIns = await supabaseAdmin.from("appointment_services").insert(segRows);
-
-    if (segIns.error) {
+    const segIns: any = await supabaseAdmin.from("appointment_services").insert(segRows);
+if (segIns.error) {
       const code = (segIns.error as any)?.code;
       // Unique violation (DB constraint) -> slot already taken
       if (code === "23505") {
