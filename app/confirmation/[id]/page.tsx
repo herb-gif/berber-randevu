@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
 
 type Appointment = {
   id: string;
@@ -315,9 +316,9 @@ export default function ConfirmationPage() {
           </div>
         )}
 
-        <a href="/" className="mt-4 block text-center text-sm text-neutral-300 underline">
+        <Link href="/"  className="mt-4 block text-center text-sm text-neutral-300 underline">
           Yeni randevu oluştur
-        </a>
+        </Link>
       </div>
     </main>
   );

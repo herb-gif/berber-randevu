@@ -45,8 +45,8 @@ function normalizeType(s: Service): "hair" | "laser" | "facial" | "brow" | "othe
 function addMinutesToHHMM(hhmm: string, addMin: number) {
   const m = /^(\d{1,2}):(\d{2})$/.exec(hhmm.trim());
   if (!m) return hhmm;
-  let hh = Number(m[1]);
-  let mm = Number(m[2]);
+  const hh = Number(m[1]);
+  const mm = Number(m[2]);
   let total = hh * 60 + mm + addMin;
   total = ((total % (24 * 60)) + (24 * 60)) % (24 * 60);
   const outH = String(Math.floor(total / 60)).padStart(2, "0");
