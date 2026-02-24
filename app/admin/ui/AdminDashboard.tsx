@@ -185,6 +185,7 @@ function minutesBetween(a: string, b: string) {
 }
 
 export default function AdminDashboard() {
+  const [days, setDays] = useState(30);
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   const pushToast = React.useCallback((t: Omit<Toast, "id"> & { id?: string }) => {
