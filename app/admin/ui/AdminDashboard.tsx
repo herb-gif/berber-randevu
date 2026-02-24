@@ -201,6 +201,10 @@ export default function AdminDashboard() {
   const [days, setDays] = useState(30);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [filterQ, setFilterQ] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterDep, setFilterDep] = useState("all");
+  const [filterWhen, setFilterWhen] = useState("all");
   const [toasts, setToasts] = useState<Toast[]>([]);
 
   const pushToast = React.useCallback((t: Omit<Toast, "id"> & { id?: string }) => {
