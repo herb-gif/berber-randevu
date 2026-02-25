@@ -47,6 +47,14 @@ function fmtT(iso: string) {
   }
 }
 
+
+function formatSec(sec: number) {
+  const s = Math.max(0, Math.floor(sec));
+  const mm = Math.floor(s / 60);
+  const ss = s % 60;
+  return `${String(mm).padStart(2, "0")}:${String(ss).padStart(2, "0")}`;
+}
+
 export default function ConfirmationPage() {
   const params = useParams();
   const id =
@@ -64,6 +72,11 @@ export default function ConfirmationPage() {
   const [showConfetti, setShowConfetti] = useState(true);
   const [remainingSec, setRemainingSec] = useState<number | null>(null);
 
+
+  const isPaid = useMemo(() => {
+    const v = String(appt?.deposit_status || "").toLowerCase().trim();
+    return v === "paid" || v === "odendi" || v === "ödendi" || v === "completed" || v === "confirmed";
+  }, [appt?.deposit_status]);
   // Confetti auto-hide
   useEffect(() => {
     const t = setTimeout(() => setShowConfetti(false), 1200);
@@ -135,9 +148,15 @@ export default function ConfirmationPage() {
     };
   }, [id]);
 
-  // Deposit countdown: starts when appointment is loaded
+  // Deposit countdown: starts when appointment is loaded (stops when paid)
   useEffect(() => {
     if (!appt) return;
+
+    if (isPaid) {
+      setRemainingSec(null);
+      return;
+    }
+
     const TOTAL = 20 * 60;
     setRemainingSec(TOTAL);
     const it = setInterval(() => {
@@ -147,9 +166,7 @@ export default function ConfirmationPage() {
       });
     }, 1000);
     return () => clearInterval(it);
-  }, [appt?.id]);
-
-  const cleanPhone = useMemo(() => {
+  }, [appt?.id, isPaid]);const cleanPhone = useMemo(() => {
     if (!payment?.whatsapp_phone_e164) return "";
     return String(payment.whatsapp_phone_e164).replace(/[^0-9]/g, "");
   }, [payment]);
@@ -227,9 +244,16 @@ export default function ConfirmationPage() {
               <div className="text-lg font-semibold">Depozito Bilgileri</div>
 
               {/* Countdown inside deposit card */}
+
+                {appt && isPaid && (
+                  <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-200">
+                    <span className="text-base">✅</span>
+                    Depozito: Ödendi
+                  </div>
+                )}
               {appt &&
                 typeof remainingSec === "number" &&
-                String(appt.deposit_status || "").toLowerCase() !== "paid" &&
+                !isPaid &&
                 (remainingSec > 0 ? (
                   <div
                     className={[
