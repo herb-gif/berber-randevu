@@ -149,13 +149,13 @@ export async function POST(req: Request) {
     for (const seg of segments as any[]) {
       if (seg.resource === "hair") {
         const anyOverlap = hairBusy.some((b) => overlaps(seg.startMs, seg.endMs, b.s, b.e));
-        if (anyOverlap) return NextResponse.json({ error: "Seçilen saat dolu (berber meşgul)" }, { status: 400 });
+        if (anyOverlap) return NextResponse.json({ error: "Bu saat artık dolu." }, { status: 409 });
       } else if (seg.resource === "niyazi") {
         const count = niyaziBusy.filter((b) => overlaps(seg.startMs, seg.endMs, b.s, b.e)).length;
-        if (count >= niyaziCapacity) return NextResponse.json({ error: "Seçilen saat dolu (Niyazi meşgul)" }, { status: 400 });
+        if (count >= niyaziCapacity) return NextResponse.json({ error: "Bu saat artık dolu." }, { status: 409 });
       } else {
         const count = externalBusy.filter((b) => overlaps(seg.startMs, seg.endMs, b.s, b.e)).length;
-        if (count >= 1) return NextResponse.json({ error: "Seçilen saat dolu" }, { status: 400 });
+        if (count >= 1) return NextResponse.json({ error: "Bu saat artık dolu." }, { status: 409 });
       }
     }
 
