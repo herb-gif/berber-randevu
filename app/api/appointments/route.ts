@@ -296,7 +296,7 @@ if (segIns.error) {
         );
       }
 
-      return NextResponse.json({ error: msg }, { status: 400 });
+      return NextResponse.json({ error: msg }, { status: 409 });
     }
 
     // 3) appointment_service_options insert (lazer)
