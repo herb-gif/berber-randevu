@@ -72,24 +72,6 @@ export async function POST(req: Request) {
       } else {
         insertRow.is_active = true;
       }
-
-    if ("name" in body) {
-      const name = String(body.name || "").trim();
-      if (!name) return NextResponse.json({ error: "name geçersiz" }, { status: 400 });
-      patch.name = name;
-    }
-
-    if ("service_type" in body) {
-      const st = String(body.service_type || "").trim();
-      if (!st) return NextResponse.json({ error: "service_type geçersiz" }, { status: 400 });
-      patch.service_type = st;
-    }
-
-    if ("default_duration_min" in body) {
-      const d = Number(body.default_duration_min);
-      if (!Number.isFinite(d) || d <= 0) {
-        return NextResponse.json({ error: "default_duration_min geçersiz" }, { status: 400 });
-      }
       patch.default_duration_min = Math.round(d);
     }
 
@@ -112,6 +94,25 @@ export async function POST(req: Request) {
     }
   const patch: Record<string, any> = {};
 
+
+
+    if ("name" in body) {
+      const name = String(body.name || "").trim();
+      if (!name) return NextResponse.json({ error: "name geçersiz" }, { status: 400 });
+      patch.name = name;
+    }
+
+    if ("service_type" in body) {
+      const st = String(body.service_type || "").trim();
+      if (!st) return NextResponse.json({ error: "service_type geçersiz" }, { status: 400 });
+      patch.service_type = st;
+    }
+
+    if ("default_duration_min" in body) {
+      const d = Number(body.default_duration_min);
+      if (!Number.isFinite(d) || d <= 0) {
+        return NextResponse.json({ error: "default_duration_min geçersiz" }, { status: 400 });
+      }
   if ("price" in body) {
     const price = Number(body.price);
     if (!Number.isFinite(price) || price < 0) return NextResponse.json({ error: "price geçersiz" }, { status: 400 });
