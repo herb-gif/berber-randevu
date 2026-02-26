@@ -392,7 +392,7 @@ const slotBtnClass = (t: string) =>
             : svc.name,
         start: cursor,
         end: next,
-        resource: normalizeType(svc) === "hair" ? "Berber" : "Niyazi",
+        resource: normalizeType(svc) === "hair" ? "Berber" : (String((svc as any)?.resource_group || "").toLowerCase().trim() === "external" ? "External" : "Niyazi"),
       });
       cursor = next;
     }
