@@ -182,7 +182,9 @@ export default function ConfirmationPage() {
       });
     }, 1000);
     return () => clearInterval(it);
-  }, [appt?.id, isPaid]);const cleanPhone = useMemo(() => {
+  }, [appt?.id, isPaid]);
+
+  const cleanPhone = useMemo(() => {
     if (!payment?.whatsapp_phone_e164) return "";
     return String(payment.whatsapp_phone_e164).replace(/[^0-9]/g, "");
   }, [payment]);
