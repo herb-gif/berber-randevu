@@ -148,13 +148,29 @@ export default function ConfirmationPage() {
     };
   }, [id]);
 
-  // Deposit countdown: starts when appointment is loaded (stops when paid)
+  // Deposit countdown: based on created_at (+20min). Paid -> stop/hide
   useEffect(() => {
     if (!appt) return;
 
     if (isPaid) {
       setRemainingSec(null);
       return;
+    }
+
+    const TOTAL = 20 * 60; // seconds
+    const createdMs = appt.created_at ? Date.parse(appt.created_at) : NaN;
+    const baseMs = Number.isFinite(createdMs) ? createdMs : Date.now();
+    const deadlineMs = baseMs + TOTAL * 1000;
+
+    const tick = () => {
+      const left = Math.max(0, Math.floor((deadlineMs - Date.now()) / 1000));
+      setRemainingSec(left);
+    };
+
+    tick();
+    const it = setInterval(tick, 1000);
+    return () => clearInterval(it);
+  }, [appt?.id, appt?.created_at, isPaid]);return;
     }
 
     const TOTAL = 20 * 60;
