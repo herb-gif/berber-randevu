@@ -16,10 +16,13 @@ type Row = {
 };
 
 type SavePatch = {
-  price?: number;
+    name?: string;
+    service_type?: string;
+    default_duration_min?: number;
+price?: number;
   is_active?: boolean;
   resource_group?: ResourceGroup;
-};
+  };
 
 export default function AdminServicesPage() {
   const [rows, setRows] = useState<Row[]>([]);
@@ -302,7 +305,12 @@ function ServiceRow({ row, onSave }: { row: Row; onSave: (id: string, patch: Sav
   const [price, setPrice] = useState<number>(Number(row.price ?? 0));
   const [isActive, setIsActive] = useState<boolean>(!!row.is_active);
   const [resourceGroup, setResourceGroup] = useState<ResourceGroup>(row.resource_group ?? null);
-  const [saving, setSaving] = useState(false);
+  
+
+    const [name, setName] = useState<string>(row.name ?? "");
+    const [serviceType, setServiceType] = useState<string>(row.service_type ?? "other");
+    const [durationMin, setDurationMin] = useState<number>(row.default_duration_min ?? 30);
+const [saving, setSaving] = useState(false);
 
   const typeLabel =
     ({
@@ -315,12 +323,15 @@ function ServiceRow({ row, onSave }: { row: Row; onSave: (id: string, patch: Sav
   async function doSave() {
     setSaving(true);
     try {
-      await onSave(row.id, {
-        price,
+              await onSave(row.id, {
+          name,
+          service_type: serviceType,
+          default_duration_min: durationMin,
+price,
         is_active: isActive,
         resource_group: resourceGroup,
-      });
-    } finally {
+        });
+} finally {
       setSaving(false);
     }
   }
@@ -328,14 +339,22 @@ function ServiceRow({ row, onSave }: { row: Row; onSave: (id: string, patch: Sav
   return (
     <tr className="bg-white">
       <td className="p-4 align-middle">
-        <span className="font-semibold text-neutral-900">{row.name}</span>
+        <input className="w-full rounded-lg border border-mc-border bg-white px-3 py-2 text-neutral-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-mc-bronze/40 focus:border-mc-bronze" value={name} onChange={(e) => setName(e.target.value)} />
       </td>
 
       <td className="p-4 align-middle">
-        <span className="text-[11px] px-2 py-0.5 rounded-lg border border-mc-border bg-white text-neutral-700">
-          {typeLabel}
-        </span>
-      </td>
+          <select
+            className="w-full rounded-lg border border-mc-border bg-white px-3 py-2 text-neutral-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-mc-bronze/40 focus:border-mc-bronze"
+            value={serviceType}
+            onChange={(e) => setServiceType(e.target.value)}
+          >
+            <option value="hair">Saç</option>
+            <option value="laser">Lazer</option>
+            <option value="facial">Cilt</option>
+            <option value="brow">Kaş</option>
+            <option value="other">Diğer</option>
+          </select>
+        </td>
 
       <td className="p-4 align-middle">
         <select
@@ -364,9 +383,7 @@ function ServiceRow({ row, onSave }: { row: Row; onSave: (id: string, patch: Sav
       </td>
 
       <td className="p-4 align-middle">
-        <span className="text-[11px] px-2 py-0.5 rounded-lg border border-mc-border bg-white text-neutral-700">
-          {row.default_duration_min} dk
-        </span>
+        <input className="w-28 rounded-lg border border-mc-border bg-white px-3 py-2 text-neutral-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-mc-bronze/40 focus:border-mc-bronze" type="number" min={1} value={durationMin} onChange={(e) => setDurationMin(Number(e.target.value))} />
       </td>
 
       <td className="p-4 align-middle">
