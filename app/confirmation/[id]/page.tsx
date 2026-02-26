@@ -81,7 +81,7 @@ export default function ConfirmationPage() {
     if (!id) return;
     try {
       // NOTE: If your endpoint differs, change only this URL:
-      const res = await fetch(`/api/appointments?id=${encodeURIComponent(id)}`, { cache: "no-store" });
+      const res = await fetch(`/api/confirmation?id=${encodeURIComponent(id)}`, { cache: "no-store" });
       if (!res.ok) return;
       const data = await res.json().catch(() => null);
       // Accept both shapes: { appointment: {...} } OR direct {...}
