@@ -809,27 +809,7 @@ async function logout() {
               <input
                 value={filterQ}
                 onChange={(e) => setFilterQ(e.target.value)}
-
-                {/* Notifications */}
-                <div className="mr-2 flex items-center gap-2">
-                  <label className="inline-flex items-center gap-2 text-xs text-white/70 select-none">
-                    <input
-                      type="checkbox"
-                      checked={notifyOn}
-                      onChange={(e) => setNotifyOn(e.target.checked)}
-                    />
-                    Bildirim
-                  </label>
-                  <label className="inline-flex items-center gap-2 text-xs text-white/70 select-none">
-                    <input
-                      type="checkbox"
-                      checked={soundOn}
-                      onChange={(e) => setSoundOn(e.target.checked)}
-                    />
-                    Ses
-                  </label>
-                </div>
-                placeholder="İsim / telefon / hizmet…"
+placeholder="İsim / telefon / hizmet…"
                 className="mt-1 w-full rounded-xl border border-white/10 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-mc-bronze/30 focus:border-mc-bronze"
               />
             </div>
