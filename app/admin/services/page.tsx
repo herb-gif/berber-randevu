@@ -27,7 +27,16 @@ export default function AdminServicesPage() {
   const [unauth, setUnauth] = useState(false);
   const [toast, setToast] = useState<string>("");
 
-  async function load() {
+  
+
+    const [newName, setNewName] = useState("");
+    const [newType, setNewType] = useState<string>("facial");
+    const [newRG, setNewRG] = useState<ResourceGroup>("external");
+    const [newDur, setNewDur] = useState<number>(30);
+    const [newPrice, setNewPrice] = useState<number>(0);
+    const [newActive, setNewActive] = useState<boolean>(true);
+    const [creating, setCreating] = useState<boolean>(false);
+async function load() {
     setLoading(true);
     setUnauth(false);
 
@@ -63,6 +72,52 @@ export default function AdminServicesPage() {
     const t = setTimeout(() => setToast(""), 1500);
     return () => clearTimeout(t);
   }, [toast]);
+
+    async function createService() {
+      const name = newName.trim();
+      if (!name) return setToast("İsim gir");
+
+      setCreating(true);
+      try {
+        const res = await fetch("/api/admin/services", {
+          credentials: "include",
+          cache: "no-store",
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name,
+            service_type: String(newType || "facial"),
+            resource_group: newRG,
+            default_duration_min: Number(newDur || 0),
+            price: Number(newPrice || 0),
+            is_active: Boolean(newActive),
+          }),
+        });
+
+        if (res.status === 401) {
+          setUnauth(true);
+          setTimeout(() => (window.location.href = "/admin"), 500);
+          return;
+        }
+
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) return alert(data.error || "Eklenemedi");
+
+        setNewName("");
+        setNewType("facial");
+        setNewRG("external");
+        setNewDur(30);
+        setNewPrice(0);
+        setNewActive(true);
+
+        await load();
+        setToast("Eklendi ✓");
+      } finally {
+        setCreating(false);
+      }
+    }
+
+
 
   async function save(id: string, patch: SavePatch) {
     const res = await fetch("/api/admin/services", { credentials: "include", cache: "no-store", method: "POST",
@@ -112,7 +167,97 @@ export default function AdminServicesPage() {
           </div>
         )}
 
-        <div className="w-full rounded-2xl border border-mc-border bg-white shadow-sm overflow-hidden">
+        
+          <div className="w-full rounded-2xl border border-mc-border bg-white shadow-sm p-4">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <div className="text-sm font-semibold text-neutral-900">Yeni Hizmet Ekle</div>
+                <div className="text-[12px] text-neutral-500">Wax / Ağda, Manikür & Pedikür gibi servisleri buradan ekleyebilirsin.</div>
+              </div>
+              <button
+                className="rounded-xl px-4 py-2 text-sm bg-mc-black text-mc-bronze border border-mc-bronze hover:bg-mc-bronze hover:text-black transition disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={createService}
+                disabled={creating}
+              >
+                {creating ? "Ekleniyor…" : "Ekle"}
+              </button>
+            </div>
+
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-6 gap-3">
+              <div className="md:col-span-2">
+                <div className="text-xs font-semibold text-neutral-700 mb-1">Ad</div>
+                <input
+                  className="w-full rounded-lg border border-mc-border bg-white px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-mc-bronze/40 focus:border-mc-bronze"
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  placeholder="Örn: Wax / Ağda"
+                />
+              </div>
+
+              <div>
+                <div className="text-xs font-semibold text-neutral-700 mb-1">Tür</div>
+                <select
+                  className="w-full rounded-lg border border-mc-border bg-white px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-mc-bronze/40 focus:border-mc-bronze"
+                  value={newType}
+                  onChange={(e) => setNewType(e.target.value)}
+                >
+                  <option value="hair">Saç</option>
+                  <option value="laser">Lazer</option>
+                  <option value="facial">Cilt</option>
+                  <option value="brow">Kaş</option>
+                  <option value="other">Diğer</option>
+                </select>
+              </div>
+
+              <div>
+                <div className="text-xs font-semibold text-neutral-700 mb-1">Kaynak</div>
+                <select
+                  className="w-full rounded-lg border border-mc-border bg-white px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-mc-bronze/40 focus:border-mc-bronze"
+                  value={newRG ?? "external"}
+                  onChange={(e) => {
+                    const v = e.target.value.trim();
+                    setNewRG((v === "" ? null : (v as any)) as any);
+                  }}
+                >
+                  <option value="hair">Hair (Berber)</option>
+                  <option value="niyazi">Niyazi</option>
+                  <option value="external">External</option>
+                  <option value="">(auto)</option>
+                </select>
+              </div>
+
+              <div>
+                <div className="text-xs font-semibold text-neutral-700 mb-1">Süre (dk)</div>
+                <input
+                  className="w-full rounded-lg border border-mc-border bg-white px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-mc-bronze/40 focus:border-mc-bronze"
+                  type="number"
+                  min={1}
+                  value={newDur}
+                  onChange={(e) => setNewDur(Number(e.target.value))}
+                />
+              </div>
+
+              <div>
+                <div className="text-xs font-semibold text-neutral-700 mb-1">Fiyat (TL)</div>
+                <input
+                  className="w-full rounded-lg border border-mc-border bg-white px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-mc-bronze/40 focus:border-mc-bronze"
+                  type="number"
+                  min={0}
+                  value={newPrice}
+                  onChange={(e) => setNewPrice(Number(e.target.value))}
+                />
+              </div>
+
+              <div className="flex items-center gap-2 md:justify-end">
+                <label className="inline-flex items-center gap-2 select-none mt-6">
+                  <input type="checkbox" checked={newActive} onChange={(e) => setNewActive(e.target.checked)} />
+                  <span className="text-sm text-neutral-700">{newActive ? "Aktif" : "Pasif"}</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+<div className="w-full rounded-2xl border border-mc-border bg-white shadow-sm overflow-hidden">
           <table className="w-full text-sm text-neutral-900">
             <thead className="bg-neutral-50 text-neutral-900 uppercase tracking-wide text-xs">
               <tr>
