@@ -117,3 +117,70 @@ return NextResponse.json(
     { headers: { "Cache-Control": "no-store" } }
   );
 }
+
+
+export async function POST(req: Request) {
+  const cookieStore = await cookies();
+  if (cookieStore.get("admin_session")?.value !== "1") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (!supabaseAdmin) {
+    return NextResponse.json({ error: "Service role missing" }, { status: 500 });
+  }
+
+  const body = (await req.json().catch(() => ({}))) as { id?: string; action?: string };
+
+  const id = String(body?.id || "");
+  const action = String(body?.action || "");
+
+  if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
+
+  // 1) Ödeme geldi => deposit_status: paid
+  if (action === "mark_paid") {
+    const upd = await supabaseAdmin
+      .from("appointments")
+      .update({ deposit_status: "paid" })
+      .eq("id", id)
+      .select("id, deposit_status")
+      .maybeSingle();
+
+    if (upd.error) {
+      return NextResponse.json({ error: upd.error.message }, { status: 400 });
+    }
+    if (!upd.data) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+    return NextResponse.json({ ok: true, id, deposit_status: upd.data.deposit_status }, { status: 200 });
+  }
+
+  // 2) No-show => status: no_show; paid ise forfeited
+  if (action === "no_show") {
+    const cur = await supabaseAdmin
+      .from("appointments")
+      .select("id, deposit_status")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (cur.error) return NextResponse.json({ error: cur.error.message }, { status: 400 });
+    if (!cur.data) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+    const dep = String(cur.data.deposit_status || "").toLowerCase().trim();
+    const paidSet = new Set(["paid", "odendi", "ödendi", "completed", "confirmed"]);
+
+    const nextDeposit = paidSet.has(dep) ? "forfeited" : (cur.data.deposit_status ?? null);
+
+    const upd = await supabaseAdmin
+      .from("appointments")
+      .update({ status: "no_show", deposit_status: nextDeposit })
+      .eq("id", id)
+      .select("id, status, deposit_status")
+      .maybeSingle();
+
+    if (upd.error) {
+      return NextResponse.json({ error: upd.error.message }, { status: 400 });
+    }
+    return NextResponse.json({ ok: true, id, status: upd.data?.status, deposit_status: upd.data?.deposit_status }, { status: 200 });
+  }
+
+  return NextResponse.json({ error: "Unknown action" }, { status: 400 });
+}
