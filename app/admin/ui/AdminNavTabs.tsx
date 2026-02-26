@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 const tabs = [
   { href: "/admin/services", label: "Hizmet Fiyatları" },
+    { href: "/admin/barbers", label: "Berberler" },
   { href: "/admin/laser-options", label: "Lazer Bölge Fiyatları" },
 ];
 
