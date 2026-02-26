@@ -56,8 +56,6 @@ function formatSec(sec: number) {
 }
 
 export default function ConfirmationPage() {
-  const apptId = String((params as any)?.id || "");
-
   const params = useParams();
   const id =
     typeof (params as any)?.id === "string"
@@ -80,10 +78,10 @@ export default function ConfirmationPage() {
 
 
   async function refetchAppointment() {
-    if (!apptId) return;
+    if (!id) return;
     try {
       // NOTE: If your endpoint differs, change only this URL:
-      const res = await fetch(`/api/appointments?id=${encodeURIComponent(apptId)}`, { cache: "no-store" });
+      const res = await fetch(`/api/appointments?id=${encodeURIComponent(id)}`, { cache: "no-store" });
       if (!res.ok) return;
       const data = await res.json().catch(() => null);
       // Accept both shapes: { appointment: {...} } OR direct {...}
@@ -101,7 +99,7 @@ export default function ConfirmationPage() {
 
   // Auto-refresh: focus + short polling while unpaid
   useEffect(() => {
-    if (!apptId) return;
+    if (!id) return;
 
     // 1) Refetch when user focuses the tab/window
     const onFocus = () => { refetchAppointment(); };
@@ -121,7 +119,7 @@ export default function ConfirmationPage() {
       document.removeEventListener("visibilitychange", onFocus);
       if (it) clearInterval(it);
     };
-  }, [apptId, isPaid]);
+  }, [id, isPaid]);
 
 const isPaid = useMemo(() => {
     const v = String(appt?.deposit_status || "").toLowerCase().trim();
