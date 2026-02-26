@@ -185,6 +185,86 @@ function minutesBetween(a: string, b: string) {
 }
 
 export default function AdminDashboard() {
+
+  // --- Notifications (admin panel open) ---
+  const [notifyOn, setNotifyOn] = useState<boolean>(false);
+  const [soundOn, setSoundOn] = useState<boolean>(true);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const n = window.localStorage.getItem("mc_admin_notify_on");
+      const so = window.localStorage.getItem("mc_admin_sound_on");
+      if (n === "1") setNotifyOn(true);
+      if (n === "0") setNotifyOn(false);
+      if (so === "0") setSoundOn(false);
+      if (so === "1") setSoundOn(true);
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem("mc_admin_notify_on", notifyOn ? "1" : "0");
+    } catch {}
+    // Ask permission when enabling
+    if (notifyOn && typeof Notification !== "undefined") {
+      if (Notification.permission === "default") {
+        Notification.requestPermission().catch(() => {});
+      }
+    }
+  }, [notifyOn]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem("mc_admin_sound_on", soundOn ? "1" : "0");
+    } catch {}
+  }, [soundOn]);
+
+  function playDing() {
+    if (!soundOn) return;
+    try {
+      const Ctx = (window as any).AudioContext || (window as any).webkitAudioContext;
+      if (!Ctx) return;
+      const ctx = new Ctx();
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+
+      o.type = "sine";
+      o.frequency.value = 880; // A5
+      g.gain.value = 0.0001;
+
+      o.connect(g);
+      g.connect(ctx.destination);
+
+      const now = ctx.currentTime;
+      g.gain.setValueAtTime(0.0001, now);
+      g.gain.exponentialRampToValueAtTime(0.15, now + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+
+      o.start(now);
+      o.stop(now + 0.2);
+
+      setTimeout(() => {
+        try { ctx.close(); } catch {}
+      }, 250);
+    } catch {}
+  }
+
+  function pushNotify(title: string, body: string) {
+    if (!notifyOn) return;
+    if (typeof Notification === "undefined") return;
+    if (Notification.permission !== "granted") return;
+
+    try {
+      const n = new Notification(title, { body });
+      setTimeout(() => {
+        try { n.close(); } catch {}
+      }, 5000);
+    } catch {}
+  }
+
   const flashRow = React.useCallback((id: string, tone?: "paid" | "bad" | "normal") => {
     if (!id) return;
     const now = Date.now();
@@ -729,6 +809,26 @@ async function logout() {
               <input
                 value={filterQ}
                 onChange={(e) => setFilterQ(e.target.value)}
+
+                {/* Notifications */}
+                <div className="mr-2 flex items-center gap-2">
+                  <label className="inline-flex items-center gap-2 text-xs text-white/70 select-none">
+                    <input
+                      type="checkbox"
+                      checked={notifyOn}
+                      onChange={(e) => setNotifyOn(e.target.checked)}
+                    />
+                    Bildirim
+                  </label>
+                  <label className="inline-flex items-center gap-2 text-xs text-white/70 select-none">
+                    <input
+                      type="checkbox"
+                      checked={soundOn}
+                      onChange={(e) => setSoundOn(e.target.checked)}
+                    />
+                    Ses
+                  </label>
+                </div>
                 placeholder="İsim / telefon / hizmet…"
                 className="mt-1 w-full rounded-xl border border-white/10 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-mc-bronze/30 focus:border-mc-bronze"
               />
