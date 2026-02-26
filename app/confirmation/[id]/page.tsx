@@ -56,6 +56,8 @@ function formatSec(sec: number) {
 }
 
 export default function ConfirmationPage() {
+  const apptId = String((params as any)?.id || "");
+
   const params = useParams();
   const id =
     typeof (params as any)?.id === "string"
@@ -75,6 +77,53 @@ export default function ConfirmationPage() {
 
   
   const DEPOSIT_TOTAL_SEC = 20 * 60;
+
+
+  async function refetchAppointment() {
+    if (!apptId) return;
+    try {
+      // NOTE: If your endpoint differs, change only this URL:
+      const res = await fetch(`/api/appointments?id=${encodeURIComponent(apptId)}`, { cache: "no-store" });
+      if (!res.ok) return;
+      const data = await res.json().catch(() => null);
+      // Accept both shapes: { appointment: {...} } OR direct {...}
+      const next = (data and (data.get("appointment") if hasattr(data, "get") else None)) if False else None
+      // In TS runtime, just handle common JS shapes:
+      const apptObj = (data && (data.appointment || data.appt || data)) || null;
+      if (apptObj && typeof apptObj === "object") {
+        // setAppt exists in this file already
+        // @ts-ignore
+        setAppt(apptObj);
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  // Auto-refresh: focus + short polling while unpaid
+  useEffect(() => {
+    if (!apptId) return;
+
+    // 1) Refetch when user focuses the tab/window
+    const onFocus = () => { refetchAppointment(); };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onFocus);
+
+    // 2) Poll while not paid (stops when paid)
+    let it: any = null;
+    if (!isPaid) {
+      it = setInterval(() => {
+        refetchAppointment();
+      }, 4000);
+    }
+
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onFocus);
+      if (it) clearInterval(it);
+    };
+  }, [apptId, isPaid]);
+
 const isPaid = useMemo(() => {
     const v = String(appt?.deposit_status || "").toLowerCase().trim();
     return v === "paid" || v === "odendi" || v === "ödendi" || v === "completed" || v === "confirmed";
