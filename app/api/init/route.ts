@@ -26,7 +26,7 @@ export async function GET() {
   if (servicesRes.error) return NextResponse.json({ error: servicesRes.error.message }, { status: 400 });
   if (barbersRes.error) return NextResponse.json({ error: barbersRes.error.message }, { status: 400 });
 
-  const deposit_amount = depRes.data?.value ?? 250;
+  const deposit_amount = depRes.data?.value ?? 300;
   const payment = payRes.error
     ? { bank_name: "", iban: "", account_name: "", note: "", whatsapp_phone_e164: "" }
     : payRes.data;
