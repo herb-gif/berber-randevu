@@ -108,7 +108,9 @@ export default function ConfirmationPage() {
 
     // 2) Poll while not paid (stops when paid)
     let it: any = null;
-    if (!isPaid) {
+    const paidLike = ["paid","odendi","ödendi","completed","confirmed"].includes(String(appt?.deposit_status || "").toLowerCase().trim());
+
+    if (!paidLike) {
       it = setInterval(() => {
         refetchAppointment();
       }, 4000);
@@ -119,7 +121,7 @@ export default function ConfirmationPage() {
       document.removeEventListener("visibilitychange", onFocus);
       if (it) clearInterval(it);
     };
-  }, [id, isPaid]);
+  }, [id, appt?.deposit_status]);
 
 const isPaid = useMemo(() => {
     const v = String(appt?.deposit_status || "").toLowerCase().trim();
@@ -200,7 +202,7 @@ const isPaid = useMemo(() => {
   useEffect(() => {
     if (!appt) return;
 
-    if (isPaid) {
+    if (paidLike) {
       setRemainingSec(null);
       return;
     }
