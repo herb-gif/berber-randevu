@@ -87,7 +87,6 @@ export default function ConfirmationPage() {
       if (!res.ok) return;
       const data = await res.json().catch(() => null);
       // Accept both shapes: { appointment: {...} } OR direct {...}
-      const next = (data and (data.get("appointment") if hasattr(data, "get") else None)) if False else None
       // In TS runtime, just handle common JS shapes:
       const apptObj = (data && (data.appointment || data.appt || data)) || null;
       if (apptObj && typeof apptObj === "object") {
