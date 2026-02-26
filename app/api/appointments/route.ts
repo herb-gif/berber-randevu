@@ -212,8 +212,7 @@ export async function POST(req: Request) {
       laserText = opts.map((o: any) => String(o.name)).join(" + ");
     }
 
-    const computedDeposit = Math.max(0, Math.round((total_price * depositPercent) / 100));
-    const deposit_amount = Math.max(computedDeposit, Math.max(0, Math.floor(minDepositAmount)));
+        const deposit_amount = 300;
 
     // Depozito status (2 saat kuralı): 2 saatten az kala => required
     const diffMin = Math.floor((startMs - Date.now()) / 60_000);
