@@ -73,7 +73,9 @@ export default function ConfirmationPage() {
   const [remainingSec, setRemainingSec] = useState<number | null>(null);
 
 
-  const isPaid = useMemo(() => {
+  
+  const DEPOSIT_TOTAL_SEC = 20 * 60;
+const isPaid = useMemo(() => {
     const v = String(appt?.deposit_status || "").toLowerCase().trim();
     return v === "paid" || v === "odendi" || v === "ödendi" || v === "completed" || v === "confirmed";
   }, [appt?.deposit_status]);
@@ -148,7 +150,7 @@ export default function ConfirmationPage() {
     };
   }, [id]);
 
-  // Deposit countdown: based on created_at (+20min). Paid -> stop/hide
+  // Deposit countdown: starts when appointment is loaded (stops when paid)
   useEffect(() => {
     if (!appt) return;
 
@@ -157,32 +159,20 @@ export default function ConfirmationPage() {
       return;
     }
 
-    const TOTAL = 20 * 60; // seconds
-    const createdMs = appt.created_at ? Date.parse(appt.created_at) : NaN;
-    const baseMs = Number.isFinite(createdMs) ? createdMs : Date.now();
-    const deadlineMs = baseMs + TOTAL * 1000;
-
-    const tick = () => {
-      const left = Math.max(0, Math.floor((deadlineMs - Date.now()) / 1000));
-      setRemainingSec(left);
-    };
-
-    tick();
-    const it = setInterval(tick, 1000);
-    return () => clearInterval(it);
-  }, [appt?.id, appt?.created_at, isPaid]);return;
-    }
-
-    const TOTAL = 20 * 60;
+    const TOTAL = DEPOSIT_TOTAL_SEC ?? (20 * 60);
     setRemainingSec(TOTAL);
+
     const it = setInterval(() => {
       setRemainingSec((prev) => {
         if (typeof prev !== "number") return TOTAL;
         return Math.max(0, prev - 1);
       });
     }, 1000);
+
     return () => clearInterval(it);
   }, [appt?.id, isPaid]);
+
+
 
   const cleanPhone = useMemo(() => {
     if (!payment?.whatsapp_phone_e164) return "";
