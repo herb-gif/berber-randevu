@@ -202,7 +202,7 @@ const isPaid = useMemo(() => {
   useEffect(() => {
     if (!appt) return;
 
-    if (paidLike) {
+    if (isPaid) {
       setRemainingSec(null);
       return;
     }
