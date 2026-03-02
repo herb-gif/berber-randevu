@@ -823,20 +823,15 @@ async function logout() {
                     filterWhen === "week"
                       ? "border-mc-bronze bg-mc-bronze/10 text-mc-bronze"
                       : "border-white/10 bg-neutral-900 text-neutral-200 hover:bg-neutral-800"
-                  }`}
-                  onClick={() => setFilterWhen(filterWhen === "week" ? "all" : "week")}
-                >
-                  Bu hafta
-                </button>
-              </div>
-
               <div className="flex-1">
-              <div className="text-xs text-neutral-500">Arama</div>
-              
-                  Ses
-                </label>
-              
-placeholder="İsim / telefon / hizmet…"
+                <div className="text-xs text-neutral-500">Arama</div>
+                <input
+                  value={filterQ}
+                  onChange={(e) => setFilterQ(e.target.value)}
+                  placeholder="İsim / telefon / hizmet…"
+                  className="mt-1 w-full rounded-xl border border-white/10 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-mc-bronze/30 focus:border-mc-bronze"
+                />
+              </div>
                 className="mt-1 w-full rounded-xl border border-white/10 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-mc-bronze/30 focus:border-mc-bronze"
               />
             </div>
