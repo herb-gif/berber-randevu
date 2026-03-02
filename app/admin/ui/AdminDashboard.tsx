@@ -1,6 +1,8 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { buildDepositPaymentMessage, buildApprovalMessage, buildReminderMessage, buildWhatsAppWebUrl } from "@/lib/whatsapp";
+import { useRouter, useSearchParams } from "next/navigation";
 
 type Block = {
   resource: "hair" | "niyazi" | "external" | string;
@@ -55,10 +57,7 @@ function digitsOnly(x: string) {
   return (x || "").replace(/[^0-9]/g, "");
 }
 function waUrl(phone: string, text: string) {
-  const d = digitsOnly(phone);
-  const msg = encodeURIComponent(text);
-  if (d.length >= 10) return `https://wa.me/${d}?text=${msg}`;
-  return `https://wa.me/?text=${msg}`;
+  return buildWhatsAppWebUrl(phone, text);
 }
 
 function depLabel(s?: string | null) {
@@ -67,17 +66,19 @@ function depLabel(s?: string | null) {
   if (v === "pending") return "Bekliyor";
   if (v === "required") return "Zorunlu";
   if (v === "forfeited") return "Yandı";
+    if (v === "refunded") return "İade Edildi";
   if (v === "cancelled") return "İptal";
   return s ?? "—";
 }
 function depBadgeClass(s?: string | null) {
   const v = (s || "").toLowerCase();
-  if (v === "paid") return "bg-emerald-50 text-emerald-700 border-emerald-200";
-  if (v === "forfeited") return "bg-rose-50 text-rose-700 border-rose-200";
-  if (v === "required") return "bg-amber-50 text-amber-800 border-amber-200";
-  if (v === "pending") return "bg-neutral-50 text-neutral-700 border-neutral-200";
-  if (v === "cancelled") return "bg-neutral-100 text-neutral-600 border-neutral-200";
-  return "bg-neutral-50 text-neutral-700 border-neutral-200";
+  if (v === "paid") return "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+  if (v === "forfeited") return "bg-rose-500/10 text-rose-400 border-rose-500/20";
+    if (v === "refunded") return "bg-blue-500/10 text-blue-400 border-blue-500/20";
+  if (v === "required") return "bg-amber-500/10 text-amber-400 border-amber-500/20";
+  if (v === "pending") return "bg-neutral-800/40 text-neutral-300 border-neutral-700";
+  if (v === "cancelled") return "bg-neutral-800/40 text-neutral-400 border-neutral-700";
+  return "bg-neutral-800/40 text-neutral-300 border-neutral-700";
 }
 function cancelReasonLabel(r?: string | null) {
   if (!r) return null;
@@ -95,25 +96,23 @@ async function fetchPayment(): Promise<Payment | null> {
   return data.payment ?? null;
 }
 
-function buildPaymentMsg(r: Row, p: Payment) {
-  const dep = r.deposit_amount ?? "";
-  const when = fmtDT(r.start_at);
-  const svc = r.service_summary || "—";
-  const acc = p.account_name ? `Alıcı: ${p.account_name}\n` : "";
 
-  return (
-    `Merhaba ${r.customer_name},\n\n` +
-    `Randevunuz oluşturuldu. Depozito bilgileri aşağıdadır:\n\n` +
-    `🕒 ${when}\n` +
-    `🧾 ${svc}\n` +
-    `💳 Depozito: ${dep} TL\n\n` +
-    `${p.bank_name}\n` +
-    `${p.iban}\n` +
-    acc +
-    `Açıklama: Randevu - ${r.customer_name} - ${when}\n\n` +
-    `📎 Ödeme dekontunu bu WhatsApp üzerinden iletebilir misiniz?\n` +
-    `✅ Ödeme onayı admin tarafından verilecektir.`
-  );
+
+function rowClass(r: Row) {
+    const status = String(r.status || "").toLowerCase();
+    const dep = String(r.deposit_status || "").toLowerCase().trim();
+
+    // Dark-ish "signal strip" (minimal diff): keep row mostly neutral, signal via left border.
+    if (status === "no_show") return "border-t align-top border-l-4 border-rose-300";
+    if (status === "cancelled") return "border-t align-top border-l-4 border-neutral-200 text-neutral-500";
+
+    if (dep === "refunded") return "border-t align-top border-l-4 border-blue-300";
+    if (dep === "forfeited") return "border-t align-top border-l-4 border-rose-200";
+    if (dep === "paid") return "border-t align-top border-l-4 border-emerald-300";
+
+    if (dep === "pending" || dep === "required") return "border-t align-top border-l-4 border-amber-300";
+
+    return "border-t align-top border-l-4 border-transparent";
 }
 
 function minutesBetween(a: string, b: string) {
@@ -128,8 +127,21 @@ export default function AdminDashboard() {
   const [days, setDays] = useState(30);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+    const [filterQ, setFilterQ] = useState("");
+    const [filterStatus, setFilterStatus] = useState("all");
+    const [filterDep, setFilterDep] = useState("all");
 
-  async function load() {
+    
+      const [filterWhen, setFilterWhen] = useState("all");
+const router = useRouter();
+    const searchParams = useSearchParams();
+    const didInitFiltersRef = useRef(false);
+    const tableTopRef = useRef<HTMLDivElement | null>(null);
+    const [waMenuId, setWaMenuId] = useState<string | null>(null);
+
+  
+      const [actionMenuId, setActionMenuId] = useState<string | null>(null);
+async function load() {
     setLoading(true);
     const res = await fetch(`/api/admin/appointments?days=${days}`, { cache: "no-store" });
     const data = await res.json().catch(() => ({}));
@@ -144,34 +156,215 @@ export default function AdminDashboard() {
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [days]);
 
+
+    useEffect(() => {
+      if (didInitFiltersRef.current) return;
+      didInitFiltersRef.current = true;
+
+      const q = searchParams.get("q") || "";
+      const st = searchParams.get("status") || "all";
+      const dep = searchParams.get("dep") || "all";
+
+      
+        const when = searchParams.get("when") || "all";
+setFilterQ(q);
+      setFilterStatus(st);
+      setFilterDep(dep);
+      
+        setFilterWhen(when);
+// eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchParams]);
+
+    useEffect(() => {
+      // State -> URL
+      const params = new URLSearchParams(searchParams.toString());
+
+      if (filterQ) params.set("q", filterQ);
+      else params.delete("q");
+
+      if (filterStatus !== "all") params.set("status", filterStatus);
+      else params.delete("status");
+
+      if (filterDep !== "all") params.set("dep", filterDep);
+      else params.delete("dep");
+
+      
+        if (filterWhen !== "all") params.set("when", filterWhen);
+        else params.delete("when");
+const qs = params.toString();
+      router.replace(qs ? `/admin?${qs}` : "/admin");
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+
+}, [filterQ, filterStatus, filterDep, filterWhen]);
+
+    useEffect(() => {
+      // Filtre değişince tabloya kaydır
+      tableTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filterQ, filterStatus, filterDep, filterWhen]);
+
+
+
+
+
+
+    useEffect(() => {
+      function handleClick(e: MouseEvent) {
+        const t = e.target as HTMLElement;
+        if (!t.closest(".wa-dropdown")) setWaMenuId(null);
+          if (!t.closest(".action-dropdown")) setActionMenuId(null);
+      }
+      document.addEventListener("click", handleClick);
+      return () => document.removeEventListener("click", handleClick);
+    }, []);
+
+
   const sortedRows = useMemo(() => {
     const copy = [...rows];
     copy.sort((a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime());
+
     return copy;
   }, [rows]);
 
+
+  const todaySummary = useMemo(() => {
+    const todayKey = new Date().toLocaleDateString("en-CA", { timeZone: TZ });
+
+    const todayRows = (rows || []).filter(
+      (r) =>
+        new Date(r.start_at).toLocaleDateString("en-CA", { timeZone: TZ }) === todayKey
+    );
+
+    const todayCount = todayRows.length;
+
+    const todayRevenue = todayRows.reduce(
+      (sum, r) => sum + (typeof r.total_price === "number" ? r.total_price : 0),
+      0
+    );
+
+    const pendingDepositCount = todayRows.filter((r) => {
+      const dep = String(r.deposit_status || "").toLowerCase().trim();
+      return dep === "pending" || dep === "required";
+    }).length;
+
+    const noShowCount = todayRows.filter(
+      (r) => String(r.status || "").toLowerCase() === "no_show"
+    ).length;
+
+    return { todayCount, todayRevenue, pendingDepositCount, noShowCount };
+  }, [rows]);
+
+
+    const viewRows = useMemo(() => {
+      const q = filterQ.trim().toLowerCase();
+
+      
+
+        const todayKey = new Date().toLocaleDateString("en-CA", { timeZone: TZ });
+        const tomorrowKey = new Date(Date.now() + 24 * 60 * 60 * 1000).toLocaleDateString("en-CA", { timeZone: TZ });
+        const weekEndKey = new Date(Date.now() + 6 * 24 * 60 * 60 * 1000).toLocaleDateString("en-CA", { timeZone: TZ });
+return (sortedRows || []).filter((r) => {
+        const st = String(r.status || "").toLowerCase();
+        const dep = String(r.deposit_status || "").toLowerCase().trim();
+
+        if (filterStatus !== "all" && st !== filterStatus) return false;
+        if (filterDep !== "all") {
+          if (filterDep === "pending_required") {
+            if (!(dep === "pending" || dep === "required")) return false;
+          } else {
+            if (dep !== filterDep) return false;
+          }
+        }
+          // Tarih preset filtresi
+          const dayKey = new Date(r.start_at).toLocaleDateString("en-CA", { timeZone: TZ });
+          if (filterWhen === "today" && dayKey !== todayKey) return false;
+          if (filterWhen === "tomorrow" && dayKey !== tomorrowKey) return false;
+          if (filterWhen === "week") {
+            if (dayKey < todayKey || dayKey > weekEndKey) return false;
+          }
+
+
+
+        if (!q) return true;
+
+        const hay = [
+          r.customer_name,
+          r.customer_phone_e164 || r.customer_phone,
+          r.service_summary || "",
+        ]
+          .join(" ")
+          .toLowerCase();
+
+        return hay.includes(q);
+      });
+    }, [sortedRows, filterQ, filterStatus, filterDep, filterWhen]);
+
   async function cancel(id: string) {
-    if (!confirm("Randevu iptal edilsin mi?")) return;
-    const res = await fetch(`/api/admin/cancel?id=${encodeURIComponent(id)}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) return alert(data.error || "İptal edilemedi");
-    await load();
-  }
+      if (!confirm("Randevu iptal edilsin mi?")) return;
+
+      const res = await fetch("/api/admin/appointments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, action: "cancel" }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) return alert(data.error || "İptal edilemedi");
+
+      setRows((prev) =>
+        (prev || []).map((r) => {
+          if (r.id !== id) return r;
+          const dep = String(r.deposit_status || "").toLowerCase().trim();
+          const paidSet = new Set(["paid", "odendi", "ödendi", "completed", "confirmed"]);
+          return {
+            ...r,
+            status: "cancelled",
+            deposit_status: paidSet.has(dep) ? "refunded" : r.deposit_status,
+            cancel_reason: "admin",
+          };
+        })
+      );
+    }
+
 
   async function markPaid(id: string) {
-    const res = await fetch(`/api/admin/deposit`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, status: "paid" }),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) return alert(data.error || "Depozito güncellenemedi");
-    await load();
-  }
+      const res = await fetch("/api/admin/appointments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, action: "mark_paid" }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) return alert(data.error || "Depozito güncellenemedi");
+
+      setRows((prev) => (prev || []).map((r) => (r.id === id ? { ...r, deposit_status: "paid" } : r)));
+    }
+
+    async function markNoShow(id: string) {
+      const res = await fetch("/api/admin/appointments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, action: "no_show" }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) return alert(data.error || "No-show işaretlenemedi");
+
+      // Optimistic UI update
+      setRows((prev) =>
+        (prev || []).map((r) => {
+          if (r.id !== id) return r;
+          const dep = String(r.deposit_status || "").toLowerCase().trim();
+          const paidSet = new Set(["paid", "odendi", "ödendi", "completed", "confirmed"]);
+          return {
+            ...r,
+            status: "no_show",
+            deposit_status: paidSet.has(dep) ? "forfeited" : r.deposit_status,
+          };
+        })
+      );
+    }
+
+
 
   async function logout() {
     await fetch("/api/admin/logout", { method: "POST" });
@@ -179,7 +372,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="rounded-2xl border bg-white p-6 shadow-sm">
+    <div className="rounded-2xl border border-neutral-800 bg-neutral-950 text-neutral-100 p-6 shadow-sm">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-xl font-semibold">Admin Panel</h1>
@@ -187,7 +380,7 @@ export default function AdminDashboard() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <select className="rounded-xl border border-mc-border bg-white px-4 py-2 text-sm text-mc-dark hover:border-mc-bronze transition" value={days} onChange={(e) => setDays(Number(e.target.value))}>
+          <select className={`relative rounded-xl border border-white/10 bg-neutral-900 px-4 py-2 pr-10 text-sm text-neutral-100 hover:bg-neutral-800 hover:border-mc-bronze transition`} value={days} onChange={(e) => setDays(Number(e.target.value))}>
             <option value={1}>1 gün</option>
             <option value={7}>7 gün</option>
             <option value={14}>14 gün</option>
@@ -195,14 +388,142 @@ export default function AdminDashboard() {
             <option value={60}>60 gün</option>
           </select>
 
-          <button onClick={load} className="rounded-xl border border-mc-border bg-white px-4 py-2 text-sm text-mc-dark hover:border-mc-bronze transition">Yenile</button>
+          <button onClick={load} className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-2 text-sm text-mc-dark hover:border-mc-bronze transition">Yenile</button>
           <button onClick={logout} className="rounded-lg bg-black px-3 py-2 text-white">Çıkış</button>
         </div>
       </div>
 
-      <div className="mt-6 overflow-x-auto">
+      
+        {/* Summary Cards */}
+        <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-4">
+          <div className="rounded-2xl border border-white/10 bg-neutral-900 p-4 shadow-sm cursor-pointer hover:bg-neutral-800 transition" onClick={() => { setFilterWhen("today"); }}>
+            <div className="text-xs text-neutral-500">Bugünkü Randevu</div>
+            <div className="mt-1 text-2xl font-semibold">{todaySummary.todayCount}</div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-neutral-900 p-4 shadow-sm cursor-pointer hover:bg-neutral-800 transition" onClick={() => { setFilterWhen("today"); }}>
+            <div className="text-xs text-neutral-500">Bugünkü Ciro</div>
+            <div className="mt-1 text-2xl font-semibold">
+              {todaySummary.todayRevenue.toLocaleString("tr-TR")} TL
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-neutral-900 p-4 shadow-sm cursor-pointer hover:bg-neutral-800 transition" onClick={() => { setFilterWhen("today"); setFilterDep("pending_required"); }}>
+            <div className="text-xs text-neutral-500">Bekleyen Depozito</div>
+            <div className="mt-1 text-2xl font-semibold">{todaySummary.pendingDepositCount}</div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-neutral-900 p-4 shadow-sm cursor-pointer hover:bg-neutral-800 transition" onClick={() => { setFilterWhen("today"); setFilterStatus("no_show"); }}>
+            <div className="text-xs text-neutral-500">Bugünkü No-show</div>
+            <div className="mt-1 text-2xl font-semibold">{todaySummary.noShowCount}</div>
+          </div>
+        </div>
+
+        {/* Filtreler */}
+        <div className="mt-6 rounded-2xl border border-white/10 bg-neutral-900 p-4 shadow-sm">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div className="mb-3 flex flex-wrap items-center gap-2">
+                <button
+                  className={`rounded-full border px-3 py-1 text-xs transition ${
+                    filterWhen === "today"
+                      ? "border-mc-bronze bg-mc-bronze/10 text-mc-bronze"
+                      : "border-white/10 bg-neutral-900 text-neutral-200 hover:bg-neutral-800"
+                  }`}
+                  onClick={() => setFilterWhen(filterWhen === "today" ? "all" : "today")}
+                >
+                  Bugün
+                </button>
+                <button
+                  className={`rounded-full border px-3 py-1 text-xs transition ${
+                    filterWhen === "tomorrow"
+                      ? "border-mc-bronze bg-mc-bronze/10 text-mc-bronze"
+                      : "border-white/10 bg-neutral-900 text-neutral-200 hover:bg-neutral-800"
+                  }`}
+                  onClick={() => setFilterWhen(filterWhen === "tomorrow" ? "all" : "tomorrow")}
+                >
+                  Yarın
+                </button>
+                <button
+                  className={`rounded-full border px-3 py-1 text-xs transition ${
+                    filterWhen === "week"
+                      ? "border-mc-bronze bg-mc-bronze/10 text-mc-bronze"
+                      : "border-white/10 bg-neutral-900 text-neutral-200 hover:bg-neutral-800"
+                  }`}
+                  onClick={() => setFilterWhen(filterWhen === "week" ? "all" : "week")}
+                >
+                  Bu hafta
+                </button>
+              </div>
+
+              <div className="flex-1">
+              <div className="text-xs text-neutral-500">Arama</div>
+              <input
+                value={filterQ}
+                onChange={(e) => setFilterQ(e.target.value)}
+                placeholder="İsim / telefon / hizmet…"
+                className="mt-1 w-full rounded-xl border border-white/10 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-mc-bronze/30 focus:border-mc-bronze"
+              />
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              <div>
+                <div className="text-xs text-neutral-500">Durum</div>
+                <select
+                  className="mt-1 rounded-xl border border-white/10 bg-neutral-900 px-3 py-2 text-sm"
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                >
+                  <option value="all">Hepsi</option>
+                  <option value="booked">Booked</option>
+                  <option value="cancelled">Cancelled</option>
+                  <option value="no_show">No-show</option>
+                </select>
+              </div>
+
+              <div>
+                <div className="text-xs text-neutral-500">Depozito</div>
+                <select
+                  className="mt-1 rounded-xl border border-white/10 bg-neutral-900 px-3 py-2 text-sm"
+                  value={filterDep}
+                  onChange={(e) => setFilterDep(e.target.value)}
+                >
+                  <option value="all">Hepsi</option>
+                  <option value="pending_required">Bekliyor + Zorunlu</option>
+                  <option value="pending">Bekliyor</option>
+                  <option value="required">Zorunlu</option>
+                  <option value="paid">Ödendi</option>
+                  <option value="refunded">İade</option>
+                  <option value="forfeited">Yandı</option>
+                </select>
+              </div>
+
+              <div className="flex items-end">
+                <button
+                  className="mt-1 rounded-xl border border-white/10 bg-neutral-900 px-3 py-2 text-sm text-mc-dark hover:border-mc-bronze transition"
+                  onClick={() => {
+                    setFilterQ("");
+                    setFilterStatus("all");
+                    setFilterDep("all");
+                      setFilterWhen("all");
+}}
+                >
+                  Temizle
+                </button>
+              </div>
+
+            </div>
+          </div>
+
+          <div className="mt-2 text-xs text-neutral-500">
+            Gösterilen: <span className="font-medium text-neutral-100">{viewRows.length}</span>
+          </div>
+        </div>
+
+        <div ref={tableTopRef} />
+
+<div className="mt-6 overflow-x-auto rounded-2xl border border-white/10 bg-neutral-900">
         <table className="w-full text-sm">
-          <thead className="text-left text-neutral-600">
+          <thead className="text-left text-neutral-300">
             <tr>
               <th className="p-3">Zaman</th>
               <th className="p-3">Müşteri</th>
@@ -214,36 +535,57 @@ export default function AdminDashboard() {
 
           <tbody>
             {loading && (
-              <tr><td className="p-3 text-neutral-500" colSpan={5}>Yükleniyor…</td></tr>
+              <tr><td className="p-3 text-neutral-400" colSpan={5}>Yükleniyor…</td></tr>
             )}
 
-            {!loading && sortedRows.length === 0 && (
-              <tr><td className="p-3 text-neutral-500" colSpan={5}>Kayıt yok.</td></tr>
+            {!loading && viewRows.length === 0 && (
+              <tr><td className="p-3 text-neutral-400" colSpan={5}>Kayıt yok.</td></tr>
             )}
 
-            {sortedRows.map((r) => {
+            {viewRows.map((r) => {
               const reason = cancelReasonLabel(r.cancel_reason ?? null);
               const totalMin = minutesBetween(r.start_at, r.end_at);
 
-              return (
+              
+                const dep = String(r.deposit_status || "").toLowerCase().trim();
+                const startMs = Date.parse(r.start_at);
+                const minsTo = Number.isFinite(startMs) ? Math.floor((startMs - Date.now()) / 60_000) : 999999;
+                const needsDeposit = dep === "pending" || dep === "required";
+                const waDot = dep === "paid"
+                  ? "green"
+                  : needsDeposit && minsTo <= 120
+                    ? "red"
+                    : needsDeposit && minsTo <= 360
+                      ? "amber"
+                      : null;
+                const waBtnTone =
+                  waDot === "green"
+                    ? "border-emerald-400/40 shadow-[0_0_0_1px_rgba(52,211,153,0.25),0_0_18px_rgba(52,211,153,0.18)]"
+                    : waDot === "red"
+                      ? "border-rose-400/40 shadow-[0_0_0_1px_rgba(251,113,133,0.25),0_0_18px_rgba(251,113,133,0.18)]"
+                      : waDot === "amber"
+                        ? "border-amber-400/40 shadow-[0_0_0_1px_rgba(251,191,36,0.22),0_0_18px_rgba(251,191,36,0.16)]"
+                        : "";
+return (
                 <React.Fragment key={r.id}>
-                  <tr className="border-t align-top">
+                  <tr className={rowClass(r)}>
                     <td className="p-3">
-                      <div className="font-medium">{fmtDT(r.start_at)}</div>
-                      <div className="text-xs text-neutral-500">{fmtDT(r.end_at)} • {totalMin} dk</div>
-                    </td>
+                        <div className="font-medium">{fmtT(r.start_at)}</div>
+                        <div className="text-xs text-neutral-500">{(r.start_at || "").slice(0, 10)} • {totalMin} dk</div>
+                      </td>
 
                     <td className="p-3">
-                      <div className="font-medium">{r.customer_name}</div>
-                      <div className="text-xs text-neutral-500">
-                        {r.customer_phone_e164 || r.customer_phone}
-                      </div>
-                      <div className="mt-1 text-xs text-neutral-500">
-                        Durum: <span className="font-medium">{r.status}</span>
-                      </div>
-                      {r.status === "cancelled" && reason && (
+                        <div className="font-medium">{r.customer_name}</div>
+                        <div className="text-xs text-neutral-500">{r.customer_phone_e164 || r.customer_phone}</div>
+
+                        <div className="mt-2">
+                          <span className="inline-flex items-center rounded-full border border-white/10 px-2 py-0.5 text-[11px] bg-neutral-900 text-neutral-200">
+                            {r.status === "no_show" ? "No-show" : r.status}
+                          </span>
+                        </div>
+{r.status === "cancelled" && reason && (
                         <div className="mt-1 text-xs">
-                          <span className="rounded-full border px-2 py-0.5 bg-neutral-50">{reason}</span>
+                          <span className="rounded-full border border-white/10 px-2 py-0.5 bg-neutral-900 text-neutral-200">{reason}</span>
                         </div>
                       )}
                     </td>
@@ -251,7 +593,7 @@ export default function AdminDashboard() {
                     <td className="p-3">
                       <div className="font-medium">{r.service_summary ?? "—"}</div>
                       {typeof r.total_price === "number" && (
-                        <div className="mt-1 text-xs text-neutral-500">Toplam: {r.total_price} TL</div>
+                        <div className="mt-0.5 text-[11px] text-neutral-500">Toplam • {r.total_price} TL</div>
                       )}
                     </td>
 
@@ -260,69 +602,194 @@ export default function AdminDashboard() {
                         {depLabel(r.deposit_status ?? null)}
                       </div>
                       {typeof r.deposit_amount === "number" && (
-                        <div className="mt-1 text-xs text-neutral-500">Tutar: {r.deposit_amount} TL</div>
+                        <div className="mt-0.5 text-[11px] text-neutral-500">Tutar • {r.deposit_amount} TL</div>
                       )}
                     </td>
 
                     <td className="p-3">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <button
-                          className="rounded-xl border border-mc-border bg-white px-4 py-2 text-sm text-mc-dark hover:border-mc-bronze transition"
-                          onClick={() => setExpandedId(expandedId === r.id ? null : r.id)}
-                        >
-                          {expandedId === r.id ? "Kapat" : "Detay"}
-                        </button>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <div className="wa-dropdown relative">
+                            <button
+                              className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-2 text-sm text-mc-dark hover:border-mc-bronze transition"
+                              onClick={() => {
+                                  setActionMenuId(null);
+                                  setWaMenuId(waMenuId === r.id ? null : r.id);
+                                }}
+                            >                                WhatsApp ▾
+                                {waDot && (
+                                  <span
+                                    className={
+                                      "absolute right-3 top-1/2 -translate-y-1/2 h-2.5 w-2.5 rounded-full " +
+                                      (waDot === "green"
+                                        ? "bg-emerald-400"
+                                        : waDot === "red"
+                                          ? "bg-rose-400"
+                                          : "bg-amber-400")
+                                    }
+                                  />
+                                )}
+</button>
 
-                        {r.status !== "cancelled" && r.deposit_status !== "paid" && (
-                          <button
-                            className="rounded-xl bg-mc-black px-4 py-2 text-sm text-mc-bronze border border-mc-bronze hover:bg-mc-bronze hover:text-black transition"
-                            onClick={() => markPaid(r.id)}
-                          >
-                            Ödeme Geldi
-                          </button>
-                        )}
+                            {waMenuId === r.id && (
+                              <div className="absolute right-0 z-30 mt-2 w-60 overflow-hidden rounded-2xl border border-white/10 bg-neutral-900 shadow-xl ring-1 ring-black/5">
+                                <button
+                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
+                                  onClick={async () => {
+                                    setWaMenuId(null);
+                                    const pmt = await fetchPayment();
+                                    if (!pmt) return alert("Ödeme bilgileri alınamadı");
+                                    const msg = buildDepositPaymentMessage(
+                                      {
+                                        customerName: r.customer_name,
+                                        dateISO: r.start_at,
+                                        serviceSummary: r.service_summary ?? "—",
+                                        totalPrice: r.total_price ?? 0,
+                                        depositAmount: r.deposit_amount ?? 0,
+                                      },
+                                      pmt
+                                    );
+                                    const phone = (r.customer_phone_e164 || r.customer_phone || "");
+                                    window.open(buildWhatsAppWebUrl(phone, msg), "_blank");
+                                  }}
+                                >
+                                  Ödeme Mesajı Aç
+                                </button>
 
-                        <button
-                          className="rounded-xl border border-mc-border bg-white px-4 py-2 text-sm text-mc-dark hover:border-mc-bronze transition"
-                          onClick={async () => {
-                            const pmt = await fetchPayment();
-                            if (!pmt) return alert("Ödeme bilgileri alınamadı");
-                            const msg = buildPaymentMsg(r, pmt);
-                            const phone = (r.customer_phone_e164 || r.customer_phone || "");
-                            window.open(waUrl(phone, msg), "_blank");
-                          }}
-                        >
-                          Ödeme Mesajı
-                        </button>
+                                <button
+                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
+                                  onClick={async () => {
+                                    setWaMenuId(null);
+                                    const pmt = await fetchPayment();
+                                    if (!pmt) return alert("Ödeme bilgileri alınamadı");
+                                    const msg = buildDepositPaymentMessage(
+                                      {
+                                        customerName: r.customer_name,
+                                        dateISO: r.start_at,
+                                        serviceSummary: r.service_summary ?? "—",
+                                        totalPrice: r.total_price ?? 0,
+                                        depositAmount: r.deposit_amount ?? 0,
+                                      },
+                                      pmt
+                                    );
+                                    try {
+                                      await navigator.clipboard.writeText(msg);
+                                      alert("Mesaj kopyalandı ✅");
+                                    } catch {
+                                      alert("Kopyalanamadı");
+                                    }
+                                  }}
+                                >
+                                  Ödeme Mesajı Kopyala
+                                </button>
 
-                        <button
-                          className="rounded-xl border border-mc-border bg-white px-4 py-2 text-sm text-mc-dark hover:border-mc-bronze transition"
-                          onClick={async () => {
-                            const pmt = await fetchPayment();
-                            if (!pmt) return alert("Ödeme bilgileri alınamadı");
-                            const msg = buildPaymentMsg(r, pmt);
-                            try {
-                              await navigator.clipboard.writeText(msg);
-                              alert("Mesaj kopyalandı ✅");
-                            } catch {
-                              alert("Kopyalanamadı");
-                            }
-                          }}
-                        >
-                          Mesajı Kopyala
-                        </button>
+                                <div className="h-px bg-white/10" />
 
+                                <button
+                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
+                                  onClick={() => {
+                                    setWaMenuId(null);
+                                    const phone = (r.customer_phone_e164 || r.customer_phone || "");
+                                    const msg = buildApprovalMessage({
+                                      customerName: r.customer_name,
+                                      date: (r.start_at || "").slice(0, 10),
+                                      time: fmtT(r.start_at),
+                                      serviceSummary: r.service_summary ?? "—",
+                                    });
+                                    window.open(buildWhatsAppWebUrl(phone, msg), "_blank");
+                                  }}
+                                >
+                                  Onay Mesajı
+                                </button>
 
-                        {r.status !== "cancelled" && (
-                          <button
-                            className="rounded-xl bg-white px-4 py-2 text-sm text-rose-700 border border-rose-200 hover:border-rose-400 transition"
-                            onClick={() => cancel(r.id)}
-                          >
-                            İptal
-                          </button>
-                        )}
-                      </div>
-                    </td>
+                                <button
+                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
+                                  onClick={() => {
+                                    setWaMenuId(null);
+                                    const phone = (r.customer_phone_e164 || r.customer_phone || "");
+                                    const msg = buildReminderMessage({
+                                      customerName: r.customer_name,
+                                      date: (r.start_at || "").slice(0, 10),
+                                      time: fmtT(r.start_at),
+                                      serviceSummary: r.service_summary ?? "—",
+                                    });
+                                    window.open(buildWhatsAppWebUrl(phone, msg), "_blank");
+                                  }}
+                                >
+                                  Hatırlatma
+                                </button>
+                              </div>
+
+                              )}
+                            </div>
+
+                          <div className="action-dropdown relative">
+                            <button
+                              className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-2 text-sm text-mc-dark hover:border-mc-bronze transition"
+                              onClick={() => {
+                                  setWaMenuId(null);
+                                  setActionMenuId(actionMenuId === r.id ? null : r.id);
+                                }}
+                            >
+                              İşlemler ▾
+                            </button>
+
+                            {actionMenuId === r.id && (
+                              <div className="absolute right-0 z-30 mt-2 w-56 overflow-hidden rounded-2xl border border-white/10 bg-neutral-900 shadow-xl ring-1 ring-black/5">
+                                <button
+                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
+                                  onClick={() => {
+                                    setActionMenuId(null);
+                                    setExpandedId(expandedId === r.id ? null : r.id);
+                                  }}
+                                >
+                                  {expandedId === r.id ? "Detayı Kapat" : "Detayı Aç"}
+                                </button>
+
+                                {r.status !== "cancelled" &&
+                                  !["paid", "odendi", "ödendi", "completed", "confirmed"].includes(
+                                    String(r.deposit_status || "").toLowerCase().trim()
+                                  ) && (
+                                    <button
+                                      className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
+                                      onClick={() => {
+                                        setActionMenuId(null);
+                                        markPaid(r.id);
+                                      }}
+                                    >
+                                      Ödeme Geldi
+                                    </button>
+                                  )}
+
+                                {r.status !== "cancelled" && r.status !== "no_show" && (
+                                  <button
+                                    className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
+                                    onClick={() => {
+                                      setActionMenuId(null);
+                                      markNoShow(r.id);
+                                    }}
+                                  >
+                                    No-show
+                                  </button>
+                                )}
+
+                                <div className="h-px bg-white/10" />
+
+                                {r.status !== "cancelled" && (
+                                  <button
+                                    className="w-full px-4 py-2 text-left text-sm text-rose-700 hover:bg-white/5 transition"
+                                    onClick={() => {
+                                      setActionMenuId(null);
+                                      cancel(r.id);
+                                    }}
+                                  >
+                                    İptal
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </td>
                   </tr>
 
                   {expandedId === r.id && (
