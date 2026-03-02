@@ -187,6 +187,13 @@ function minutesBetween(a: string, b: string) {
 export default function AdminDashboard() {
 
               <div className="mt-2 flex items-center gap-4">
+              <input
+                value={filterQ}
+                onChange={(e) => setFilterQ(e.target.value)}
+                placeholder="İsim / telefon / hizmet…"
+                className="mt-1 w-full rounded-xl border border-white/10 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-mc-bronze/30 focus:border-mc-bronze"
+              />
+
                 <label className="inline-flex items-center gap-2 text-xs text-white/70 select-none">
                   <input
                     type="checkbox"
@@ -825,11 +832,7 @@ async function logout() {
 
               <div className="flex-1">
               <div className="text-xs text-neutral-500">Arama</div>
-              <input
-                value={filterQ}
-                onChange={(e) => setFilterQ(e.target.value)}
-
-              />
+              
                   Ses
                 </label>
               
