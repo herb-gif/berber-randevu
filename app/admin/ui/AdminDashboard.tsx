@@ -832,7 +832,7 @@ async function logout() {
               />
                   Ses
                 </label>
-              </div>
+              
 placeholder="İsim / telefon / hizmet…"
                 className="mt-1 w-full rounded-xl border border-white/10 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-mc-bronze/30 focus:border-mc-bronze"
               />
