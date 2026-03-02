@@ -186,6 +186,25 @@ function minutesBetween(a: string, b: string) {
 
 export default function AdminDashboard() {
 
+              <div className="mt-2 flex items-center gap-4">
+                <label className="inline-flex items-center gap-2 text-xs text-white/70 select-none">
+                  <input
+                    type="checkbox"
+                    checked={notifyOn}
+                    onChange={(e) => setNotifyOn(e.target.checked)}
+                  />
+                  Bildirim
+                </label>
+                <label className="inline-flex items-center gap-2 text-xs text-white/70 select-none">
+                  <input
+                    type="checkbox"
+                    checked={soundOn}
+                    onChange={(e) => setSoundOn(e.target.checked)}
+                  />
+                  Ses
+                </label>
+              </div>
+
   // --- Notifications (admin panel open) ---
   const [notifyOn, setNotifyOn] = useState<boolean>(false);
   const [soundOn, setSoundOn] = useState<boolean>(true);
@@ -810,22 +829,7 @@ async function logout() {
                 value={filterQ}
                 onChange={(e) => setFilterQ(e.target.value)}
 
-              {/* Notifications */}
-              <div className="flex items-center gap-3">
-                <label className="inline-flex items-center gap-2 text-xs text-white/70 select-none">
-                  <input
-                    type="checkbox"
-                    checked={notifyOn}
-                    onChange={(e) => setNotifyOn(e.target.checked)}
-                  />
-                  Bildirim
-                </label>
-                <label className="inline-flex items-center gap-2 text-xs text-white/70 select-none">
-                  <input
-                    type="checkbox"
-                    checked={soundOn}
-                    onChange={(e) => setSoundOn(e.target.checked)}
-                  />
+              />
                   Ses
                 </label>
               </div>
