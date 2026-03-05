@@ -221,7 +221,7 @@ const qs = params.toString();
 
   const sortedRows = useMemo(() => {
     const copy = [...rows];
-    copy.sort((a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime());
+    copy.sort((a, b) => new Date(b.start_at).getTime() - new Date(a.start_at).getTime());
 
     return copy;
   }, [rows]);
@@ -521,8 +521,10 @@ return (sortedRows || []).filter((r) => {
         <div ref={tableTopRef} />
 
 <div className="mt-6 overflow-x-auto rounded-2xl border border-white/10 bg-neutral-900 text-neutral-100">
-        <table className="w-full text-sm">
-          <thead className="text-left text-neutral-300">
+        <div className="max-h-[65vh] overflow-y-auto rounded-2xl border border-white/10">
+
+          <table className="w-full text-sm">
+          <thead className="bg-neutral-950 sticky top-0 z-10 text-left text-neutral-300">
             <tr>
               <th className="p-3">Zaman</th>
               <th className="p-3">Müşteri</th>
@@ -819,6 +821,7 @@ return (
             })}
           </tbody>
         </table>
+      </div>
       </div>
     </div>
   );
