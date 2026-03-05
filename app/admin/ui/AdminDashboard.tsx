@@ -371,8 +371,7 @@ return (sortedRows || []).filter((r) => {
     location.reload();
   }
 
-  return (
-    <div className="rounded-2xl border border-neutral-800 bg-neutral-950 text-neutral-100 p-6 shadow-sm">
+  return (    <div className="rounded-2xl border border-neutral-800 bg-neutral-950 text-neutral-100 p-6 shadow-sm">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-xl font-semibold">Admin Panel</h1>
@@ -388,7 +387,7 @@ return (sortedRows || []).filter((r) => {
             <option value={60}>60 gün</option>
           </select>
 
-          <button onClick={load} className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-2 text-sm text-mc-dark hover:border-mc-bronze transition">Yenile</button>
+          <button onClick={load} className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-2 text-sm text-neutral-100 hover:border-mc-bronze transition text-neutral-100 text-neutral-100">Yenile</button>
           <button onClick={logout} className="rounded-lg bg-black px-3 py-2 text-white">Çıkış</button>
         </div>
       </div>
@@ -396,31 +395,31 @@ return (sortedRows || []).filter((r) => {
       
         {/* Summary Cards */}
         <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-4">
-          <div className="rounded-2xl border border-white/10 bg-neutral-900 p-4 shadow-sm cursor-pointer hover:bg-neutral-800 transition" onClick={() => { setFilterWhen("today"); }}>
+          <div className="rounded-2xl border border-white/10 bg-neutral-900 p-4 shadow-sm cursor-pointer hover:bg-neutral-800 transition text-neutral-100" onClick={() => { setFilterWhen("today"); }}>
             <div className="text-xs text-neutral-500">Bugünkü Randevu</div>
             <div className="mt-1 text-2xl font-semibold">{todaySummary.todayCount}</div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-neutral-900 p-4 shadow-sm cursor-pointer hover:bg-neutral-800 transition" onClick={() => { setFilterWhen("today"); }}>
+          <div className="rounded-2xl border border-white/10 bg-neutral-900 p-4 shadow-sm cursor-pointer hover:bg-neutral-800 transition text-neutral-100" onClick={() => { setFilterWhen("today"); }}>
             <div className="text-xs text-neutral-500">Bugünkü Ciro</div>
             <div className="mt-1 text-2xl font-semibold">
               {todaySummary.todayRevenue.toLocaleString("tr-TR")} TL
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-neutral-900 p-4 shadow-sm cursor-pointer hover:bg-neutral-800 transition" onClick={() => { setFilterWhen("today"); setFilterDep("pending_required"); }}>
+          <div className="rounded-2xl border border-white/10 bg-neutral-900 p-4 shadow-sm cursor-pointer hover:bg-neutral-800 transition text-neutral-100" onClick={() => { setFilterWhen("today"); setFilterDep("pending_required"); }}>
             <div className="text-xs text-neutral-500">Bekleyen Depozito</div>
             <div className="mt-1 text-2xl font-semibold">{todaySummary.pendingDepositCount}</div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-neutral-900 p-4 shadow-sm cursor-pointer hover:bg-neutral-800 transition" onClick={() => { setFilterWhen("today"); setFilterStatus("no_show"); }}>
+          <div className="rounded-2xl border border-white/10 bg-neutral-900 p-4 shadow-sm cursor-pointer hover:bg-neutral-800 transition text-neutral-100" onClick={() => { setFilterWhen("today"); setFilterStatus("no_show"); }}>
             <div className="text-xs text-neutral-500">Bugünkü No-show</div>
             <div className="mt-1 text-2xl font-semibold">{todaySummary.noShowCount}</div>
           </div>
         </div>
 
         {/* Filtreler */}
-        <div className="mt-6 rounded-2xl border border-white/10 bg-neutral-900 p-4 shadow-sm">
+        <div className="mt-6 rounded-2xl border border-white/10 bg-neutral-900 p-4 shadow-sm text-neutral-100">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div className="mb-3 flex flex-wrap items-center gap-2">
                 <button
@@ -499,7 +498,7 @@ return (sortedRows || []).filter((r) => {
 
               <div className="flex items-end">
                 <button
-                  className="mt-1 rounded-xl border border-white/10 bg-neutral-900 px-3 py-2 text-sm text-mc-dark hover:border-mc-bronze transition"
+                  className="mt-1 rounded-xl border border-white/10 bg-neutral-900 px-3 py-2 text-sm text-neutral-100 hover:border-mc-bronze transition"
                   onClick={() => {
                     setFilterQ("");
                     setFilterStatus("all");
@@ -521,7 +520,7 @@ return (sortedRows || []).filter((r) => {
 
         <div ref={tableTopRef} />
 
-<div className="mt-6 overflow-x-auto rounded-2xl border border-white/10 bg-neutral-900">
+<div className="mt-6 overflow-x-auto rounded-2xl border border-white/10 bg-neutral-900 text-neutral-100">
         <table className="w-full text-sm">
           <thead className="text-left text-neutral-300">
             <tr>
@@ -610,7 +609,7 @@ return (
                         <div className="flex flex-wrap items-center gap-2">
                           <div className="wa-dropdown relative">
                             <button
-                              className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-2 text-sm text-mc-dark hover:border-mc-bronze transition"
+                              className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-2 text-sm text-neutral-100 hover:border-mc-bronze transition"
                               onClick={() => {
                                   setActionMenuId(null);
                                   setWaMenuId(waMenuId === r.id ? null : r.id);
@@ -631,7 +630,7 @@ return (
 </button>
 
                             {waMenuId === r.id && (
-                              <div className="absolute right-0 z-30 mt-2 w-60 overflow-hidden rounded-2xl border border-white/10 bg-neutral-900 shadow-xl ring-1 ring-black/5">
+                              <div className="absolute right-0 z-30 mt-2 w-60 overflow-hidden rounded-2xl border border-white/10 bg-neutral-900 shadow-xl ring-1 ring-black/5 text-neutral-100">
                                 <button
                                   className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
                                   onClick={async () => {
@@ -724,7 +723,7 @@ return (
 
                           <div className="action-dropdown relative">
                             <button
-                              className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-2 text-sm text-mc-dark hover:border-mc-bronze transition"
+                              className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-2 text-sm text-neutral-100 hover:border-mc-bronze transition"
                               onClick={() => {
                                   setWaMenuId(null);
                                   setActionMenuId(actionMenuId === r.id ? null : r.id);
@@ -734,7 +733,7 @@ return (
                             </button>
 
                             {actionMenuId === r.id && (
-                              <div className="absolute right-0 z-30 mt-2 w-56 overflow-hidden rounded-2xl border border-white/10 bg-neutral-900 shadow-xl ring-1 ring-black/5">
+                              <div className="absolute right-0 z-30 mt-2 w-56 overflow-hidden rounded-2xl border border-white/10 bg-neutral-900 shadow-xl ring-1 ring-black/5 text-neutral-100">
                                 <button
                                   className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
                                   onClick={() => {
@@ -793,7 +792,7 @@ return (
                   </tr>
 
                   {expandedId === r.id && (
-                    <tr className="border-t bg-neutral-50">
+                    <tr className="border-t bg-white/5">
                       <td className="p-3" colSpan={5}>
                         <div className="text-sm font-semibold">Bloklar</div>
                         {(r.blocks ?? []).length === 0 ? (
