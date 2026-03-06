@@ -260,7 +260,7 @@ async function load() {
             </div>
           </div>
 
-<div className="w-full rounded-2xl border border-white/10 bg-white/5 shadow-sm overflow-hidden">
+<div className="w-full rounded-2xl border border-white/10 bg-neutral-900 shadow-sm overflow-hidden">
           <table className="w-full text-sm text-neutral-100">
             <thead className="bg-white/5 text-neutral-100 uppercase tracking-wide text-xs">
               <tr>
@@ -337,7 +337,7 @@ price,
   }
 
   return (
-    <tr className="bg-white">
+    <tr className="bg-transparent hover:bg-white/5 transition">
       <td className="p-4 align-middle">
         <input className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-neutral-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-mc-bronze/40 focus:border-mc-bronze" value={name} onChange={(e) => setName(e.target.value)} />
       </td>
