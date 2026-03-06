@@ -796,18 +796,12 @@ return (
           className="rounded-xl px-6 py-3 bg-mc-black text-mc-bronze border border-mc-bronze hover:bg-mc-bronze hover:text-neutral-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loadingSlots ? "Kontrol ediliyor…" : "Uygun Saatleri Göster"}
-        </button>
-
-        <span className="text-sm text-white/60">Toplam süre: {totalDurationMin} dk</span>
-      </div>
+        </button>      </div>
 
       {slots.length > 0 && (
         <>
           
-            <div className="mt-6 flex items-center justify-between">
-              <h3 className="font-medium">Uygun Saatler</h3>
-              <div className="text-xs text-white/60">{filteredSlots.length} seçenek</div>
-            </div>
+            <div className="mt-6 flex items-center justify-between">            </div>
 
             {(() => {
               const toMin = (t: string) => {
@@ -834,7 +828,6 @@ return (
                   ].join(" ")}
                 >
                   {label}
-                  <span className="ml-2 text-[11px] font-medium opacity-70">({count})</span>
                 </button>
               );
 
