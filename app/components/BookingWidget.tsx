@@ -158,11 +158,13 @@ export default function BookingWidget() {
     return () => cancelAnimationFrame(raf);
   }, [picked]);
 
-const slotBtnClass = (t: string) =>
-    `inline-flex items-center justify-center px-3 py-2 rounded-xl border text-sm transition select-none hover:-translate-y-0.5 active:scale-[0.98] duration-150 ` +
-    (picked === t
-      ? `bg-mc-black text-mc-bronze border-mc-bronze shadow-[0_0_0_2px_rgba(192,138,90,0.30)]`
-      : `bg-white text-mc-dark border-mc-border hover:border-mc-bronze hover:shadow-[0_0_0_2px_rgba(192,138,90,0.15)] hover:shadow-sm`);
+    const slotBtnClass = (t: string, disabled?: boolean) =>
+      `relative inline-flex items-center justify-center px-3 py-2 rounded-xl border text-sm transition select-none active:scale-[0.98] duration-150 ` +
+      (disabled
+        ? `bg-white/5 text-white/60 border-white/10 opacity-40 cursor-not-allowed after:content-["Dolu"] after:absolute after:right-1.5 after:top-1.5 after:rounded-full after:border after:border-white/10 after:bg-black/30 after:px-1.5 after:py-0.5 after:text-[10px] after:text-white/70`
+        : picked === t
+          ? `bg-mc-black text-mc-bronze border-mc-bronze shadow-[0_0_0_2px_rgba(192,138,90,0.30)]`
+          : `bg-white/5 text-neutral-100 border-white/10 hover:bg-white/10 hover:-translate-y-0.5 hover:border-mc-bronze hover:shadow-[0_0_0_2px_rgba(192,138,90,0.15)] hover:shadow-sm`);
 
 
   function BarberSelectModal() {
@@ -175,10 +177,10 @@ const slotBtnClass = (t: string) =>
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="mt-3 flex w-full items-center justify-between rounded-2xl border border-mc-border bg-white px-4 py-3 text-left hover:border-mc-bronze hover:shadow-[0_0_0_2px_rgba(192,138,90,0.10)] transition"
+          className="mt-3 flex w-full items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left hover:bg-white/10 hover:border-mc-bronze hover:shadow-[0_0_0_2px_rgba(192,138,90,0.10)] transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <div className="min-w-0">
-            <div className="truncate text-sm font-semibold text-neutral-900">
+            <div className="truncate text-sm font-semibold text-neutral-100">
               {selected ? selected.name : "Berber seç"}
             </div>
 </div>
@@ -188,27 +190,22 @@ const slotBtnClass = (t: string) =>
         {open && (
           <div className="fixed inset-0 z-50">
             {/* Backdrop */}
-            <button
-              type="button"
-              className="absolute inset-0 bg-black/40"
-              onClick={() => setOpen(false)}
-              aria-label="Kapat"
-            />
+              <button
+                type="button"
+                className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+                onClick={() => setOpen(false)}
+                aria-label="Kapat"
+              />
+
+
 
             {/* Bottom sheet / modal */}
-            <div className="absolute bottom-0 left-0 right-0 max-h-[80vh] rounded-t-3xl bg-white p-4 shadow-2xl">
+            <div className="absolute bottom-0 left-0 right-0 max-h-[75vh] rounded-t-3xl bg-neutral-950/95 p-4 text-neutral-100 shadow-2xl border border-white/10 overflow-hidden">
               <div className="mb-3 flex items-center justify-between">
-                <div className="text-base font-semibold text-neutral-900">Berber Seç</div>
-                <button
-                  type="button"
-                  className="rounded-xl px-3 py-2 text-sm text-neutral-600 hover:bg-neutral-100"
-                  onClick={() => setOpen(false)}
-                >
-                  Kapat
-                </button>
+                <div className="text-sm font-semibold text-neutral-100">Berber Seç</div>
               </div>
 
-              <div className="space-y-2 overflow-auto pb-2">
+              <div className="space-y-2 max-h-[60vh] overflow-y-auto pb-2">
                 {activeBarbers.map((b) => {
                   const active = b.id === selectedBarberId;
                   return (
@@ -220,14 +217,14 @@ const slotBtnClass = (t: string) =>
                         setOpen(false);
                       }}
                       className={[
-                        "flex w-full items-center justify-between rounded-2xl border p-3 text-left transition",
+                        "flex w-full items-center justify-between rounded-2xl border p-3 text-left transition disabled:opacity-50 disabled:cursor-not-allowed",
                         active
                           ? "border-mc-bronze bg-[rgba(192,138,90,0.08)]"
-                          : "border-mc-border bg-white hover:border-mc-bronze/60",
+                          : "border-white/10 bg-white/5 text-neutral-100 hover:bg-white/10 hover:border-mc-bronze/60 hover:bg-white/10 hover:border-mc-bronze/60",
                       ].join(" ")}
                     >
                       <div className="min-w-0">
-                        <div className="truncate text-sm font-semibold text-neutral-900">{b.name}</div>
+                        <div className="truncate text-sm font-semibold text-neutral-100">{b.name}</div>
 </div>
                       {active && <span className="text-sm font-semibold text-mc-bronze">✓</span>}
                     </button>
@@ -543,19 +540,39 @@ const slotBtnClass = (t: string) =>
     ].filter(Boolean) as string[];
 return (
     <div className="min-h-screen bg-mc-black text-mc-bronze hidden md:inline-flex">
+
       <div className="mx-auto max-w-2xl px-4 py-10">
         <div className="flex justify-center mb-6">
           <div className="text-center">
-            <div className="font-heading text-mc-bronze text-3xl leading-none">Man Cave</div>
-            <div className="text-xs text-neutral-400 mt-2">Hair & Skin • Care Center</div>
+
+
           </div>
         </div>
 
-        <div className="rounded-2xl bg-white text-black shadow-sm border border-mc-border overflow-hidden">
+        <div className="rounded-2xl bg-neutral-950/95 text-neutral-100 shadow-sm border border-white/10 overflow-hidden">
           <div className="h-1 bg-mc-bronze" />
           <div className="p-6 pb-24 md:pb-6">
+
+        {/* Brand Header */}
+        <div className="mb-6 flex items-center justify-center gap-3">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full border border-mc-bronze/40 bg-black/30 shadow-[0_0_0_1px_rgba(192,138,90,0.18),0_0_18px_rgba(192,138,90,0.14)]">
+            <img
+              src="/brand/logo-bronze-transparent.png"
+              alt="Man Cave"
+              className="h-12 w-12 object-contain"
+            />
+          </div>
+          <div className="text-left">
+            <div className="font-heading text-base leading-5 text-mc-bronze">Man Cave</div>
+            <div className="text-xs text-white/60">Hair & Skin Care Center</div>
+          </div>
+        </div>
+
+
+
+
     
-          <div className="text-xs text-neutral-600 mt-1">
+          <div className="text-xs text-white/60 mt-1">
         <div data-step-progress className="mt-2 flex flex-wrap gap-2">
           {steps.map((label, i) => {
             const active = i === currentStep;
@@ -564,12 +581,12 @@ return (
               <div
                 key={label}
                 className={[
-                  "rounded-full border px-3 py-1 text-xs font-semibold transition",
+                  "rounded-full border px-3 py-1 text-xs font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed",
                   done
                     ? "border-mc-bronze/40 bg-mc-bronze/10 text-mc-bronze"
                     : active
-                      ? "border-mc-bronze/35 bg-white/10 text-mc-bronze"
-                      : "border-mc-border bg-white text-neutral-700",
+                      ? "border-mc-bronze/35 bg-white/5/10 text-mc-bronze"
+                      : "border-white/10 bg-white/5 text-white/60 hover:border-white/20",
                 ].join(" ")}
               >
                 {label}
@@ -581,7 +598,7 @@ return (
 
 
       {toast && (
-        <div className="mt-4 rounded-xl border border-mc-bronze/30 bg-white px-4 py-3 text-sm text-mc-dark shadow-sm">
+        <div className="mt-4 rounded-xl border border-mc-bronze/30 bg-white/5 px-4 py-3 text-sm text-neutral-100 shadow-sm">
           {toast}
         </div>
       )}
@@ -593,7 +610,7 @@ return (
           const pillClass = "flex items-center justify-between gap-3 w-full rounded-xl border px-4 py-3 transition cursor-pointer select-none hover:-translate-y-0.5 duration-150 " +
             (checked
               ? "border-mc-bronze bg-mc-black text-mc-bronze shadow-sm"
-              : "border-mc-border bg-white text-mc-dark hover:border-mc-bronze hover:shadow-[0_0_0_2px_rgba(192,138,90,0.15)]");
+              : "border-white/10 bg-white/5 text-neutral-100 hover:bg-white/10 hover:border-mc-bronze hover:shadow-[0_0_0_2px_rgba(192,138,90,0.15)]");
 
           
           
@@ -615,7 +632,7 @@ return (
                   </span>
               </span>
 
-              <span className="text-sm text-neutral-500">
+              <span className="text-sm text-white/60">
                 {s.is_variable_duration
                   ? `${s.min_duration_min ?? 0}–${s.max_duration_min ?? 0} dk`
                   : `${serviceDurationMin(s)} dk`}
@@ -626,11 +643,11 @@ return (
       </div>
 
       {laserServiceId && (
-        <div className="mt-5 rounded-2xl border border-mc-border bg-white p-4 shadow-sm mc-fade-up">
+        <div className="mt-5 rounded-2xl border border-white/10 bg-white/5 p-4 shadow-sm mc-fade-up">
           <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full bg-mc-bronze" />
-                <div className="text-sm font-semibold text-neutral-900">Lazer Bölgesi Seçimi</div>
+                <div className="text-sm font-semibold text-neutral-100">Lazer Bölgesi Seçimi</div>
               </div>
               {fullBodySelected && (
                 <div className="text-xs font-semibold text-mc-bronze">Tüm vücut seçili</div>
@@ -646,22 +663,18 @@ return (
                 <label
                   key={o.id}
                   className={[
-                    "relative rounded-2xl border p-4 transition",
+                    "relative rounded-2xl border p-4 transition disabled:opacity-50 disabled:cursor-not-allowed",
                     disabled
-                      ? "cursor-not-allowed"
-                      : "hover:border-mc-bronze hover:shadow-[0_0_0_2px_rgba(192,138,90,0.10)]",
+                      ? "cursor-not-allowed opacity-55"
+                      : "hover:bg-white/10 hover:border-mc-bronze hover:shadow-[0_0_0_2px_rgba(192,138,90,0.10)]",
                     checked
                       ? "border-mc-bronze bg-[rgba(192,138,90,0.06)]"
-                      : "border-mc-border bg-white",
+                      : "border-white/10 bg-white/5 text-neutral-100 hover:bg-white/10 hover:border-mc-bronze/60",
                   ].join(" ")}
                 >
                   {disabled && (
                     <>
-                      <div className="pointer-events-none absolute inset-0 rounded-2xl bg-neutral-200/35" />
-                      <div className="pointer-events-none absolute right-3 top-3 rounded-full border border-mc-bronze/30 bg-mc-bronze/15 px-2 py-0.5 text-[11px] font-semibold text-mc-bronze backdrop-blur">
-                        Kilitli
-                      </div>
-                    </>
+                      <div className="pointer-events-none absolute inset-0 rounded-2xl bg-neutral-200/35" /></>
                   )}
                   <span className="flex items-center gap-3">
                     <input
@@ -676,10 +689,10 @@ return (
                         });
                       }}
                     />
-                    <span className={["font-semibold", disabled ? "text-neutral-800" : "text-neutral-900"].join(" ")}>{o.name}</span>
+                    <span className={["font-semibold", disabled ? "text-neutral-800" : "text-neutral-100"].join(" ")}>{o.name}</span>
                   </span>
 
-                  <span className="text-sm text-neutral-700">
+                  <span className="text-sm text-white/70">
                     {o.price} TL • {o.duration_min} dk
                   </span>
                 </label>
@@ -688,10 +701,10 @@ return (
           </div>
 
           <div className="mt-4 flex items-center justify-between gap-3 rounded-xl border border-mc-bronze/30 bg-[rgba(192,138,90,0.08)] px-4 py-3">
-              <div className="text-sm font-medium text-neutral-900">Toplam Lazer</div>
-              <div className="text-sm text-neutral-900">
+              <div className="text-sm font-medium text-neutral-100">Toplam Lazer</div>
+              <div className="text-sm text-neutral-100">
                 <b>{laserTotalPrice} TL</b>
-                <span className="text-neutral-600"> • </span>
+                <span className="text-white/60"> • </span>
                 <b>{laserExtraDuration} dk</b>
               </div>
             </div>
@@ -699,17 +712,17 @@ return (
       )}
 
   {waLink && (
-    <div className="mt-3 rounded-xl border border-mc-border bg-neutral-50 px-4 py-3">
+    <div className="mt-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3">
       <button
         onClick={() => {
           window.open(waLink, "_blank");
           setWaLink("");
         }}
-        className="inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm bg-mc-black text-mc-bronze border border-mc-bronze hover:bg-mc-bronze hover:text-black transition"
+        className="inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm bg-mc-black text-mc-bronze border border-mc-bronze hover:bg-mc-bronze hover:text-neutral-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
       >
         Ödeme için WhatsApp Mesajı Gönder
       </button>
-      <div className="mt-1 text-xs text-neutral-600">Butona basınca ödeme mesajı işletmeye gider.</div>
+      <div className="mt-1 text-xs text-white/60">Butona basınca ödeme mesajı işletmeye gider.</div>
     </div>
   )}
 
@@ -725,20 +738,20 @@ return (
       <div className="mt-3 flex flex-wrap items-center gap-3">
         <input
           type="date"
-          className="rounded-xl border px-3 py-2"
+          className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-neutral-100 placeholder:text-white/40 hover:border-mc-bronze/60 focus:outline-none focus:ring-2 focus:ring-mc-bronze/30 focus:border-mc-bronze"
           value={date}
           onChange={(e) => setDate(e.target.value)}
         />
 
         <button
           onClick={getSlots}
-          disabled={loadingSlots}
-          className="rounded-xl px-6 py-3 bg-mc-black text-mc-bronze border border-mc-bronze hover:bg-mc-bronze hover:text-black transition"
+          disabled={loadingSlots || selectedServiceIds.length === 0 || !date || (hairSelected && !selectedBarberId) || (laserServiceId && selectedLaserOptionIds.length === 0)}
+          className="rounded-xl px-6 py-3 bg-mc-black text-mc-bronze border border-mc-bronze hover:bg-mc-bronze hover:text-neutral-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loadingSlots ? "Kontrol ediliyor…" : "Uygun Saatleri Göster"}
         </button>
 
-        <span className="text-sm text-neutral-500">Toplam süre: {totalDurationMin} dk</span>
+        <span className="text-sm text-white/60">Toplam süre: {totalDurationMin} dk</span>
       </div>
 
       {slots.length > 0 && (
@@ -746,7 +759,7 @@ return (
           
             <div className="mt-6 flex items-center justify-between">
               <h3 className="font-medium">Uygun Saatler</h3>
-              <div className="text-xs text-neutral-500">{filteredSlots.length} seçenek</div>
+              <div className="text-xs text-white/60">{filteredSlots.length} seçenek</div>
             </div>
 
             {(() => {
@@ -770,7 +783,7 @@ return (
                     "flex-1 rounded-xl px-3 py-2 text-[13px] font-semibold transition active:scale-[0.99]",
                     timeTab === key
                       ? "bg-mc-black text-mc-bronze border border-mc-bronze"
-                      : "bg-neutral-100 text-neutral-800 hover:bg-neutral-200",
+                      : "bg-white/5 text-white/70 border border-white/10 hover:bg-white/10 hover:border-white/20",
                   ].join(" ")}
                 >
                   {label}
@@ -779,7 +792,7 @@ return (
               );
 
               return (
-                <div className="mt-3 rounded-2xl border border-mc-border bg-white p-3 mc-fade-up">
+                <div className="mt-3 rounded-2xl border border-white/10 bg-white/5 p-3 mc-fade-up">
                   <div className="flex gap-2">
                     {tabBtn("morning", "Sabah", morning.length)}
                     {tabBtn("noon", "Öğle", noon.length)}
@@ -788,7 +801,7 @@ return (
 
                   <div className="mt-3 grid grid-cols-3 sm:grid-cols-4 gap-2">
                     {list.length === 0 ? (
-                      <div className="w-full rounded-xl border border-dashed border-neutral-200 bg-neutral-50 px-4 py-4 text-sm text-neutral-600">
+                      <div className="w-full rounded-xl border border-dashed border-white/10 bg-white/5 px-4 py-4 text-sm text-white/60">
                         Bu aralıkta uygun saat yok.
                       </div>
                     ) : (
@@ -796,8 +809,8 @@ return (
                         <button
                           key={t}
                           type="button"
-                          onClick={() => setPicked(t)}
-                          className={slotBtnClass(t)}
+                          onClick={() => setPicked(t)} disabled={loadingSlots}
+                          className={slotBtnClass(t, loadingSlots)}
                         >
                           {t}
                         </button>
@@ -813,7 +826,7 @@ return (
             <div
               ref={previewRef}
               className={[
-                "mt-4 rounded-xl border bg-neutral-50 p-4 transition-all duration-200 mc-fade-up",
+                "mt-4 rounded-xl border bg-white/5 p-4 transition-all duration-200 mc-fade-up",
                 showPreview ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1",
               ].join(" ")}
             >
@@ -822,13 +835,13 @@ return (
                 {previewSegments.map((seg, i) => (
                   <div
                     key={`${seg.name}-${i}`}
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-white border p-2 text-sm"
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-white/5 border border-white/10 p-2 text-sm"
                   >
                     <div className="font-medium">{seg.name}</div>
-                    <div className="text-neutral-700">
+                    <div className="text-white/70">
                       {seg.start} – {seg.end}
                     </div>
-                    <div className="text-xs text-neutral-500">{seg.resource}</div>
+                    <div className="text-xs text-white/60">{seg.resource}</div>
                   </div>
                 ))}
               </div>
@@ -840,13 +853,13 @@ return (
       <div className="mt-6 space-y-3 mc-pop">
         <input
           placeholder="Ad Soyad"
-          className="w-full rounded-xl border px-3 py-3 focus:outline-none focus:ring-2 focus:ring-mc-bronze/40 focus:border-mc-bronze"
+          className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-neutral-100 placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-mc-bronze/40 focus:border-mc-bronze"
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
         <input
           placeholder="Telefon"
-          className="w-full rounded-xl border px-3 py-3 focus:outline-none focus:ring-2 focus:ring-mc-bronze/40 focus:border-mc-bronze"
+          className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-neutral-100 placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-mc-bronze/40 focus:border-mc-bronze"
           value={phone}
           onChange={(e) => {
             const v = e.target.value;
@@ -861,29 +874,32 @@ return (
       <button
         onClick={book}
         disabled={booking}
-        className="mt-5 hidden md:inline-flex w-full md:w-auto rounded-xl px-6 py-3 bg-mc-black text-mc-bronze border border-mc-bronze hover:bg-mc-bronze hover:text-black transition disabled:opacity-50 disabled:cursor-not-allowed"
+        className="mt-5 hidden md:inline-flex w-full md:w-auto rounded-xl px-6 py-3 bg-mc-black text-mc-bronze border border-mc-bronze hover:bg-mc-bronze hover:text-neutral-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {booking ? "Oluşturuluyor…" : "Randevuyu Tamamla"}
+        {booking ? "Oluşturuluyor…" : "Hemen Randevu Al"}
       </button>
     </div>
           </div>
         </div>
       </div>
 
-      <div className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur border-t border-mc-border p-4">
-        <div className="mb-3 flex items-center justify-between text-xs text-neutral-600">
-          <span>Toplam süre: <span className="font-medium text-neutral-900">{totalDurationMin} dk</span></span>
+      <div className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-neutral-950/90 backdrop-blur border-t border-white/10 p-4">
+        <div className="mb-3 flex items-center justify-between text-xs text-white/60">
+          <span>
+              <span className="font-medium text-neutral-100">{selectedServiceIds.length}</span> hizmet •{" "}
+              <span className="font-medium text-neutral-100">{totalDurationMin} dk</span>
+            </span>
           {laserTotalPrice > 0 && (
-            <span>Toplam: <span className="font-medium text-neutral-900">{laserTotalPrice} TL</span></span>
+            <span>Toplam: <span className="font-medium text-neutral-100">{laserTotalPrice} TL</span></span>
           )}
         </div>
 
         <button
           onClick={book}
           disabled={!canBook || booking}
-          className="w-full md:w-auto rounded-xl px-6 py-3 bg-mc-black text-mc-bronze border border-mc-bronze hover:bg-mc-bronze hover:text-black transition disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full md:w-auto rounded-xl px-6 py-3 bg-mc-black text-mc-bronze border border-mc-bronze hover:bg-mc-bronze hover:text-neutral-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {booking ? "Oluşturuluyor…" : "Randevuyu Tamamla"}
+          {booking ? "Oluşturuluyor…" : "Hemen Randevu Al"}
         </button>
       </div>
 
