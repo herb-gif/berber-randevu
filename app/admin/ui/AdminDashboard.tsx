@@ -104,7 +104,7 @@ function rowClass(r: Row) {
 
     // Dark-ish "signal strip" (minimal diff): keep row mostly neutral, signal via left border.
     if (status === "no_show") return "border-t align-top border-l-4 border-rose-300";
-    if (status === "cancelled") return "border-t align-top border-l-4 border-neutral-200 text-neutral-500";
+    if (status === "cancelled") return "border-t align-top border-l-4 border-neutral-200 text-white/50";
 
     if (dep === "refunded") return "border-t align-top border-l-4 border-blue-300";
     if (dep === "forfeited") return "border-t align-top border-l-4 border-rose-200";
@@ -396,19 +396,19 @@ return (sortedRows || []).filter((r) => {
         {/* Summary Cards */}
         <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
           <div className="rounded-2xl border border-white/10 bg-neutral-900 p-4 shadow-sm cursor-pointer hover:bg-neutral-800 transition text-neutral-100" onClick={() => { setFilterWhen("today"); }}>
-            <div className="text-xs text-neutral-500">Bugünkü Randevu</div>
+            <div className="text-xs text-white/50">Bugünkü Randevu</div>
             <div className="mt-1 text-2xl font-semibold">{todaySummary.todayCount}</div>
           </div>
 
 
 
           <div className="rounded-2xl border border-white/10 bg-neutral-900 p-4 shadow-sm cursor-pointer hover:bg-neutral-800 transition text-neutral-100" onClick={() => { setFilterWhen("today"); setFilterDep("pending_required"); }}>
-            <div className="text-xs text-neutral-500">Bekleyen Depozito</div>
+            <div className="text-xs text-white/50">Bekleyen Depozito</div>
             <div className="mt-1 text-2xl font-semibold">{todaySummary.pendingDepositCount}</div>
           </div>
 
           <div className="rounded-2xl border border-white/10 bg-neutral-900 p-4 shadow-sm cursor-pointer hover:bg-neutral-800 transition text-neutral-100" onClick={() => { setFilterWhen("today"); setFilterStatus("no_show"); }}>
-            <div className="text-xs text-neutral-500">Bugünkü No-show</div>
+            <div className="text-xs text-white/50">Bugünkü No-show</div>
             <div className="mt-1 text-2xl font-semibold">{todaySummary.noShowCount}</div>
           </div>
         </div>
@@ -421,7 +421,7 @@ return (sortedRows || []).filter((r) => {
                   className={`rounded-full border px-3 py-1 text-xs transition ${
                     filterWhen === "today"
                       ? "border-mc-bronze bg-mc-bronze/10 text-mc-bronze"
-                      : "border-white/10 bg-neutral-900 text-neutral-200 hover:bg-neutral-800"
+                      : "border-white/10 bg-neutral-900 text-white/70 hover:bg-neutral-800"
                   }`}
                   onClick={() => setFilterWhen(filterWhen === "today" ? "all" : "today")}
                 >
@@ -431,7 +431,7 @@ return (sortedRows || []).filter((r) => {
                   className={`rounded-full border px-3 py-1 text-xs transition ${
                     filterWhen === "tomorrow"
                       ? "border-mc-bronze bg-mc-bronze/10 text-mc-bronze"
-                      : "border-white/10 bg-neutral-900 text-neutral-200 hover:bg-neutral-800"
+                      : "border-white/10 bg-neutral-900 text-white/70 hover:bg-neutral-800"
                   }`}
                   onClick={() => setFilterWhen(filterWhen === "tomorrow" ? "all" : "tomorrow")}
                 >
@@ -441,7 +441,7 @@ return (sortedRows || []).filter((r) => {
                   className={`rounded-full border px-3 py-1 text-xs transition ${
                     filterWhen === "week"
                       ? "border-mc-bronze bg-mc-bronze/10 text-mc-bronze"
-                      : "border-white/10 bg-neutral-900 text-neutral-200 hover:bg-neutral-800"
+                      : "border-white/10 bg-neutral-900 text-white/70 hover:bg-neutral-800"
                   }`}
                   onClick={() => setFilterWhen(filterWhen === "week" ? "all" : "week")}
                 >
@@ -450,7 +450,7 @@ return (sortedRows || []).filter((r) => {
               </div>
 
               <div className="flex-1">
-              <div className="text-xs text-neutral-500">Arama</div>
+              <div className="text-xs text-white/50">Arama</div>
               <input
                 value={filterQ}
                 onChange={(e) => setFilterQ(e.target.value)}
@@ -461,7 +461,7 @@ return (sortedRows || []).filter((r) => {
 
             <div className="flex flex-wrap gap-3">
               <div>
-                <div className="text-xs text-neutral-500">Durum</div>
+                <div className="text-xs text-white/50">Durum</div>
                 <select
                   className="mt-1 rounded-xl border border-white/10 bg-neutral-900 px-3 py-2 text-sm"
                   value={filterStatus}
@@ -475,7 +475,7 @@ return (sortedRows || []).filter((r) => {
               </div>
 
               <div>
-                <div className="text-xs text-neutral-500">Depozito</div>
+                <div className="text-xs text-white/50">Depozito</div>
                 <select
                   className="mt-1 rounded-xl border border-white/10 bg-neutral-900 px-3 py-2 text-sm"
                   value={filterDep}
@@ -508,7 +508,7 @@ return (sortedRows || []).filter((r) => {
             </div>
           </div>
 
-          <div className="mt-2 text-xs text-neutral-500">
+          <div className="mt-2 text-xs text-white/50">
             Gösterilen: <span className="font-medium text-neutral-100">{viewRows.length}</span>
           </div>
         </div>
@@ -535,7 +535,16 @@ return (sortedRows || []).filter((r) => {
             )}
 
             {!loading && viewRows.length === 0 && (
-              <tr><td className="p-2.5 text-neutral-400" colSpan={5}>Kayıt yok.</td></tr>
+              <tr>
+  <td className="p-10" colSpan={5}>
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center">
+      <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-neutral-900">📅</div>
+      <div className="text-sm font-semibold text-neutral-100">Kayıt bulunamadı</div>
+      <div className="mt-1 text-xs text-white/50">Filtreleri değiştir veya yeni randevu ekle.</div>
+      <a href="/admin/manual-appointment" className="mt-4 inline-flex items-center justify-center rounded-xl border border-mc-bronze bg-mc-black px-4 py-2 text-sm text-mc-bronze hover:bg-mc-bronze hover:text-neutral-100 transition">Yeni Randevu Ekle</a>
+    </div>
+  </td>
+</tr>
             )}
 
             {viewRows.map((r) => {
@@ -562,26 +571,39 @@ return (sortedRows || []).filter((r) => {
                       : waDot === "amber"
                         ? "border-amber-400/40 shadow-[0_0_0_1px_rgba(251,191,36,0.22),0_0_18px_rgba(251,191,36,0.16)]"
                         : "";
+                  (r.status === "cancelled" || r.status === "no_show")
 return (
                 <React.Fragment key={r.id}>
                   <tr className={rowClass(r)}>
-                    <td className="p-2.5">
-                        <div className="font-medium">{fmtT(r.start_at)}</div>
-                        <div className="text-xs text-neutral-500">{(r.start_at || "").slice(0, 10)} • {totalMin} dk</div>
-                      </td>
+                    <td className="relative p-2.5 pl-4">
+                      <span
+                        className={`absolute left-0 top-0 h-full w-[3px] rounded-r ${
+                          (r.status === "cancelled" || r.status === "no_show")
+                            ? "bg-rose-400/70"
+                            : String(r.deposit_status || "").toLowerCase().trim() === "paid"
+                              ? "bg-emerald-400/70"
+                              : (String(r.deposit_status || "").toLowerCase().trim() === "pending" ||
+                                 String(r.deposit_status || "").toLowerCase().trim() === "required")
+                                ? "bg-amber-400/70"
+                                : "bg-white/10"
+                        }`}
+                      />
+                      <div className="text-base font-semibold text-neutral-100 leading-5">{fmtT(r.start_at)}</div>
+                      <div className="text-xs text-white/50">{(r.start_at || "").slice(0, 10)} • {totalMin} dk</div>
+                    </td>
 
                     <td className="p-2.5">
-                        <div className="font-medium">{r.customer_name}</div>
-                        <div className="text-xs text-neutral-500">{r.customer_phone_e164 || r.customer_phone}</div>
+                      <div className="font-semibold text-neutral-100 leading-5">{r.customer_name}</div>
+                      <div className="text-xs text-white/50">{r.customer_phone_e164 || r.customer_phone}</div>
 
                         <div className="mt-2">
-                          <span className="inline-flex items-center rounded-full border border-white/10 px-2 py-0.5 text-[11px] bg-neutral-900 text-neutral-200">
+                          <span className="inline-flex items-center rounded-full border border-white/10 px-2 py-0.5 text-[11px] bg-neutral-900 text-white/70">
                             {r.status === "no_show" ? "No-show" : r.status}
                           </span>
                         </div>
 {r.status === "cancelled" && reason && (
                         <div className="mt-1 text-xs">
-                          <span className="rounded-full border border-white/10 px-2 py-0.5 bg-neutral-900 text-neutral-200">{reason}</span>
+                          <span className="rounded-full border border-white/10 px-2 py-0.5 bg-neutral-900 text-white/70">{reason}</span>
                         </div>
                       )}
                     </td>
@@ -589,7 +611,7 @@ return (
                     <td className="p-2.5">
                       <div className="font-medium">{r.service_summary ?? "—"}</div>
                       {typeof r.total_price === "number" && (
-                        <div className="mt-0.5 text-[11px] text-neutral-500">Toplam • {r.total_price} TL</div>
+                        <div className="mt-0.5 text-[11px] text-white/50">Toplam • {r.total_price} TL</div>
                       )}
                     </td>
 
@@ -598,7 +620,7 @@ return (
                         {depLabel(r.deposit_status ?? null)}
                       </div>
                       {typeof r.deposit_amount === "number" && (
-                        <div className="mt-0.5 text-[11px] text-neutral-500">Tutar • {r.deposit_amount} TL</div>
+                        <div className="mt-0.5 text-[11px] text-white/50">Tutar • {r.deposit_amount} TL</div>
                       )}
                     </td>
 
@@ -606,24 +628,32 @@ return (
                         <div className="flex flex-wrap items-center gap-2">
                           <div className="wa-dropdown relative">
                             <button
-                              className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-2 text-sm text-neutral-100 hover:border-mc-bronze transition"
+                              className={`rounded-xl border border-white/10 bg-neutral-900 px-4 py-2 text-sm text-neutral-100 hover:border-mc-bronze transition `}
                               onClick={() => {
                                   setActionMenuId(null);
                                   setWaMenuId(waMenuId === r.id ? null : r.id);
                                 }}
                             >                                WhatsApp ▾
                                 {waDot && (
-                                  <span
-                                    className={
-                                      "absolute right-3 top-1/2 -translate-y-1/2 h-2.5 w-2.5 rounded-full " +
-                                      (waDot === "green"
-                                        ? "bg-emerald-400"
-                                        : waDot === "red"
-                                          ? "bg-rose-400"
-                                          : "bg-amber-400")
-                                    }
-                                  />
-                                )}
+  <span className="absolute right-3 top-1/2 -translate-y-1/2">
+    <span className={
+      "absolute inline-flex h-2.5 w-2.5 animate-ping rounded-full " +
+      (waDot === "green"
+        ? "bg-emerald-400/35"
+        : waDot === "red"
+          ? "bg-rose-400/35"
+          : "bg-amber-400/35")
+    } />
+    <span className={
+      "relative inline-flex h-2.5 w-2.5 rounded-full " +
+      (waDot === "green"
+        ? "bg-emerald-400"
+        : waDot === "red"
+          ? "bg-rose-400"
+          : "bg-amber-400")
+    } />
+  </span>
+)}
 </button>
 
                             {waMenuId === r.id && (
@@ -720,7 +750,7 @@ return (
 
                           <div className="action-dropdown relative">
                             <button
-                              className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-2 text-sm text-neutral-100 hover:border-mc-bronze transition"
+                              className={`rounded-xl border border-white/10 bg-neutral-900 px-4 py-2 text-sm text-neutral-100 hover:border-mc-bronze transition `}
                               onClick={() => {
                                   setWaMenuId(null);
                                   setActionMenuId(actionMenuId === r.id ? null : r.id);
@@ -803,7 +833,7 @@ return (
                                 <div className="text-xs text-white/60">
                                   {b.resource === "hair" ? `Berber: ${b.barber_name ?? "—"}` : (b.resource === "external" ? "Harici" : "Niyazi")}
                                 </div>
-                                <div className="text-xs text-neutral-500">{b.status}</div>
+                                <div className="text-xs text-white/50">{b.status}</div>
                               </div>
                             ))}
                           </div>
