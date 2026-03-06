@@ -135,8 +135,12 @@ export default function BookingWidget() {
   const [picked, setPicked] = useState<string>("");
 
 
+
+  // Slots can become unavailable due to race conditions (someone else books first)
+  const [takenSlots, setTakenSlots] = useState<Set<string>>(new Set());
   const previewRef = useRef<HTMLDivElement | null>(null);
 
+  const dateRef = useRef<HTMLInputElement | null>(null);
   useEffect(() => {
     if (!picked) return;
     const t = setTimeout(() => {
@@ -469,7 +473,22 @@ export default function BookingWidget() {
           setPicked("");
           await getSlots();
           return;
+        const errText = String((data as any)?.error || (data as any)?.message || "");
+        // If the slot was just taken, disable it in UI and ask user to pick another.
+        if (res.status === 409 || /dolu|çakış|busy|taken|conflict/i.test(errText)) {
+          const t = picked;
+          if (t) {
+            setTakenSlots((prev) => {
+              const next = new Set(prev);
+              next.add(t);
+              return next;
+            });
+            setPicked("");
+          }
+          setToast("Bu saat az önce doldu. Lütfen başka saat seçin.");
         }
+      }
+
 
         return setToast(data.error || "Randevu oluşturulamadı");
       }
@@ -555,7 +574,7 @@ return (
 
         {/* Brand Header */}
         <div className="mb-6 flex items-center justify-center gap-3">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full border border-mc-bronze/40 bg-black/30 shadow-[0_0_0_1px_rgba(192,138,90,0.18),0_0_18px_rgba(192,138,90,0.14)]">
+          <div className="flex h-20 w-20 items-center justify-center rounded-full border border-mc-bronze/40 bg-black/30 shadow-[0_0_0_1px_rgba(192,138,90,0.18),0_0_18px_rgba(192,138,90,0.14)]">
             <img
               src="/brand/logo-bronze-transparent.png"
               alt="Man Cave"
@@ -573,27 +592,6 @@ return (
 
     
           <div className="text-xs text-white/60 mt-1">
-        <div data-step-progress className="mt-2 flex flex-wrap gap-2">
-          {steps.map((label, i) => {
-            const active = i === currentStep;
-            const done = i < currentStep;
-            return (
-              <div
-                key={label}
-                className={[
-                  "rounded-full border px-3 py-1 text-xs font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed",
-                  done
-                    ? "border-mc-bronze/40 bg-mc-bronze/10 text-mc-bronze"
-                    : active
-                      ? "border-mc-bronze/35 bg-white/5/10 text-mc-bronze"
-                      : "border-white/10 bg-white/5 text-white/60 hover:border-white/20",
-                ].join(" ")}
-              >
-                {label}
-              </div>
-            );
-          })}
-        </div>
 
 
 
@@ -736,14 +734,50 @@ return (
       <h2 className="mt-8 text-xl font-semibold">Tarih</h2>
 
       <div className="mt-3 flex flex-wrap items-center gap-3">
-        <input
-          type="date"
-          className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-neutral-100 placeholder:text-white/40 hover:border-mc-bronze/60 focus:outline-none focus:ring-2 focus:ring-mc-bronze/30 focus:border-mc-bronze"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-        />
+        <div className="w-full flex items-center gap-2">
 
-        <button
+          <input
+
+            ref={dateRef}
+
+            type="date"
+
+            className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-neutral-100 placeholder:text-white/40 hover:border-mc-bronze/60 focus:outline-none focus:ring-2 focus:ring-mc-bronze/30 focus:border-mc-bronze flex-1"
+
+            value={date}
+
+            onChange={(e) => setDate(e.target.value)}
+
+          />
+
+          <button
+
+            type="button"
+
+            aria-label="Tarih seç"
+
+            onClick={() => {
+
+              const el: any = dateRef.current;
+
+              if (!el) return;
+
+              if (typeof el.showPicker === "function") el.showPicker();
+
+              else el.focus();
+
+            }}
+
+            className="h-10 w-10 shrink-0 rounded-xl border border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:border-mc-bronze/60 transition flex items-center justify-center"
+
+          >
+
+            <span className="text-lg">📅</span>
+
+          </button>
+
+        </div>
+<button
           onClick={getSlots}
           disabled={loadingSlots || selectedServiceIds.length === 0 || !date || (hairSelected && !selectedBarberId) || (laserServiceId && selectedLaserOptionIds.length === 0)}
           className="rounded-xl px-6 py-3 bg-mc-black text-mc-bronze border border-mc-bronze hover:bg-mc-bronze hover:text-neutral-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
@@ -809,8 +843,8 @@ return (
                         <button
                           key={t}
                           type="button"
-                          onClick={() => setPicked(t)} disabled={loadingSlots}
-                          className={slotBtnClass(t, loadingSlots)}
+                          onClick={() => setPicked(t)} disabled={loadingSlots || takenSlots.has(t)}
+                          className={slotBtnClass(t, loadingSlots || takenSlots.has(t))}
                         >
                           {t}
                         </button>
@@ -885,12 +919,18 @@ return (
 
       <div className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-neutral-950/90 backdrop-blur border-t border-white/10 p-4">
         <div className="mb-3 flex items-center justify-between text-xs text-white/60">
-          <span>
-              <span className="font-medium text-neutral-100">{selectedServiceIds.length}</span> hizmet •{" "}
-              <span className="font-medium text-neutral-100">{totalDurationMin} dk</span>
+            <span>
+              {selectedServiceIds.length === 0 ? (
+                <span className="text-white/60">Önce hizmet seçin</span>
+              ) : (
+                <>
+                  <span className="font-medium text-neutral-100">{selectedServiceIds.length}</span> hizmet •{" "}
+                  <span className="font-medium text-neutral-100">{totalDurationMin} dk</span>
+                </>
+              )}
             </span>
           {laserTotalPrice > 0 && (
-            <span>Toplam: <span className="font-medium text-neutral-100">{laserTotalPrice} TL</span></span>
+            <span>Lazer: <span className="font-medium text-neutral-100">{laserTotalPrice} TL</span></span>
           )}
         </div>
 
