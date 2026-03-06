@@ -282,17 +282,21 @@ const isPaid = useMemo(() => {
           {showConfetti && <ConfettiBurst />}
 
             <div className="mb-8 flex justify-center">
+
+          <div className="mx-auto flex h-28 w-28 items-center justify-center rounded-full border border-mc-bronze/40 bg-black/30 shadow-[0_0_0_1px_rgba(192,138,90,0.20),0_0_24px_rgba(192,138,90,0.18)]">
+            <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-black/40">
+              <span className="absolute inset-0 rounded-full animate-pulse bg-mc-bronze/10" />
               <img
-                src="/brand/logo-bronze.png"
-                alt="Man Cave Logo"
-                className="h-20 w-auto object-contain opacity-95"
+                src="/brand/logo-bronze-transparent.png"
+                alt="Man Cave"
+                className="relative h-20 w-20 object-contain opacity-95"
               />
             </div>
-
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-mc-bronze/40 bg-mc-bronze/15 text-mc-bronze shadow-[0_0_0_6px_rgba(192,138,90,0.08)]">
-            <span className="text-3xl leading-none">✓</span>
           </div>
-          <h1 className="mt-5 font-heading text-4xl text-mc-bronze">Randevunuz Oluşturuldu</h1>
+
+            </div>
+
+          <h1 className="mt-3 font-heading text-3xl sm:text-3xl sm:text-3xl sm:text-4xl text-mc-bronze">Randevunuz Oluşturuldu</h1>
           <p className="mt-2 text-sm text-neutral-300">Depozito ödemeniz sonrası randevunuz kesinleşecektir.</p>
         </div>
 
