@@ -311,7 +311,7 @@ const isPaid = useMemo(() => {
             <div className="h-1 bg-mc-bronze" />
             <div className="p-6 space-y-3">
               <Row k="Tarih/Saat" v={fmtDT(appt.start_at)} />
-              <Row k="Bitiş" v={fmtT(appt.end_at)} />
+              <Row k="Süre" v={`${Math.max(0, Math.round((new Date(appt.end_at).getTime() - new Date(appt.start_at).getTime()) / 60000))} dk`} />
               {appt.barber_name && <Row k="Berber" v={appt.barber_name} />}
               <ServiceRow summary={appt.service_summary || "—"} />
               <Row k="Toplam" v={`${appt.total_price || 0} TL`} />
