@@ -71,9 +71,6 @@ export default function ConfirmationPage() {
 
   const [showConfetti, setShowConfetti] = useState(true);
   const [remainingSec, setRemainingSec] = useState<number | null>(null);
-
-
-  
   const DEPOSIT_TOTAL_SEC = 20 * 60;
 
 
@@ -200,27 +197,53 @@ const isPaid = useMemo(() => {
 
   // Deposit countdown: starts when appointment is loaded (stops when paid)
   useEffect(() => {
-    if (!appt) return;
 
+    // If already paid, stop countdown
     if (isPaid) {
+      try {
+        if (id) localStorage.removeItem(`confirm_exp_`);
+      } catch {}
       setRemainingSec(null);
       return;
     }
 
-    const TOTAL = DEPOSIT_TOTAL_SEC ?? (20 * 60);
-    setRemainingSec(TOTAL);
+    // Need id + appt loaded
+    if (!id || !appt) {
+      setRemainingSec(null);
+      return;
+    }
 
-    const it = setInterval(() => {
-      setRemainingSec((prev) => {
-        if (typeof prev !== "number") return TOTAL;
-        return Math.max(0, prev - 1);
-      });
-    }, 1000);
+    const key = `confirm_exp_${id}`;
 
-    return () => clearInterval(it);
-  }, [appt?.id, isPaid]);
+    // Reuse persisted expiry so refresh won't reset
+    let expiresAtMs: number | null = null;
+    try {
+      const raw = localStorage.getItem(key);
+      const v = raw ? Number(raw) : NaN;
+      if (Number.isFinite(v) && v > 0) expiresAtMs = v;
+    } catch {}
 
+    // If not persisted yet, derive from appt.created_at (fallback to now) and persist once
+    if (!expiresAtMs) {
+      const created = (appt as any)?.created_at ?? (appt as any)?.createdAt;
+      const createdMs = created ? new Date(created).getTime() : NaN;
+      const baseMs = Number.isFinite(createdMs) ? createdMs : Date.now();
+      expiresAtMs = baseMs + DEPOSIT_TOTAL_SEC * 1000;
 
+      try {
+        localStorage.setItem(key, String(expiresAtMs));
+      } catch {}
+    }
+
+    const tick = () => {
+      const left = Math.max(0, Math.floor((expiresAtMs! - Date.now()) / 1000));
+      setRemainingSec(left);
+    };
+
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [id, appt, isPaid]);
 
   const cleanPhone = useMemo(() => {
     if (!payment?.whatsapp_phone_e164) return "";
