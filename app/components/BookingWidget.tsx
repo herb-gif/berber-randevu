@@ -772,11 +772,20 @@ return (
 
             }}
 
-            className="h-10 w-10 shrink-0 rounded-xl border border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:border-mc-bronze/60 transition flex items-center justify-center"
+            className="h-10 w-10 shrink-0 rounded-xl border border-mc-bronze/40 bg-mc-bronze/10 text-mc-bronze hover:bg-mc-bronze hover:text-neutral-100 transition flex items-center justify-center shadow-[0_0_0_1px_rgba(192,138,90,0.18)]"
 
           >
 
-            <span className="text-lg">📅</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5">
+      <path
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M8 3v2M16 3v2M3 9h18M5 6h14a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"
+      />
+    </svg>
 
           </button>
 
