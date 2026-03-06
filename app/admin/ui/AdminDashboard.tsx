@@ -375,7 +375,7 @@ return (sortedRows || []).filter((r) => {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-xl font-semibold">Admin Panel</h1>
-          <div className="text-sm text-neutral-600">Randevular + depozito + WhatsApp mesaj</div>
+          <div className="text-sm text-white/60">Randevular + depozito + WhatsApp mesaj</div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -414,7 +414,7 @@ return (sortedRows || []).filter((r) => {
         </div>
 
         {/* Filtreler */}
-        <div className="mt-6 rounded-2xl border border-white/10 bg-neutral-900 p-4 shadow-sm text-neutral-100">
+        <div className="mt-4 rounded-2xl border border-white/10 bg-neutral-900 p-3 shadow-sm text-neutral-100 sticky top-16 z-20 backdrop-blur bg-neutral-900/90 shadow-sm">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div className="mb-3 flex flex-wrap items-center gap-2">
                 <button
@@ -516,10 +516,10 @@ return (sortedRows || []).filter((r) => {
         <div ref={tableTopRef} />
 
 <div className="mt-6 overflow-x-auto rounded-2xl border border-white/10 bg-neutral-900 text-neutral-100">
-        <div className="max-h-[65vh] overflow-y-auto rounded-2xl border border-white/10">
+        <div className="max-h-[65vh] overflow-y-auto">
 
-          <table className="w-full text-sm">
-          <thead className="bg-neutral-950 sticky top-0 z-10 text-left text-neutral-300">
+          <table className="w-full text-[13px]">
+          <thead className="sticky top-0 z-10 bg-neutral-900/95 backdrop-blur border-b border-white/10 text-left text-white/70">
             <tr>
               <th className="p-3">Zaman</th>
               <th className="p-3">Müşteri</th>
@@ -531,11 +531,11 @@ return (sortedRows || []).filter((r) => {
 
           <tbody>
             {loading && (
-              <tr><td className="p-3 text-neutral-400" colSpan={5}>Yükleniyor…</td></tr>
+              <tr><td className="p-2.5 text-neutral-400" colSpan={5}>Yükleniyor…</td></tr>
             )}
 
             {!loading && viewRows.length === 0 && (
-              <tr><td className="p-3 text-neutral-400" colSpan={5}>Kayıt yok.</td></tr>
+              <tr><td className="p-2.5 text-neutral-400" colSpan={5}>Kayıt yok.</td></tr>
             )}
 
             {viewRows.map((r) => {
@@ -565,12 +565,12 @@ return (sortedRows || []).filter((r) => {
 return (
                 <React.Fragment key={r.id}>
                   <tr className={rowClass(r)}>
-                    <td className="p-3">
+                    <td className="p-2.5">
                         <div className="font-medium">{fmtT(r.start_at)}</div>
                         <div className="text-xs text-neutral-500">{(r.start_at || "").slice(0, 10)} • {totalMin} dk</div>
                       </td>
 
-                    <td className="p-3">
+                    <td className="p-2.5">
                         <div className="font-medium">{r.customer_name}</div>
                         <div className="text-xs text-neutral-500">{r.customer_phone_e164 || r.customer_phone}</div>
 
@@ -586,14 +586,14 @@ return (
                       )}
                     </td>
 
-                    <td className="p-3">
+                    <td className="p-2.5">
                       <div className="font-medium">{r.service_summary ?? "—"}</div>
                       {typeof r.total_price === "number" && (
                         <div className="mt-0.5 text-[11px] text-neutral-500">Toplam • {r.total_price} TL</div>
                       )}
                     </td>
 
-                    <td className="p-3">
+                    <td className="p-2.5">
                       <div className={`inline-flex items-center rounded-full border px-2 py-1 text-xs ${depBadgeClass(r.deposit_status ?? null)}`}>
                         {depLabel(r.deposit_status ?? null)}
                       </div>
@@ -602,7 +602,7 @@ return (
                       )}
                     </td>
 
-                    <td className="p-3">
+                    <td className="p-2.5">
                         <div className="flex flex-wrap items-center gap-2">
                           <div className="wa-dropdown relative">
                             <button
@@ -629,7 +629,7 @@ return (
                             {waMenuId === r.id && (
                               <div className="absolute right-0 z-30 mt-2 w-60 overflow-hidden rounded-2xl border border-white/10 bg-neutral-900 shadow-xl ring-1 ring-black/5 text-neutral-100">
                                 <button
-                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
+                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition-colors"
                                   onClick={async () => {
                                     setWaMenuId(null);
                                     const pmt = await fetchPayment();
@@ -652,7 +652,7 @@ return (
                                 </button>
 
                                 <button
-                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
+                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition-colors"
                                   onClick={async () => {
                                     setWaMenuId(null);
                                     const pmt = await fetchPayment();
@@ -681,7 +681,7 @@ return (
                                 <div className="h-px bg-white/10" />
 
                                 <button
-                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
+                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition-colors"
                                   onClick={() => {
                                     setWaMenuId(null);
                                     const phone = (r.customer_phone_e164 || r.customer_phone || "");
@@ -698,7 +698,7 @@ return (
                                 </button>
 
                                 <button
-                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
+                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition-colors"
                                   onClick={() => {
                                     setWaMenuId(null);
                                     const phone = (r.customer_phone_e164 || r.customer_phone || "");
@@ -732,7 +732,7 @@ return (
                             {actionMenuId === r.id && (
                               <div className="absolute right-0 z-30 mt-2 w-56 overflow-hidden rounded-2xl border border-white/10 bg-neutral-900 shadow-xl ring-1 ring-black/5 text-neutral-100">
                                 <button
-                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
+                                  className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition-colors"
                                   onClick={() => {
                                     setActionMenuId(null);
                                     setExpandedId(expandedId === r.id ? null : r.id);
@@ -746,7 +746,7 @@ return (
                                     String(r.deposit_status || "").toLowerCase().trim()
                                   ) && (
                                     <button
-                                      className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
+                                      className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition-colors"
                                       onClick={() => {
                                         setActionMenuId(null);
                                         markPaid(r.id);
@@ -758,7 +758,7 @@ return (
 
                                 {r.status !== "cancelled" && r.status !== "no_show" && (
                                   <button
-                                    className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition"
+                                    className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition-colors"
                                     onClick={() => {
                                       setActionMenuId(null);
                                       markNoShow(r.id);
@@ -772,7 +772,7 @@ return (
 
                                 {r.status !== "cancelled" && (
                                   <button
-                                    className="w-full px-4 py-2 text-left text-sm text-rose-700 hover:bg-white/5 transition"
+                                    className="w-full px-4 py-2 text-left text-sm text-rose-700 hover:bg-white/5 transition-colors"
                                     onClick={() => {
                                       setActionMenuId(null);
                                       cancel(r.id);
@@ -790,17 +790,17 @@ return (
 
                   {expandedId === r.id && (
                     <tr className="border-t bg-white/5">
-                      <td className="p-3" colSpan={5}>
+                      <td className="p-2.5" colSpan={5}>
                         <div className="text-sm font-semibold">Bloklar</div>
                         {(r.blocks ?? []).length === 0 ? (
-                          <div className="mt-2 text-sm text-neutral-600">Blok bulunamadı.</div>
+                          <div className="mt-2 text-sm text-white/60">Blok bulunamadı.</div>
                         ) : (
                           <div className="mt-3 space-y-2">
                             {(r.blocks ?? []).map((b, idx) => (
                               <div key={`${b.resource}-${b.start_at}-${idx}`} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-white p-2 text-sm">
                                 <div className="font-medium">{b.service_name ?? "—"}</div>
-                                <div className="text-neutral-700">{fmtT(b.start_at)} – {fmtT(b.end_at)}</div>
-                                <div className="text-xs text-neutral-600">
+                                <div className="text-white/70">{fmtT(b.start_at)} – {fmtT(b.end_at)}</div>
+                                <div className="text-xs text-white/60">
                                   {b.resource === "hair" ? `Berber: ${b.barber_name ?? "—"}` : (b.resource === "external" ? "Harici" : "Niyazi")}
                                 </div>
                                 <div className="text-xs text-neutral-500">{b.status}</div>
