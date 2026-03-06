@@ -394,18 +394,13 @@ return (sortedRows || []).filter((r) => {
 
       
         {/* Summary Cards */}
-        <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-4">
+        <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
           <div className="rounded-2xl border border-white/10 bg-neutral-900 p-4 shadow-sm cursor-pointer hover:bg-neutral-800 transition text-neutral-100" onClick={() => { setFilterWhen("today"); }}>
             <div className="text-xs text-neutral-500">Bugünkü Randevu</div>
             <div className="mt-1 text-2xl font-semibold">{todaySummary.todayCount}</div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-neutral-900 p-4 shadow-sm cursor-pointer hover:bg-neutral-800 transition text-neutral-100" onClick={() => { setFilterWhen("today"); }}>
-            <div className="text-xs text-neutral-500">Bugünkü Ciro</div>
-            <div className="mt-1 text-2xl font-semibold">
-              {todaySummary.todayRevenue.toLocaleString("tr-TR")} TL
-            </div>
-          </div>
+
 
           <div className="rounded-2xl border border-white/10 bg-neutral-900 p-4 shadow-sm cursor-pointer hover:bg-neutral-800 transition text-neutral-100" onClick={() => { setFilterWhen("today"); setFilterDep("pending_required"); }}>
             <div className="text-xs text-neutral-500">Bekleyen Depozito</div>
