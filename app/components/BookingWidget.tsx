@@ -783,7 +783,7 @@ return (
         </div>
 <button
           onClick={getSlots}
-          disabled={loadingSlots || selectedServiceIds.length === 0 || !date || (hairSelected && !selectedBarberId) || (laserServiceId && selectedLaserOptionIds.length === 0)}
+          disabled={loadingSlots || selectedServiceIds.length === 0 || !date || (hairSelected && selectedBarberId.length === 0) || (laserServiceId !== "" && selectedLaserOptionIds.length === 0)}
           className="rounded-xl px-6 py-3 bg-mc-black text-mc-bronze border border-mc-bronze hover:bg-mc-bronze hover:text-neutral-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loadingSlots ? "Kontrol ediliyor…" : "Uygun Saatleri Göster"}
