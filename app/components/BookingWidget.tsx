@@ -424,7 +424,11 @@ export default function BookingWidget() {
 
       if (!res.ok) return setToast(data.error || "Uygun saatler alınamadı");
       setSlots(data.slots ?? []);
-    } finally {
+      } catch (e: any) {
+        // Network / dev server hiccup
+        setToast(e?.message ? `Bağlantı hatası: ${e.message}` : "Bağlantı hatası. Lütfen tekrar deneyin.");
+      }
+    finally {
       setLoadingSlots(false);
     }
   }
