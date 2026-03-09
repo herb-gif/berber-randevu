@@ -565,7 +565,7 @@ export default function BookingWidget() {
 return (
     <div className="min-h-screen bg-neutral-950 text-mc-bronze">
 
-      <div className="mx-auto max-w-2xl px-4 py-10">
+      <div className="mx-auto max-w-xl px-4 py-10">
         <div className="flex justify-center mb-6">
           <div className="text-center">
 
