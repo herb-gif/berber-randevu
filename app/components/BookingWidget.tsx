@@ -563,7 +563,7 @@ export default function BookingWidget() {
       "Tamamla",
     ].filter(Boolean) as string[];
 return (
-    <div className="min-h-screen bg-mc-black text-mc-bronze hidden md:inline-flex">
+    <div className="min-h-screen bg-mc-black text-mc-bronze">
 
       <div className="mx-auto max-w-2xl px-4 py-10">
         <div className="flex justify-center mb-6">
@@ -573,7 +573,7 @@ return (
           </div>
         </div>
 
-        <div className="rounded-2xl bg-neutral-950/95 text-neutral-100 shadow-sm border border-white/10 overflow-hidden">
+        <div className="rounded-2xl bg-neutral-950/95 text-neutral-100 shadow-sm border border-white/10 overflow-visible">
           <div className="h-1 bg-mc-bronze" />
           <div className="p-6 pb-24 md:pb-6">
 
