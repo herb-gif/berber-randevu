@@ -525,17 +525,17 @@ return (sortedRows || []).filter((r) => {
 
         <div ref={tableTopRef} />
 
-<div className="mt-6 overflow-x-auto rounded-2xl border border-white/10 bg-neutral-900 text-neutral-100">
+<div className="mt-6 overflow-x-auto rounded-2xl border border-white/10 bg-neutral-900 text-neutral-100 [-webkit-overflow-scrolling:touch]">
         <div className="max-h-[65vh] overflow-y-auto">
 
           <table className="w-full text-[13px]">
           <thead className="sticky top-0 z-10 bg-neutral-900/95 backdrop-blur border-b border-white/10 text-left text-white/70">
             <tr>
-              <th className="p-3">Zaman</th>
-              <th className="p-3">Müşteri</th>
-              <th className="p-3">Hizmet</th>
-              <th className="p-3">Depozito</th>
-              <th className="p-3">İşlem</th>
+              <th className="p-2 md:p-3">Zaman</th>
+              <th className="p-2 md:p-3">Müşteri</th>
+              <th className="hidden md:table-cell p-2 md:p-3">Hizmet</th>
+              <th className="hidden md:table-cell p-2 md:p-3">Depozito</th>
+              <th className="p-2 md:p-3">İşlem</th>
             </tr>
           </thead>
 
@@ -546,7 +546,7 @@ return (sortedRows || []).filter((r) => {
 
             {!loading && viewRows.length === 0 && (
               <tr>
-  <td className="p-10" colSpan={5}>
+  <td className="p-6 md:p-10" colSpan={5}>
     <div className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center">
       <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-neutral-900">📅</div>
       <div className="text-sm font-semibold text-neutral-100">Kayıt bulunamadı</div>
@@ -585,7 +585,7 @@ return (sortedRows || []).filter((r) => {
 return (
                 <React.Fragment key={r.id}>
                   <tr className={rowClass(r)}>
-                    <td className="relative p-2.5 pl-4">
+                    <td className="relative p-2 pl-3 md:p-2.5 md:pl-4">
                       <span
                         className={`absolute left-0 top-0 h-full w-[3px] rounded-r ${
                           (r.status === "cancelled" || r.status === "no_show")
@@ -602,7 +602,7 @@ return (
                       <div className="text-xs text-white/50">{(r.start_at || "").slice(0, 10)} • {totalMin} dk</div>
                     </td>
 
-                    <td className="p-2.5">
+                    <td className="p-2 md:p-2.5">
                       <div className="font-semibold text-neutral-100 leading-5">{r.customer_name}</div>
                       <div className="text-xs text-white/50">{r.customer_phone_e164 || r.customer_phone}</div>
 
@@ -638,7 +638,7 @@ return (
                         <div className="flex flex-wrap items-center gap-2">
                           <div className="wa-dropdown relative">
                             <button
-                              className={`rounded-xl border border-white/10 bg-neutral-900 px-4 py-2 text-sm text-neutral-100 hover:border-mc-bronze transition `}
+                              className={`w-full md:w-auto rounded-xl border border-white/10 bg-neutral-900 px-3 md:px-4 py-2 text-sm text-neutral-100 hover:border-mc-bronze transition `}
                               onClick={() => {
                                   setActionMenuId(null);
                                   setWaMenuId(waMenuId === r.id ? null : r.id);
