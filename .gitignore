@@ -45,3 +45,6 @@ next-env.d.ts
 *.bak.*
 out/admin-snapshot-*.txt
 *.restorebak.*
+
+# Local cookie exports
+cookies.txt
