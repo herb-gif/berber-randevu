@@ -739,7 +739,7 @@ return (
       <h2 className="mt-8 text-xl font-semibold">Tarih</h2>
 
       <div className="mt-3 flex flex-wrap items-center gap-3">
-        <div className="w-full flex items-center gap-2">
+        <div className="w-full flex items-stretch gap-2">
 
           <input
 
@@ -747,7 +747,7 @@ return (
 
             type="date"
 
-            className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-neutral-100 placeholder:text-white/40 hover:border-mc-bronze/60 focus:outline-none focus:ring-2 focus:ring-mc-bronze/30 focus:border-mc-bronze flex-1"
+            className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-neutral-100 placeholder:text-white/40 hover:border-mc-bronze/60 focus:outline-none focus:ring-2 focus:ring-mc-bronze/30 focus:border-mc-bronze flex-1"
 
             value={date}
 
@@ -773,7 +773,7 @@ return (
 
             }}
 
-            className="h-10 w-10 shrink-0 rounded-xl border border-mc-bronze/40 bg-mc-bronze/10 text-mc-bronze hover:bg-mc-bronze hover:text-neutral-100 transition flex items-center justify-center shadow-[0_0_0_1px_rgba(192,138,90,0.18)]"
+            className="h-12 w-12 shrink-0 rounded-xl border border-mc-bronze/40 bg-mc-bronze/10 text-mc-bronze hover:bg-mc-bronze hover:text-neutral-100 transition flex items-center justify-center shadow-[0_0_0_1px_rgba(192,138,90,0.18)]"
 
           >
 
