@@ -168,7 +168,7 @@ export default function BookingWidget() {
       (disabled
         ? `bg-white/5 text-white/60 border-white/10 opacity-40 cursor-not-allowed after:content-["Dolu"] after:absolute after:right-1.5 after:top-1.5 after:rounded-full after:border after:border-white/10 after:bg-black/30 after:px-1.5 after:py-0.5 after:text-[10px] after:text-white/70`
         : picked === t
-          ? `bg-mc-black text-mc-bronze border-mc-bronze shadow-[0_0_0_2px_rgba(192,138,90,0.30)]`
+          ? `bg-neutral-950 text-mc-bronze border-mc-bronze shadow-[0_0_0_2px_rgba(192,138,90,0.30)]`
           : `bg-white/5 text-neutral-100 border-white/10 hover:bg-white/10 hover:-translate-y-0.5 hover:border-mc-bronze hover:shadow-[0_0_0_2px_rgba(192,138,90,0.15)] hover:shadow-sm`);
 
 
@@ -563,7 +563,7 @@ export default function BookingWidget() {
       "Tamamla",
     ].filter(Boolean) as string[];
 return (
-    <div className="min-h-screen bg-mc-black text-mc-bronze">
+    <div className="min-h-screen bg-neutral-950 text-mc-bronze">
 
       <div className="mx-auto max-w-2xl px-4 py-10">
         <div className="flex justify-center mb-6">
@@ -573,7 +573,7 @@ return (
           </div>
         </div>
 
-        <div className="rounded-2xl bg-neutral-950/95 text-neutral-100 shadow-sm border border-white/10 overflow-visible">
+        <div className="rounded-2xl bg-neutral-950/95 text-neutral-100 border border-white/10 overflow-visible shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
           <div className="h-1 bg-mc-bronze" />
           <div className="p-6 pb-24 md:pb-6">
 
@@ -612,7 +612,7 @@ return (
           const checked = selectedServiceIds.includes(s.id);
           const pillClass = "flex items-center justify-between gap-3 w-full rounded-xl border px-4 py-3 transition cursor-pointer select-none hover:-translate-y-0.5 duration-150 " +
             (checked
-              ? "border-mc-bronze bg-mc-black text-mc-bronze shadow-sm"
+              ? "border-mc-bronze bg-neutral-950 text-mc-bronze shadow-sm"
               : "border-white/10 bg-white/5 text-neutral-100 hover:bg-white/10 hover:border-mc-bronze hover:shadow-[0_0_0_2px_rgba(192,138,90,0.15)]");
 
           
@@ -721,7 +721,7 @@ return (
           window.open(waLink, "_blank");
           setWaLink("");
         }}
-        className="inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm bg-mc-black text-mc-bronze border border-mc-bronze hover:bg-mc-bronze hover:text-neutral-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
+        className="inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm bg-neutral-950 text-mc-bronze border border-mc-bronze hover:bg-mc-bronze hover:text-neutral-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
       >
         Ödeme için WhatsApp Mesajı Gönder
       </button>
@@ -794,7 +794,7 @@ return (
 <button
           onClick={getSlots}
           disabled={loadingSlots || selectedServiceIds.length === 0 || !date || (hairSelected && selectedBarberId.length === 0) || (laserServiceId !== "" && selectedLaserOptionIds.length === 0)}
-          className="rounded-xl px-6 py-3 bg-mc-black text-mc-bronze border border-mc-bronze hover:bg-mc-bronze hover:text-neutral-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          className="rounded-xl px-6 py-3 bg-neutral-950 text-mc-bronze border border-mc-bronze hover:bg-mc-bronze hover:text-neutral-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loadingSlots ? "Kontrol ediliyor…" : "Uygun Saatleri Göster"}
         </button>      </div>
@@ -824,7 +824,7 @@ return (
                   className={[
                     "flex-1 rounded-xl px-3 py-2 text-[13px] font-semibold transition active:scale-[0.99]",
                     timeTab === key
-                      ? "bg-mc-black text-mc-bronze border border-mc-bronze"
+                      ? "bg-neutral-950 text-mc-bronze border border-mc-bronze"
                       : "bg-white/5 text-white/70 border border-white/10 hover:bg-white/10 hover:border-white/20",
                   ].join(" ")}
                 >
@@ -915,7 +915,7 @@ return (
       <button
         onClick={book}
         disabled={booking}
-        className="mt-5 hidden md:inline-flex w-full md:w-auto rounded-xl px-6 py-3 bg-mc-black text-mc-bronze border border-mc-bronze hover:bg-mc-bronze hover:text-neutral-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
+        className="mt-5 hidden md:inline-flex w-full md:w-auto rounded-xl px-6 py-3 bg-neutral-950 text-mc-bronze border border-mc-bronze hover:bg-mc-bronze hover:text-neutral-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {booking ? "Oluşturuluyor…" : "Hemen Randevu Al"}
       </button>
@@ -944,7 +944,7 @@ return (
         <button
           onClick={book}
           disabled={!canBook || booking}
-          className="w-full md:w-auto rounded-xl px-6 py-3 bg-mc-black text-mc-bronze border border-mc-bronze hover:bg-mc-bronze hover:text-neutral-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full md:w-auto rounded-xl px-6 py-3 bg-neutral-950 text-mc-bronze border border-mc-bronze hover:bg-mc-bronze hover:text-neutral-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {booking ? "Oluşturuluyor…" : "Hemen Randevu Al"}
         </button>
