@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { sendMessage } from "@/lib/notify";
+import { DISPLAY_TZ } from "@/lib/timezone";
 
 export async function GET(req: Request) {
   const secret = process.env.CRON_SECRET;
@@ -64,7 +65,7 @@ export async function GET(req: Request) {
           `Merhaba ${a.customer_name},\n\n` +
           `Randevunuz otomatik iptal edildi.\n` +
           `Sebep: ${afterMin} dakika içinde depozito dekontu iletilmedi.\n\n` +
-          `Randevu zamanı: ${new Date(a.start_at).toLocaleString("tr-TR")}\n` +
+          `Randevu zamanı: ${new Date(a.start_at).toLocaleString("tr-TR", { timeZone: DISPLAY_TZ })}\n` +
           `Durum: cancelled`,
       });
     } catch {}

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { DISPLAY_TZ } from "@/lib/timezone";
 
 type Appointment = {
   id: string;
@@ -28,7 +29,7 @@ type Payment =
     }
   | null;
 
-const TZ = "Europe/Istanbul";
+const TZ = DISPLAY_TZ;
 const dtf = new Intl.DateTimeFormat("tr-TR", { timeZone: TZ, dateStyle: "short", timeStyle: "short" });
 const tf = new Intl.DateTimeFormat("tr-TR", { timeZone: TZ, hour: "2-digit", minute: "2-digit" });
 

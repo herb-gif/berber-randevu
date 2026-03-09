@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { buildDepositPaymentMessage, buildApprovalMessage, buildReminderMessage, buildWhatsAppWebUrl } from "@/lib/whatsapp";
 import { useRouter, useSearchParams } from "next/navigation";
+import { DISPLAY_TZ } from "@/lib/timezone";
 
 type Block = {
   resource: "hair" | "niyazi" | "external" | string;
@@ -43,7 +44,7 @@ type Payment = {
   whatsapp_phone_e164?: string | null;
 };
 
-const TZ = "Europe/Istanbul";
+const TZ = DISPLAY_TZ;
 const dtf = new Intl.DateTimeFormat("tr-TR", { timeZone: TZ, dateStyle: "short", timeStyle: "short" });
 const tf = new Intl.DateTimeFormat("tr-TR", { timeZone: TZ, hour: "2-digit", minute: "2-digit" });
 

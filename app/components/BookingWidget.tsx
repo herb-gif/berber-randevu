@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { buildDepositPaymentMessage, buildWhatsAppWebUrl } from "@/lib/whatsapp";
+import { DISPLAY_TZ } from "@/lib/timezone";
 
 type Service = {
   id: string; // UUID
@@ -75,12 +76,12 @@ export default function BookingWidget() {
     const now = new Date();
 
     // local today YYYY-MM-DD
-    const todayISO =
-      now.getFullYear() +
-      "-" +
-      String(now.getMonth() + 1).padStart(2, "0") +
-      "-" +
-      String(now.getDate()).padStart(2, "0");
+    const todayISO = new Intl.DateTimeFormat("en-CA", {
+      timeZone: DISPLAY_TZ,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(now);
 
     // date normalize (YYYY-MM-DD ya da dd/mm/yyyy)
     let selectedISO = String(date || "").trim();

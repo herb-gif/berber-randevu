@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { supabaseAdmin } from "@/lib/supabase";
 import { sendMessage } from "@/lib/notify";
+import { DISPLAY_TZ } from "@/lib/timezone";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -44,7 +45,7 @@ export async function POST(req: Request) {
       const msg =
         `Merhaba ${upd.data.customer_name},\n\n` +
         `✅ Ödemeniz alındı. Randevunuz ONAYLANDI.\n\n` +
-        `🕒 Tarih/Saat: ${new Date(upd.data.start_at).toLocaleString("tr-TR")}\n` +
+        `🕒 Tarih/Saat: ${new Date(upd.data.start_at).toLocaleString("tr-TR", { timeZone: DISPLAY_TZ })}\n` +
         `🧾 Hizmet: ${upd.data.service_summary || "—"}\n\n` +
         `Görüşmek üzere ✂️`;
 

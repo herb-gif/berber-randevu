@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import AdminNavTabs from "../ui/AdminNavTabs";
+import { DISPLAY_TZ } from "@/lib/timezone";
 
 type Row = {
   id: string;
@@ -14,7 +15,7 @@ type Row = {
   wa: string;
 };
 
-const TZ = "Europe/Istanbul";
+const TZ = DISPLAY_TZ;
 const dtf = new Intl.DateTimeFormat("tr-TR", { timeZone: TZ, dateStyle: "short", timeStyle: "short" });
 
 function fmtDT(iso: string) {

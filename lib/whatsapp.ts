@@ -1,3 +1,4 @@
+import { DISPLAY_TZ } from "@/lib/timezone";
 export type AppointmentMessageInput = {
   customerName: string;
   date: string;        // YYYY-MM-DD
@@ -23,7 +24,7 @@ export type PaymentInfo = {
   whatsapp_phone_e164?: string | null;
 };
 
-const TZ = "Europe/Istanbul";
+const TZ = DISPLAY_TZ;
 
 function formatDateTR(date: string) {
   const d = new Date(date + "T00:00:00+03:00");

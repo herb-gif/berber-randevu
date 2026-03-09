@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { DISPLAY_TZ } from "@/lib/timezone";
 
 function badge(status: string) {
   const s = (status || "").toLowerCase();
@@ -21,8 +22,7 @@ type Row = {
 };
 
 function fmt(dt: string) {
-  return new Date(dt).toLocaleString("tr-TR", {
-    dateStyle: "short",
+  return new Date(dt).toLocaleString("tr-TR", { timeZone: DISPLAY_TZ,     dateStyle: "short",
     timeStyle: "short",
   });
 }

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { sendMessage } from "@/lib/notify";
+import { DISPLAY_TZ } from "@/lib/timezone";
 
 export async function GET() {
   if (!supabaseAdmin) {
@@ -37,7 +38,7 @@ export async function GET() {
         text:
           `Hatırlatma ⏰\n\n` +
           `Merhaba ${a.customer_name},\n` +
-          `${new Date(a.start_at).toLocaleString("tr-TR")} saatinde randevunuz var.\n\n` +
+          `${new Date(a.start_at).toLocaleString("tr-TR", { timeZone: DISPLAY_TZ })} saatinde randevunuz var.\n\n` +
           `Lütfen geç kalmayınız.`,
       });
     } catch (e) {
