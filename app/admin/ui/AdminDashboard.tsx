@@ -134,6 +134,7 @@ export default function AdminDashboard() {
 
     
       const [filterWhen, setFilterWhen] = useState("all");
+  const [showFilters, setShowFilters] = useState(false);
 const router = useRouter();
     const searchParams = useSearchParams();
     const didInitFiltersRef = useRef(false);
@@ -451,7 +452,15 @@ return (sortedRows || []).filter((r) => {
               </div>
 
               <div className="flex-1">
-              <div className="text-xs text-white/50">Arama</div>
+              <div className="text-xs text-white/50">Arama
+
+<button
+  onClick={() => setShowFilters(v => !v)}
+  className="md:hidden mt-3 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-neutral-100"
+>
+  {showFilters ? "Filtreleri Gizle" : "Filtreleri Aç"}
+</button>
+</div>
               <input
                 value={filterQ}
                 onChange={(e) => setFilterQ(e.target.value)}
