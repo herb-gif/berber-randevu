@@ -23,12 +23,12 @@ export default function AdminLogin() {
   }
 
   return (
-    <div className="rounded-2xl border bg-white p-6 shadow-sm max-w-md">
-      <h2 className="text-lg font-semibold">Giriş</h2>
-      <p className="mt-1 text-sm text-neutral-600">Admin şifresini gir.</p>
+    <div className="max-w-md rounded-2xl border border-white/10 bg-neutral-950/95 p-6 shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
+      <h2 className="text-lg font-semibold text-neutral-100">Giriş</h2>
+      <p className="mt-1 text-sm text-white/60">Admin şifresini gir.</p>
 
       <input
-        className="mt-4 w-full rounded-lg border px-3 py-2"
+        className="mt-4 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-neutral-100 placeholder:text-white/35 outline-none focus:border-mc-bronze focus:ring-2 focus:ring-mc-bronze/30"
         type="password"
         placeholder="Şifre"
         value={password}
