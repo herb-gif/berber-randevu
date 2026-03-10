@@ -84,7 +84,7 @@ function depBadgeClass(s?: string | null) {
 function cancelReasonLabel(r?: string | null) {
   if (!r) return null;
   if (r === "admin") return "🔴 Admin iptal";
-  if (r === "auto_no_deposit") return "🟠 Otomatik iptal (depozito yok)";
+  if (r === "auto_no_deposit") return "🟠 Otomatik iptal";
   if (r === "customer") return "⚪ Müşteri iptal";
   if (r === "unknown") return "⚫ İptal";
   return `⚫ ${r}`;
@@ -542,7 +542,19 @@ return (sortedRows || []).filter((r) => {
       const totalMin = minutesBetween(r.start_at, r.end_at);
 
       return (
-        <div key={r.id} className="rounded-2xl border border-white/10 bg-neutral-900 p-4 text-neutral-100">
+        <div
+          key={r.id}
+          className={`relative overflow-hidden rounded-2xl border border-white/10 bg-neutral-900 p-4 text-neutral-100 ${
+            String(r.status || "").toLowerCase() === "cancelled" || String(r.status || "").toLowerCase() === "no_show"
+              ? "before:absolute before:left-0 before:top-0 before:h-full before:w-1 before:bg-rose-400/80"
+              : String(r.deposit_status || "").toLowerCase().trim() === "paid"
+                ? "before:absolute before:left-0 before:top-0 before:h-full before:w-1 before:bg-emerald-400/80"
+                : (String(r.deposit_status || "").toLowerCase().trim() === "pending" ||
+                   String(r.deposit_status || "").toLowerCase().trim() === "required")
+                  ? "before:absolute before:left-0 before:top-0 before:h-full before:w-1 before:bg-amber-400/80"
+                  : "before:absolute before:left-0 before:top-0 before:h-full before:w-1 before:bg-white/10"
+          }`}
+        >
           <div className="flex items-start justify-between gap-3">
             <div>
               <div className="text-lg md:text-xl font-semibold leading-none">{fmtT(r.start_at)}</div>
@@ -554,7 +566,7 @@ return (sortedRows || []).filter((r) => {
             </div>
           </div>
 
-          <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-3">
+          <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-2.5">
             <div className="font-semibold text-neutral-100">{r.customer_name}</div>
             <div className="mt-1 text-sm text-white/60">{r.customer_phone_e164 || r.customer_phone}</div>
 
@@ -570,7 +582,7 @@ return (sortedRows || []).filter((r) => {
 
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center rounded-full border border-white/10 bg-neutral-900 px-2 py-0.5 text-[11px] text-white/70">
-                {r.status === "no_show" ? "No-show" : r.status}
+                {r.status === "no_show" ? "Gelmedi" : r.status === "cancelled" ? "İptal" : r.status === "booked" ? "Onaylandı" : r.status}
               </span>
 
               {r.status === "cancelled" && reason && (
@@ -830,7 +842,7 @@ return (
 
                         <div className="mt-2">
                           <span className="inline-flex items-center rounded-full border border-white/10 px-2 py-0.5 text-[11px] bg-neutral-900 text-white/70">
-                            {r.status === "no_show" ? "No-show" : r.status}
+                            {r.status === "no_show" ? "Gelmedi" : r.status === "cancelled" ? "İptal" : r.status === "booked" ? "Onaylandı" : r.status}
                           </span>
                         </div>
 {r.status === "cancelled" && reason && (
