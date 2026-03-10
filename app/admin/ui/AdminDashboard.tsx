@@ -377,7 +377,7 @@ return (sortedRows || []).filter((r) => {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-lg md:text-xl font-semibold">Admin Panel</h1>
-          <div className="text-sm text-white/60">Randevular + depozito + WhatsApp mesaj</div>
+          <div className="hidden md:block text-sm text-white/60">Randevular + depozito + WhatsApp mesaj</div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
