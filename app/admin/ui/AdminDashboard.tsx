@@ -479,7 +479,7 @@ return (sortedRows || []).filter((r) => {
                 >
                   <option value="all">Hepsi</option>
                   <option value="booked">Booked</option>
-                  <option value="cancelled">Cancelled</option>
+                  <option value="cancelled">İptalled</option>
                   <option value="no_show">No-show</option>
                 </select>
               </div>
@@ -566,18 +566,18 @@ return (sortedRows || []).filter((r) => {
             </div>
           </div>
 
-          <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-2.5">
+          <div className="mt-3 rounded-xl border border-white/10 bg-white/5 p-2.5">
             <div className="font-semibold text-neutral-100">{r.customer_name}</div>
             <div className="mt-1 text-sm text-white/60">{r.customer_phone_e164 || r.customer_phone}</div>
 
             <div className="mt-3 text-sm font-medium text-neutral-100">{r.service_summary ?? "—"}</div>
 
             {typeof r.total_price === "number" && (
-              <div className="mt-1 text-xs text-white/50">Toplam • {r.total_price} TL</div>
+              <div className="mt-2 text-sm text-white/60">{r.total_price} TL</div>
             )}
 
             {typeof r.deposit_amount === "number" && (
-              <div className="mt-1 text-xs text-white/50">Depozito • {r.deposit_amount} TL</div>
+              <div className="mt-1 text-sm text-white/60">Depozito {r.deposit_amount} TL</div>
             )}
 
             <div className="mt-3 flex flex-wrap items-center gap-2">
