@@ -565,9 +565,21 @@ return (sortedRows || []).filter((r) => {
               <div className="mt-2 text-xs text-white/50">{(r.start_at || "").slice(0, 10)} • {totalMin} dk</div>
             </div>
 
-            <div className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs ${depBadgeClass(r.deposit_status ?? null)}`}>
-              {depLabel(r.deposit_status ?? null)}
-            </div>
+              <div
+                className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs ${
+                  r.status === "cancelled"
+                    ? "border-rose-400/30 bg-rose-500/10 text-rose-300"
+                    : r.status === "no_show"
+                      ? "border-rose-400/30 bg-rose-500/10 text-rose-300"
+                      : depBadgeClass(r.deposit_status ?? null)
+                }`}
+              >
+                {r.status === "cancelled"
+                  ? "İptal"
+                  : r.status === "no_show"
+                    ? "Gelmedi"
+                    : depLabel(r.deposit_status ?? null)}
+              </div>
           </div>
 
           <div className="mt-3 rounded-xl border border-white/10 bg-white/5 p-2.5">
