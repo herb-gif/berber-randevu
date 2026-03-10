@@ -615,8 +615,9 @@ return (sortedRows || []).filter((r) => {
           </div>
 
           <div className="mt-3 grid grid-cols-2 gap-2">
+              <div className="wa-dropdown">
             <button
-              className="rounded-xl border border-white/10 bg-neutral-800 px-3 py-2 text-sm text-neutral-100 hover:bg-neutral-700 hover:border-mc-bronze transition"
+              className="w-full rounded-xl border border-white/10 bg-neutral-800 px-3 py-2 text-sm text-neutral-100 hover:bg-neutral-700 hover:border-mc-bronze transition"
               onClick={() => {
                 setActionMenuId(null);
                 setWaMenuId(waMenuId === r.id ? null : r.id);
@@ -625,8 +626,10 @@ return (sortedRows || []).filter((r) => {
               WhatsApp
             </button>
 
+              </div>
+              <div className="action-dropdown">
             <button
-              className="rounded-xl border border-white/10 bg-neutral-800 px-3 py-2 text-sm text-neutral-100 hover:bg-neutral-700 hover:border-mc-bronze transition"
+              className="w-full rounded-xl border border-white/10 bg-neutral-800 px-3 py-2 text-sm text-neutral-100 hover:bg-neutral-700 hover:border-mc-bronze transition"
               onClick={() => {
                 setWaMenuId(null);
                 setActionMenuId(actionMenuId === r.id ? null : r.id);
@@ -635,9 +638,10 @@ return (sortedRows || []).filter((r) => {
               İşlemler
             </button>
           </div>
+              </div>
 
           {waMenuId === r.id && (
-            <div className="mt-3 overflow-hidden rounded-2xl border border-white/10 bg-neutral-950">
+            <div className="wa-dropdown mt-3 overflow-hidden rounded-2xl border border-white/10 bg-neutral-950">
               <button
                 className="w-full px-4 py-3 text-left text-sm hover:bg-white/5 transition-colors"
                 onClick={async () => {
@@ -698,7 +702,7 @@ return (sortedRows || []).filter((r) => {
           )}
 
           {actionMenuId === r.id && (
-            <div className="mt-3 overflow-hidden rounded-2xl border border-white/10 bg-neutral-950">
+            <div className="action-dropdown mt-3 overflow-hidden rounded-2xl border border-white/10 bg-neutral-950">
               <button
                 className="w-full px-4 py-3 text-left text-sm hover:bg-white/5 transition-colors"
                 onClick={() => {
