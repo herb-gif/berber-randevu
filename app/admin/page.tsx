@@ -8,16 +8,16 @@ export default async function AdminPage() {
   const isAdmin = cookieStore.get("admin_session")?.value === "1";
 
   return (
-    <main className="min-h-screen bg-neutral-950 p-6 text-neutral-100">
-      <div className="mx-auto max-w-5xl rounded-2xl bg-neutral-900 p-6 text-neutral-100 shadow-sm border border-white/10">
-        <h1 className="text-2xl font-semibold mb-6 text-mc-bronze">Admin Panel</h1>
+    <main className="min-h-screen bg-neutral-950 p-3 md:p-6 text-neutral-100">
+      <div className="mx-auto max-w-5xl rounded-2xl bg-neutral-900 p-3 md:p-6 text-neutral-100 shadow-sm border border-white/10">
+        <h1 className="hidden md:block text-2xl font-semibold mb-6 text-mc-bronze">Admin Panel</h1>
 
-          <AdminNavTabs />
+          <div className="hidden md:block"><AdminNavTabs /></div>
 
         
           <a
             href="/admin/manual-appointment"
-            className="rounded-xl px-4 py-2 text-sm bg-mc-black text-mc-bronze border border-mc-bronze hover:bg-mc-bronze hover:text-neutral-100 transition"
+            className="hidden md:inline-flex rounded-xl px-4 py-2 text-sm bg-mc-black text-mc-bronze border border-mc-bronze hover:bg-mc-bronze hover:text-neutral-100 transition"
           >
             ➕ Yeni Randevu Ekle
           </a>

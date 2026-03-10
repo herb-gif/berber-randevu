@@ -396,7 +396,7 @@ return (sortedRows || []).filter((r) => {
 
       
         {/* Summary Cards */}
-        <div className="mt-6 grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
+        <div className="hidden md:grid mt-6 grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
           <div className="rounded-2xl border border-white/10 bg-neutral-900 p-3 md:p-4 shadow-sm cursor-pointer hover:bg-neutral-800 transition text-neutral-100" onClick={() => { setFilterWhen("today"); }}>
             <div className="text-xs text-white/50">Bugünkü Randevu</div>
             <div className="mt-1 text-2xl font-semibold">{todaySummary.todayCount}</div>
