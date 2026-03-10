@@ -416,15 +416,6 @@ return (sortedRows || []).filter((r) => {
         </div>
 
         {/* Filtreler */}
-          <div className="mt-4 md:hidden">
-            <button
-              onClick={() => setShowFilters((v) => !v)}
-              className="w-full rounded-xl border border-white/10 bg-neutral-900 px-4 py-2 text-sm text-neutral-100"
-            >
-              {showFilters ? "Filtreleri Gizle" : "Filtreleri Aç"}
-            </button>
-          </div>
-
           <div className="hidden md:block mt-4 rounded-2xl border border-white/10 bg-neutral-900/90 p-2 md:p-3 shadow-sm text-neutral-100 sticky top-16 z-20 backdrop-blur">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div className="mb-3 flex flex-wrap items-center gap-2">
