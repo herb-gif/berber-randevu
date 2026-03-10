@@ -303,10 +303,10 @@ return (sortedRows || []).filter((r) => {
   async function cancel(id: string) {
       if (!confirm("Randevu iptal edilsin mi?")) return;
 
-      const res = await fetch("/api/admin/appointments", {
+      const res = await fetch("/api/admin/cancel", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, action: "cancel" }),
+        body: JSON.stringify({ id }),
       });
 
       const data = await res.json().catch(() => ({}));
