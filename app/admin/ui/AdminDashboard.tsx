@@ -557,7 +557,7 @@ return (sortedRows || []).filter((r) => {
         >
           <div className="flex items-start justify-between gap-3">
             <div>
-              <div className="text-lg md:text-xl font-semibold leading-none">{fmtT(r.start_at)}</div>
+              <div className="text-xl md:text-2xl font-semibold leading-none">{fmtT(r.start_at)}</div>
               <div className="mt-2 text-xs text-white/50">{(r.start_at || "").slice(0, 10)} • {totalMin} dk</div>
             </div>
 
@@ -595,7 +595,7 @@ return (sortedRows || []).filter((r) => {
 
           <div className="mt-3 grid grid-cols-2 gap-2">
             <button
-              className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-neutral-100 hover:border-mc-bronze transition"
+              className="rounded-xl border border-white/10 bg-neutral-800 px-3 py-2 text-sm text-neutral-100 hover:bg-neutral-700 hover:border-mc-bronze transition"
               onClick={() => {
                 setActionMenuId(null);
                 setWaMenuId(waMenuId === r.id ? null : r.id);
@@ -605,7 +605,7 @@ return (sortedRows || []).filter((r) => {
             </button>
 
             <button
-              className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-neutral-100 hover:border-mc-bronze transition"
+              className="rounded-xl border border-white/10 bg-neutral-800 px-3 py-2 text-sm text-neutral-100 hover:bg-neutral-700 hover:border-mc-bronze transition"
               onClick={() => {
                 setWaMenuId(null);
                 setActionMenuId(actionMenuId === r.id ? null : r.id);
