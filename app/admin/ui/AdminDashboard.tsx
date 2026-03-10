@@ -572,8 +572,25 @@ return (sortedRows || []).filter((r) => {
 
           <div className="mt-3 rounded-xl border border-white/10 bg-white/5 p-2.5">
             <div className="font-semibold text-neutral-100">{r.customer_name}</div>
-            <div className="mt-1 text-sm text-white/60">{r.customer_phone_e164 || r.customer_phone}</div>
-
+            <div className="mt-1 flex items-center justify-between gap-2">
+              <div className="min-w-0 truncate text-sm text-white/60">{r.customer_phone_e164 || r.customer_phone}</div>
+              <button
+                type="button"
+                className="shrink-0 rounded-full border border-white/10 bg-neutral-900 px-2.5 py-1 text-[11px] text-white/70 hover:border-mc-bronze hover:text-neutral-100 transition"
+                onClick={() => {
+                  const phone = r.customer_phone_e164 || r.customer_phone || "";
+                  const msg = buildReminderMessage({
+                    customerName: r.customer_name,
+                    date: (r.start_at || "").slice(0, 10),
+                    time: fmtT(r.start_at),
+                    serviceSummary: r.service_summary ?? "—",
+                  });
+                  window.open(buildWhatsAppWebUrl(phone, msg), "_blank");
+                }}
+              >
+                Mesaj
+              </button>
+            </div>
             <div className="mt-3 text-sm font-medium text-neutral-100">{r.service_summary ?? "—"}</div>
 
             {typeof r.total_price === "number" && (
