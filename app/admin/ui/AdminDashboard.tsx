@@ -523,9 +523,231 @@ return (sortedRows || []).filter((r) => {
           </div>
         </div>
 
-        <div ref={tableTopRef} />
+        <div ref={tableTopRef} />  <div className="mt-4 space-y-3 md:hidden">
+    {loading && (
+      <div className="rounded-2xl border border-white/10 bg-neutral-900 p-4 text-sm text-neutral-400">
+        Yükleniyor…
+      </div>
+    )}
 
-<div className="mt-6 overflow-x-auto rounded-2xl border border-white/10 bg-neutral-900 text-neutral-100 [-webkit-overflow-scrolling:touch]">
+    {!loading && viewRows.length === 0 && (
+      <div className="rounded-2xl border border-white/10 bg-neutral-900 p-4 text-center">
+        <div className="text-sm font-semibold text-neutral-100">Kayıt bulunamadı</div>
+        <div className="mt-1 text-xs text-white/50">Filtreleri değiştir veya yeni randevu ekle.</div>
+      </div>
+    )}
+
+    {!loading && viewRows.map((r) => {
+      const reason = cancelReasonLabel(r.cancel_reason ?? null);
+      const totalMin = minutesBetween(r.start_at, r.end_at);
+
+      return (
+        <div key={r.id} className="rounded-2xl border border-white/10 bg-neutral-900 p-4 text-neutral-100">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <div className="text-xl font-semibold leading-none">{fmtT(r.start_at)}</div>
+              <div className="mt-2 text-xs text-white/50">{(r.start_at || "").slice(0, 10)} • {totalMin} dk</div>
+            </div>
+
+            <div className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs ${depBadgeClass(r.deposit_status ?? null)}`}>
+              {depLabel(r.deposit_status ?? null)}
+            </div>
+          </div>
+
+          <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-3">
+            <div className="font-semibold text-neutral-100">{r.customer_name}</div>
+            <div className="mt-1 text-sm text-white/60">{r.customer_phone_e164 || r.customer_phone}</div>
+
+            <div className="mt-3 text-sm font-medium text-neutral-100">{r.service_summary ?? "—"}</div>
+
+            {typeof r.total_price === "number" && (
+              <div className="mt-1 text-xs text-white/50">Toplam • {r.total_price} TL</div>
+            )}
+
+            {typeof r.deposit_amount === "number" && (
+              <div className="mt-1 text-xs text-white/50">Depozito • {r.deposit_amount} TL</div>
+            )}
+
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center rounded-full border border-white/10 bg-neutral-900 px-2 py-0.5 text-[11px] text-white/70">
+                {r.status === "no_show" ? "No-show" : r.status}
+              </span>
+
+              {r.status === "cancelled" && reason && (
+                <span className="rounded-full border border-white/10 bg-neutral-900 px-2 py-0.5 text-[11px] text-white/70">
+                  {reason}
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <button
+              className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-neutral-100 hover:border-mc-bronze transition"
+              onClick={() => {
+                setActionMenuId(null);
+                setWaMenuId(waMenuId === r.id ? null : r.id);
+              }}
+            >
+              WhatsApp
+            </button>
+
+            <button
+              className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-neutral-100 hover:border-mc-bronze transition"
+              onClick={() => {
+                setWaMenuId(null);
+                setActionMenuId(actionMenuId === r.id ? null : r.id);
+              }}
+            >
+              İşlemler
+            </button>
+          </div>
+
+          {waMenuId === r.id && (
+            <div className="mt-3 overflow-hidden rounded-2xl border border-white/10 bg-neutral-950">
+              <button
+                className="w-full px-4 py-3 text-left text-sm hover:bg-white/5 transition-colors"
+                onClick={async () => {
+                  setWaMenuId(null);
+                  const pmt = await fetchPayment();
+                  if (!pmt) return alert("Ödeme bilgileri alınamadı");
+                  const msg = buildDepositPaymentMessage(
+                    {
+                      customerName: r.customer_name,
+                      dateISO: r.start_at,
+                      serviceSummary: r.service_summary ?? "—",
+                      totalPrice: r.total_price ?? 0,
+                      depositAmount: r.deposit_amount ?? 0,
+                    },
+                    pmt
+                  );
+                  const phone = r.customer_phone_e164 || r.customer_phone || "";
+                  window.open(buildWhatsAppWebUrl(phone, msg), "_blank");
+                }}
+              >
+                Ödeme Mesajı Aç
+              </button>
+
+              <button
+                className="w-full px-4 py-3 text-left text-sm hover:bg-white/5 transition-colors"
+                onClick={() => {
+                  setWaMenuId(null);
+                  const phone = r.customer_phone_e164 || r.customer_phone || "";
+                  const msg = buildApprovalMessage({
+                    customerName: r.customer_name,
+                    date: (r.start_at || "").slice(0, 10),
+                    time: fmtT(r.start_at),
+                    serviceSummary: r.service_summary ?? "—",
+                  });
+                  window.open(buildWhatsAppWebUrl(phone, msg), "_blank");
+                }}
+              >
+                Onay Mesajı
+              </button>
+
+              <button
+                className="w-full px-4 py-3 text-left text-sm hover:bg-white/5 transition-colors"
+                onClick={() => {
+                  setWaMenuId(null);
+                  const phone = r.customer_phone_e164 || r.customer_phone || "";
+                  const msg = buildReminderMessage({
+                    customerName: r.customer_name,
+                    date: (r.start_at || "").slice(0, 10),
+                    time: fmtT(r.start_at),
+                    serviceSummary: r.service_summary ?? "—",
+                  });
+                  window.open(buildWhatsAppWebUrl(phone, msg), "_blank");
+                }}
+              >
+                Hatırlatma
+              </button>
+            </div>
+          )}
+
+          {actionMenuId === r.id && (
+            <div className="mt-3 overflow-hidden rounded-2xl border border-white/10 bg-neutral-950">
+              <button
+                className="w-full px-4 py-3 text-left text-sm hover:bg-white/5 transition-colors"
+                onClick={() => {
+                  setActionMenuId(null);
+                  setExpandedId(expandedId === r.id ? null : r.id);
+                }}
+              >
+                {expandedId === r.id ? "Detayı Kapat" : "Detayı Aç"}
+              </button>
+
+              {r.status !== "cancelled" &&
+                !["paid", "odendi", "ödendi", "completed", "confirmed"].includes(
+                  String(r.deposit_status || "").toLowerCase().trim()
+                ) && (
+                  <button
+                    className="w-full px-4 py-3 text-left text-sm hover:bg-white/5 transition-colors"
+                    onClick={() => {
+                      setActionMenuId(null);
+                      markPaid(r.id);
+                    }}
+                  >
+                    Ödeme Geldi
+                  </button>
+                )}
+
+              {r.status !== "cancelled" && r.status !== "no_show" && (
+                <button
+                  className="w-full px-4 py-3 text-left text-sm hover:bg-white/5 transition-colors"
+                  onClick={() => {
+                    setActionMenuId(null);
+                    markNoShow(r.id);
+                  }}
+                >
+                  No-show
+                </button>
+              )}
+
+              {r.status !== "cancelled" && (
+                <>
+                  <div className="h-px bg-white/10" />
+                  <button
+                    className="w-full px-4 py-3 text-left text-sm text-rose-400 hover:bg-white/5 transition-colors"
+                    onClick={() => {
+                      setActionMenuId(null);
+                      cancel(r.id);
+                    }}
+                  >
+                    İptal
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+
+          {expandedId === r.id && (
+            <div className="mt-3 rounded-2xl border border-white/10 bg-white/5 p-3">
+              <div className="text-sm font-semibold">Bloklar</div>
+              {(r.blocks ?? []).length === 0 ? (
+                <div className="mt-2 text-sm text-white/60">Blok bulunamadı.</div>
+              ) : (
+                <div className="mt-3 space-y-2">
+                  {(r.blocks ?? []).map((b, idx) => (
+                    <div key={`${b.resource}-${b.start_at}-${idx}`} className="rounded-xl border border-white/10 bg-neutral-900 p-3 text-sm">
+                      <div className="font-medium text-neutral-100">{b.service_name ?? "—"}</div>
+                      <div className="mt-1 text-white/70">{fmtT(b.start_at)} – {fmtT(b.end_at)}</div>
+                      <div className="mt-1 text-xs text-white/60">
+                        {b.resource === "hair" ? `Berber: ${b.barber_name ?? "—"}` : (b.resource === "external" ? "Harici" : "Niyazi")}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      );
+    })}
+  </div>
+
+
+
+<div className="mt-6 hidden md:block overflow-x-auto rounded-2xl border border-white/10 bg-neutral-900 text-neutral-100 [-webkit-overflow-scrolling:touch]">
         <div className="max-h-[65vh] overflow-y-auto">
 
           <table className="w-full text-[13px]">
