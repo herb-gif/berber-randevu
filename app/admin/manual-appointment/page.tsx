@@ -272,7 +272,7 @@ export default function AdminManualAppointmentPage() {
     <label
       key={s.id}
       className={`flex items-center justify-between rounded-xl border p-3 transition ${
-        checked ? "border-mc-bronze bg-[rgba(192,138,90,0.06)]" : "border-white/10 bg-white"
+        checked ? "border-mc-bronze bg-[rgba(192,138,90,0.06)]" : "border-white/10 bg-neutral-900/80 hover:bg-neutral-800/80"
       }`}
     >
       <span className="flex items-center gap-3">
@@ -289,7 +289,7 @@ export default function AdminManualAppointmentPage() {
         <span className="flex flex-col">
           <span className="font-medium text-neutral-100">{s.name}</span>
           <span className="mt-1 inline-flex items-center gap-2">
-            <span className="text-[11px] px-2 py-0.5 rounded-lg border border-white/10 bg-white text-white/70">
+            <span className="text-[11px] px-2 py-0.5 rounded-lg border border-white/10 bg-neutral-900 text-white/70">
               {typeLabel}
             </span>
           </span>
@@ -311,7 +311,7 @@ export default function AdminManualAppointmentPage() {
                 {laserOptions.map((o) => {
                   const checked = selectedLaserOptionIds.includes(o.id);
                   return (
-                    <label key={o.id} className="flex items-center justify-between rounded-xl border border-white/10 bg-white p-3">
+                    <label key={o.id} className="flex items-center justify-between rounded-xl border border-white/10 bg-neutral-900/80 p-3">
                       <span className="flex items-center gap-3">
                         <input
                           type="checkbox"
@@ -322,7 +322,7 @@ export default function AdminManualAppointmentPage() {
                             );
                           }}
                         />
-                        <span className="font-medium">{o.name}</span>
+                        <span className="font-medium text-neutral-100">{o.name}</span>
                       </span>
                       <span className="text-xs text-white/60">{o.price} TL • {o.duration_min} dk</span>
                     </label>
@@ -395,7 +395,7 @@ export default function AdminManualAppointmentPage() {
                     key={s}
                     onClick={() => setPicked(s)}
                     className={`rounded-xl border px-3 py-2 text-sm ${
-                      picked === s ? "bg-mc-black text-mc-bronze border-mc-bronze" : "bg-white border-white/10"
+                      picked === s ? "bg-mc-black text-mc-bronze border-mc-bronze" : "bg-neutral-900 text-neutral-100 border-white/10 hover:bg-neutral-800"
                     }`}
                   >
                     {s}
