@@ -29,7 +29,7 @@ export async function GET(req: Request) {
   const barberId = barberIdRaw && UUID_RE.test(barberIdRaw.trim()) ? barberIdRaw.trim() : null;
 
   const win = getWorkWindow(date);
-  const baseMs = Date.parse(`${date}T00:00:00+03:00`);
+  const baseMs = Date.parse(`${date}T00:00:00+02:00`);
   const dayStartISO = new Date(baseMs + win.openMin * 60_000).toISOString();
   const dayEndISO = new Date(baseMs + 24 * 60 * 60_000).toISOString();
 
@@ -113,7 +113,7 @@ export async function GET(req: Request) {
 
 
   // TR(+03) "bugün" ISO (YYYY-MM-DD)
-  const todayTR = new Date(Date.now() + 3 * 60 * 60_000).toISOString().slice(0, 10);
+  const todayTR = new Date(Date.now() + 2 * 60 * 60_000).toISOString().slice(0, 10);
 
   for (let m = win.openMin; m <= lastStartMin; m += stepMin) {
     const startMs = baseMs + m * 60_000;
