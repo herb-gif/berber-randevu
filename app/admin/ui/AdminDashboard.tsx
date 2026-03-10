@@ -376,7 +376,7 @@ return (sortedRows || []).filter((r) => {
   return (    <div className="rounded-2xl border border-neutral-800 bg-neutral-950 text-neutral-100 p-6 shadow-sm">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-xl font-semibold">Admin Panel</h1>
+          <h1 className="text-lg md:text-xl font-semibold">Admin Panel</h1>
           <div className="text-sm text-white/60">Randevular + depozito + WhatsApp mesaj</div>
         </div>
 
@@ -396,27 +396,27 @@ return (sortedRows || []).filter((r) => {
 
       
         {/* Summary Cards */}
-        <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <div className="rounded-2xl border border-white/10 bg-neutral-900 p-4 shadow-sm cursor-pointer hover:bg-neutral-800 transition text-neutral-100" onClick={() => { setFilterWhen("today"); }}>
+        <div className="mt-6 grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
+          <div className="rounded-2xl border border-white/10 bg-neutral-900 p-3 md:p-4 shadow-sm cursor-pointer hover:bg-neutral-800 transition text-neutral-100" onClick={() => { setFilterWhen("today"); }}>
             <div className="text-xs text-white/50">Bugünkü Randevu</div>
             <div className="mt-1 text-2xl font-semibold">{todaySummary.todayCount}</div>
           </div>
 
 
 
-          <div className="rounded-2xl border border-white/10 bg-neutral-900 p-4 shadow-sm cursor-pointer hover:bg-neutral-800 transition text-neutral-100" onClick={() => { setFilterWhen("today"); setFilterDep("pending_required"); }}>
+          <div className="rounded-2xl border border-white/10 bg-neutral-900 p-3 md:p-4 shadow-sm cursor-pointer hover:bg-neutral-800 transition text-neutral-100" onClick={() => { setFilterWhen("today"); setFilterDep("pending_required"); }}>
             <div className="text-xs text-white/50">Bekleyen Depozito</div>
             <div className="mt-1 text-2xl font-semibold">{todaySummary.pendingDepositCount}</div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-neutral-900 p-4 shadow-sm cursor-pointer hover:bg-neutral-800 transition text-neutral-100" onClick={() => { setFilterWhen("today"); setFilterStatus("no_show"); }}>
+          <div className="rounded-2xl border border-white/10 bg-neutral-900 p-3 md:p-4 shadow-sm cursor-pointer hover:bg-neutral-800 transition text-neutral-100" onClick={() => { setFilterWhen("today"); setFilterStatus("no_show"); }}>
             <div className="text-xs text-white/50">Bugünkü No-show</div>
             <div className="mt-1 text-2xl font-semibold">{todaySummary.noShowCount}</div>
           </div>
         </div>
 
         {/* Filtreler */}
-        <div className="mt-4 rounded-2xl border border-white/10 bg-neutral-900 p-3 shadow-sm text-neutral-100 sticky top-16 z-20 backdrop-blur bg-neutral-900/90 shadow-sm">
+        <div className="mt-4 rounded-2xl border border-white/10 bg-neutral-900 p-2 md:p-3 shadow-sm text-neutral-100 sticky top-16 z-20 backdrop-blur bg-neutral-900/90 shadow-sm">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div className="mb-3 flex flex-wrap items-center gap-2">
                 <button
@@ -545,7 +545,7 @@ return (sortedRows || []).filter((r) => {
         <div key={r.id} className="rounded-2xl border border-white/10 bg-neutral-900 p-4 text-neutral-100">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <div className="text-xl font-semibold leading-none">{fmtT(r.start_at)}</div>
+              <div className="text-lg md:text-xl font-semibold leading-none">{fmtT(r.start_at)}</div>
               <div className="mt-2 text-xs text-white/50">{(r.start_at || "").slice(0, 10)} • {totalMin} dk</div>
             </div>
 
