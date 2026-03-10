@@ -329,7 +329,7 @@ return (sortedRows || []).filter((r) => {
     }
 
 
-  async function markPaid(id: string) {
+  async function markÖdendi(id: string) {
       const res = await fetch("/api/admin/appointments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -684,7 +684,7 @@ return (sortedRows || []).filter((r) => {
                     className="w-full px-4 py-3 text-left text-sm hover:bg-white/5 transition-colors"
                     onClick={() => {
                       setActionMenuId(null);
-                      markPaid(r.id);
+                      markÖdendi(r.id);
                     }}
                   >
                     Ödeme Geldi
@@ -1011,7 +1011,7 @@ return (
                                       className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition-colors"
                                       onClick={() => {
                                         setActionMenuId(null);
-                                        markPaid(r.id);
+                                        markÖdendi(r.id);
                                       }}
                                     >
                                       Ödeme Geldi
