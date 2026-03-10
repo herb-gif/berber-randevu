@@ -48,3 +48,14 @@ out/admin-snapshot-*.txt
 
 # Local cookie exports
 cookies.txt
+# backup files
+*.bak
+*.bak_*
+*.backup
+
+# temp patch files
+/tmp/*
+patch_*.py
+
+# mac / editor
+.DS_Store
