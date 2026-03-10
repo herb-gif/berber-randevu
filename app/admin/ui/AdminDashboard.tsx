@@ -541,6 +541,14 @@ return (sortedRows || []).filter((r) => {
       const reason = cancelReasonLabel(r.cancel_reason ?? null);
       const totalMin = minutesBetween(r.start_at, r.end_at);
 
+        const startMs = Date.parse(r.start_at);
+        const minsTo = Number.isFinite(startMs)
+          ? Math.floor((startMs - Date.now()) / 60000)
+          : 999999;
+
+        const isUpcoming = minsTo >= 0 && minsTo <= 90;
+
+
       return (
         <div
           key={r.id}
@@ -555,7 +563,13 @@ return (sortedRows || []).filter((r) => {
                   : "before:absolute before:left-0 before:top-0 before:h-full before:w-1 before:bg-white/10"
           }`}
         >
-          <div className="flex items-start justify-between gap-3">
+          <div className="relative flex items-start justify-between gap-3">
+            {isUpcoming && (
+              <div className="absolute right-3 top-3 text-[10px] px-2 py-0.5 rounded-full border border-mc-bronze/40 text-mc-bronze bg-mc-black">
+                Sıradaki
+              </div>
+            )}
+
             <div>
               <div className="text-xl md:text-2xl font-semibold leading-none">{fmtT(r.start_at)}</div>
               <div className="mt-2 text-xs text-white/50">{(r.start_at || "").slice(0, 10)} • {totalMin} dk</div>
