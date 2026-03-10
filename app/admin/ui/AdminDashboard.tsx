@@ -897,9 +897,21 @@ return (
                     </td>
 
                     <td className="p-2.5">
-                      <div className={`inline-flex items-center rounded-full border px-2 py-1 text-xs ${depBadgeClass(r.deposit_status ?? null)}`}>
-                        {depLabel(r.deposit_status ?? null)}
-                      </div>
+                        <div
+                          className={`inline-flex items-center rounded-full border px-2 py-1 text-xs ${
+                            r.status === "cancelled"
+                              ? "border-rose-400/30 bg-rose-500/10 text-rose-300"
+                              : r.status === "no_show"
+                                ? "border-rose-400/30 bg-rose-500/10 text-rose-300"
+                                : depBadgeClass(r.deposit_status ?? null)
+                          }`}
+                        >
+                          {r.status === "cancelled"
+                            ? "İptal"
+                            : r.status === "no_show"
+                              ? "Gelmedi"
+                              : depLabel(r.deposit_status ?? null)}
+                        </div>
                       {typeof r.deposit_amount === "number" && (
                         <div className="mt-0.5 text-[11px] text-white/50">Tutar • {r.deposit_amount} TL</div>
                       )}
