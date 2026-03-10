@@ -770,14 +770,14 @@ return (sortedRows || []).filter((r) => {
           )}
 
           {expandedId === r.id && (
-            <div className="mt-3 rounded-2xl border border-white/10 bg-white/5 p-3">
-              <div className="text-sm font-semibold">Bloklar</div>
+            <div className="mt-3 rounded-2xl border border-white/10 bg-neutral-950/80 p-3 shadow-inner">
+              <div className="text-sm font-semibold text-neutral-100">Bloklar</div>
               {(r.blocks ?? []).length === 0 ? (
-                <div className="mt-2 text-sm text-white/60">Blok bulunamadı.</div>
+                <div className="mt-2 text-sm text-white/50">Blok bulunamadı.</div>
               ) : (
                 <div className="mt-3 space-y-2">
                   {(r.blocks ?? []).map((b, idx) => (
-                    <div key={`${b.resource}-${b.start_at}-${idx}`} className="rounded-xl border border-white/10 bg-neutral-900 p-3 text-sm">
+                    <div key={`${b.resource}-${b.start_at}-${idx}`} className="rounded-xl border border-white/10 bg-neutral-900/90 p-3 text-sm shadow-sm">
                       <div className="font-medium text-neutral-100">{b.service_name ?? "—"}</div>
                       <div className="mt-1 text-white/70">{fmtT(b.start_at)} – {fmtT(b.end_at)}</div>
                       <div className="mt-1 text-xs text-white/60">
@@ -1114,9 +1114,9 @@ return (
                   {expandedId === r.id && (
                     <tr className="border-t bg-white/5">
                       <td className="p-2.5" colSpan={5}>
-                        <div className="text-sm font-semibold">Bloklar</div>
+                        <div className="text-sm font-semibold text-neutral-100">Bloklar</div>
                         {(r.blocks ?? []).length === 0 ? (
-                          <div className="mt-2 text-sm text-white/60">Blok bulunamadı.</div>
+                          <div className="mt-2 text-sm text-white/50">Blok bulunamadı.</div>
                         ) : (
                           <div className="mt-3 space-y-2">
                             {(r.blocks ?? []).map((b, idx) => (
