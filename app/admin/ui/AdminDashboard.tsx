@@ -416,9 +416,18 @@ return (sortedRows || []).filter((r) => {
         </div>
 
         {/* Filtreler */}
-        <div className="hidden md:block mt-4 rounded-2xl border border-white/10 bg-neutral-900/90 p-2 md:p-3 shadow-sm text-neutral-100 sticky top-16 z-20 backdrop-blur">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div className="mb-3 flex flex-wrap items-center gap-2">
+          <div className="mt-4 md:hidden">
+            <button
+              onClick={() => setShowFilters((v) => !v)}
+              className="w-full rounded-xl border border-white/10 bg-neutral-900 px-4 py-2 text-sm text-neutral-100"
+            >
+              {showFilters ? "Filtreleri Gizle" : "Filtreleri Aç"}
+            </button>
+          </div>
+
+          <div className="hidden md:block mt-4 rounded-2xl border border-white/10 bg-neutral-900/90 p-2 md:p-3 shadow-sm text-neutral-100 sticky top-16 z-20 backdrop-blur">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div className="mb-3 flex flex-wrap items-center gap-2">
                 <button
                   className={`rounded-full border px-3 py-1 text-xs transition ${
                     filterWhen === "today"
@@ -452,78 +461,69 @@ return (sortedRows || []).filter((r) => {
               </div>
 
               <div className="flex-1">
-              <div className="text-xs text-white/50">Arama
-
-<button
-  onClick={() => setShowFilters(v => !v)}
-  className="md:hidden mt-3 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-neutral-100"
->
-  {showFilters ? "Filtreleri Gizle" : "Filtreleri Aç"}
-</button>
-</div>
-              <input
-                value={filterQ}
-                onChange={(e) => setFilterQ(e.target.value)}
-                placeholder="İsim / telefon / hizmet…"
-                className="mt-1 w-full rounded-xl border border-white/10 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-mc-bronze/30 focus:border-mc-bronze"
-              />
-            </div>
-
-            <div className="flex flex-wrap gap-3">
-              <div>
-                <div className="text-xs text-white/50">Durum</div>
-                <select
-                  className="mt-1 rounded-xl border border-white/10 bg-neutral-900 px-3 py-2 text-sm"
-                  value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
-                >
-                  <option value="all">Hepsi</option>
-                  <option value="booked">Booked</option>
-                  <option value="cancelled">İptalled</option>
-                  <option value="no_show">No-show</option>
-                </select>
+                <div className="text-xs text-white/50">Arama</div>
+                <input
+                  value={filterQ}
+                  onChange={(e) => setFilterQ(e.target.value)}
+                  placeholder="İsim / telefon / hizmet…"
+                  className="mt-1 w-full rounded-xl border border-white/10 bg-neutral-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-mc-bronze/30 focus:border-mc-bronze"
+                />
               </div>
 
-              <div>
-                <div className="text-xs text-white/50">Depozito</div>
-                <select
-                  className="mt-1 rounded-xl border border-white/10 bg-neutral-900 px-3 py-2 text-sm"
-                  value={filterDep}
-                  onChange={(e) => setFilterDep(e.target.value)}
-                >
-                  <option value="all">Hepsi</option>
-                  <option value="pending_required">Bekliyor + Zorunlu</option>
-                  <option value="pending">Bekliyor</option>
-                  <option value="required">Zorunlu</option>
-                  <option value="paid">Ödendi</option>
-                  <option value="refunded">İade</option>
-                  <option value="forfeited">Yandı</option>
-                </select>
-              </div>
+              <div className="flex flex-wrap gap-3">
+                <div>
+                  <div className="text-xs text-white/50">Durum</div>
+                  <select
+                    className="mt-1 rounded-xl border border-white/10 bg-neutral-900 px-3 py-2 text-sm"
+                    value={filterStatus}
+                    onChange={(e) => setFilterStatus(e.target.value)}
+                  >
+                    <option value="all">Hepsi</option>
+                    <option value="booked">Onaylandı</option>
+                    <option value="cancelled">İptal</option>
+                    <option value="no_show">No-show</option>
+                  </select>
+                </div>
 
-              <div className="flex items-end">
-                <button
-                  className="mt-1 rounded-xl border border-white/10 bg-neutral-900 px-3 py-2 text-sm text-neutral-100 hover:border-mc-bronze transition"
-                  onClick={() => {
-                    setFilterQ("");
-                    setFilterStatus("all");
-                    setFilterDep("all");
+                <div>
+                  <div className="text-xs text-white/50">Depozito</div>
+                  <select
+                    className="mt-1 rounded-xl border border-white/10 bg-neutral-900 px-3 py-2 text-sm"
+                    value={filterDep}
+                    onChange={(e) => setFilterDep(e.target.value)}
+                  >
+                    <option value="all">Hepsi</option>
+                    <option value="pending_required">Bekliyor + Zorunlu</option>
+                    <option value="pending">Bekliyor</option>
+                    <option value="required">Zorunlu</option>
+                    <option value="paid">Ödendi</option>
+                    <option value="refunded">İade</option>
+                    <option value="forfeited">Yandı</option>
+                  </select>
+                </div>
+
+                <div className="flex items-end">
+                  <button
+                    className="mt-1 rounded-xl border border-white/10 bg-neutral-900 px-3 py-2 text-sm text-neutral-100 hover:border-mc-bronze transition"
+                    onClick={() => {
+                      setFilterQ("");
+                      setFilterStatus("all");
+                      setFilterDep("all");
                       setFilterWhen("all");
-}}
-                >
-                  Temizle
-                </button>
+                    }}
+                  >
+                    Temizle
+                  </button>
+                </div>
               </div>
+            </div>
 
+            <div className="mt-2 text-xs text-white/50">
+              Gösterilen: <span className="font-medium text-neutral-100">{viewRows.length}</span>
             </div>
           </div>
 
-          <div className="mt-2 text-xs text-white/50">
-            Gösterilen: <span className="font-medium text-neutral-100">{viewRows.length}</span>
-          </div>
-        </div>
-
-        <div ref={tableTopRef} />  <div className="mt-4 space-y-3 md:hidden">
+          <div ref={tableTopRef} />  <div className="mt-4 space-y-3 md:hidden">
     {loading && (
       <div className="rounded-2xl border border-white/10 bg-neutral-900 p-4 text-sm text-neutral-400">
         Yükleniyor…
