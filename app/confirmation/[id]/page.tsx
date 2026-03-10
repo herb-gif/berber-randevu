@@ -375,27 +375,19 @@ const isPaid = useMemo(() => {
           </div>
         )}
 
-        {waWebUrl && (
-          <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <a
-              href={waWebUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex w-full items-center justify-center rounded-xl px-6 py-3 bg-neutral-900 text-neutral-100 font-semibold border border-white/10 hover:border-mc-bronze hover:bg-neutral-800 transition"
-            >
-              WhatsApp Web’de Aç
-            </a>
-            <a
-              href={waAppUrl}
-              className="inline-flex w-full items-center justify-center rounded-xl px-6 py-3 bg-mc-bronze text-black font-semibold hover:opacity-90 transition"
-            >
-              Uygulamada Aç
-            </a>
-          </div>
-        )}
+          {waWebUrl && (
+            <div className="mt-6">
+              <a
+                href={waAppUrl}
+                className="inline-flex w-full items-center justify-center rounded-xl px-6 py-3 bg-mc-bronze text-black font-semibold hover:opacity-90 transition"
+              >
+                Uygulamada Aç
+              </a>
+            </div>
+          )}
 
         {appt && (
-          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="mt-4">
             <a
               href={(() => {
                 const text = encodeURIComponent("Man Cave Randevu");
@@ -414,23 +406,16 @@ const isPaid = useMemo(() => {
             >
               Google Takvime Ekle
             </a>
-
-            <a
-              href={`/api/appointment-ics?id=${encodeURIComponent(id)}`}
-              className="inline-flex w-full items-center justify-center rounded-xl px-6 py-3 bg-neutral-900 text-neutral-100 font-semibold border border-white/10 hover:border-mc-bronze hover:bg-neutral-800 transition"
-            >
-              Apple / ICS İndir
-            </a>
           </div>
         )}
 
-        <Link href="/"  className="mt-4 block text-center text-sm text-neutral-300 underline">
+        <Link href="/" className="mt-4 block text-center text-sm text-neutral-300 underline">
           Yeni randevu oluştur
         </Link>
       </div>
-    </main>
-  );
-}
+        </main>
+    );
+  }
 
 function Row({ k, v, strong }: { k: string; v: string; strong?: boolean }) {
   const isDeposit = k.toLowerCase().includes("depozito");
