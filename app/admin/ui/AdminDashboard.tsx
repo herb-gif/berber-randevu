@@ -134,7 +134,6 @@ export default function AdminDashboard() {
 
     
       const [filterWhen, setFilterWhen] = useState("all");
-  const [showFilters, setShowFilters] = useState(false);
 const router = useRouter();
     const searchParams = useSearchParams();
     const didInitFiltersRef = useRef(false);
