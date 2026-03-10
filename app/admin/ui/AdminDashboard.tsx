@@ -127,7 +127,7 @@ export default function AdminDashboard() {
   const [rows, setRows] = useState<Row[]>([]);
   const [days, setDays] = useState(30);
   const [loading, setLoading] = useState(true);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  
     const [filterQ, setFilterQ] = useState("");
     const [filterStatus, setFilterStatus] = useState("all");
     const [filterDep, setFilterDep] = useState("all");
@@ -722,76 +722,7 @@ return (sortedRows || []).filter((r) => {
                   setExpandedId(expandedId === r.id ? null : r.id);
                 }}
               >
-                {expandedId === r.id ? "Detayı Kapat" : "Detayı Aç"}
-              </button>
-
-              {r.status !== "cancelled" &&
-                !["paid", "odendi", "ödendi", "completed", "confirmed"].includes(
-                  String(r.deposit_status || "").toLowerCase().trim()
-                ) && (
-                  <button
-                    className="w-full px-4 py-3 text-left text-sm hover:bg-white/5 transition-colors"
-                    onClick={() => {
-                      setActionMenuId(null);
-                      markÖdendi(r.id);
-                    }}
-                  >
-                    Ödeme Geldi
-                  </button>
-                )}
-
-              {r.status !== "cancelled" && r.status !== "no_show" && (
-                <button
-                  className="w-full px-4 py-3 text-left text-sm hover:bg-white/5 transition-colors"
-                  onClick={() => {
-                    setActionMenuId(null);
-                    markNoShow(r.id);
-                  }}
-                >
-                  No-show
-                </button>
-              )}
-
-              {r.status !== "cancelled" && (
-                <>
-                  <div className="h-px bg-white/10" />
-                  <button
-                    className="w-full px-4 py-3 text-left text-sm text-rose-400 hover:bg-white/5 transition-colors"
-                    onClick={() => {
-                      setActionMenuId(null);
-                      cancel(r.id);
-                    }}
-                  >
-                    İptal
-                  </button>
-                </>
-              )}
-            </div>
-          )}
-
-          {expandedId === r.id && (
-            <div className="mt-3 rounded-2xl border border-white/10 bg-white/5 p-3">
-              <div className="text-sm font-semibold">Bloklar</div>
-              {(r.blocks ?? []).length === 0 ? (
-                <div className="mt-2 text-sm text-white/60">Blok bulunamadı.</div>
-              ) : (
-                <div className="mt-3 space-y-2">
-                  {(r.blocks ?? []).map((b, idx) => (
-                    <div key={`${b.resource}-${b.start_at}-${idx}`} className="rounded-xl border border-white/10 bg-neutral-900 p-3 text-sm">
-                      <div className="font-medium text-neutral-100">{b.service_name ?? "—"}</div>
-                      <div className="mt-1 text-white/70">{fmtT(b.start_at)} – {fmtT(b.end_at)}</div>
-                      <div className="mt-1 text-xs text-white/60">
-                        {b.resource === "hair" ? `Berber: ${b.barber_name ?? "—"}` : (b.resource === "external" ? "Harici" : "Niyazi")}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      );
-    })}
+                }
   </div>
 
 
@@ -1061,82 +992,7 @@ return (
                                     setExpandedId(expandedId === r.id ? null : r.id);
                                   }}
                                 >
-                                  {expandedId === r.id ? "Detayı Kapat" : "Detayı Aç"}
-                                </button>
-
-                                {r.status !== "cancelled" &&
-                                  !["paid", "odendi", "ödendi", "completed", "confirmed"].includes(
-                                    String(r.deposit_status || "").toLowerCase().trim()
-                                  ) && (
-                                    <button
-                                      className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition-colors"
-                                      onClick={() => {
-                                        setActionMenuId(null);
-                                        markÖdendi(r.id);
-                                      }}
-                                    >
-                                      Ödeme Geldi
-                                    </button>
-                                  )}
-
-                                {r.status !== "cancelled" && r.status !== "no_show" && (
-                                  <button
-                                    className="w-full px-4 py-2 text-left text-sm hover:bg-white/5 transition-colors"
-                                    onClick={() => {
-                                      setActionMenuId(null);
-                                      markNoShow(r.id);
-                                    }}
-                                  >
-                                    No-show
-                                  </button>
-                                )}
-
-                                <div className="h-px bg-white/10" />
-
-                                {r.status !== "cancelled" && (
-                                  <button
-                                    className="w-full px-4 py-2 text-left text-sm text-rose-700 hover:bg-white/5 transition-colors"
-                                    onClick={() => {
-                                      setActionMenuId(null);
-                                      cancel(r.id);
-                                    }}
-                                  >
-                                    İptal
-                                  </button>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                  </tr>
-
-                  {expandedId === r.id && (
-                    <tr className="border-t bg-white/5">
-                      <td className="p-2.5" colSpan={5}>
-                        <div className="text-sm font-semibold">Bloklar</div>
-                        {(r.blocks ?? []).length === 0 ? (
-                          <div className="mt-2 text-sm text-white/60">Blok bulunamadı.</div>
-                        ) : (
-                          <div className="mt-3 space-y-2">
-                            {(r.blocks ?? []).map((b, idx) => (
-                              <div key={`${b.resource}-${b.start_at}-${idx}`} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-white p-2 text-sm">
-                                <div className="font-medium">{b.service_name ?? "—"}</div>
-                                <div className="text-white/70">{fmtT(b.start_at)} – {fmtT(b.end_at)}</div>
-                                <div className="text-xs text-white/60">
-                                  {b.resource === "hair" ? `Berber: ${b.barber_name ?? "—"}` : (b.resource === "external" ? "Harici" : "Niyazi")}
-                                </div>
-                                <div className="text-xs text-white/50">{b.status}</div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </td>
-                    </tr>
-                  )}
-                </React.Fragment>
-              );
-            })}
+                                  }
           </tbody>
         </table>
       </div>
