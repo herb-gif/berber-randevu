@@ -22,6 +22,16 @@ export default async function AdminPage() {
             ➕ Yeni Randevu Ekle
           </a>
 {isAdmin ? <AdminDashboard /> : <AdminLogin />}
+          {isAdmin && (
+            <a
+              href="/admin/manual-appointment"
+              className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full border border-mc-bronze bg-mc-black text-2xl text-mc-bronze shadow-lg shadow-black/30 transition hover:bg-mc-bronze hover:text-neutral-100 md:hidden"
+              aria-label="Yeni Randevu Ekle"
+              title="Yeni Randevu Ekle"
+            >
+              +
+            </a>
+          )}
       </div>
     </main>
   );
