@@ -69,6 +69,9 @@ Randevunuz onaylanmıştır ✅
 ⏰ Saat: ${input.time}
 💈 Hizmet: ${input.serviceSummary}
 
+📍 Konum
+https://maps.app.goo.gl/oLb8EAMRXNK77TPp6?g_st=ic
+
 Sizi bekliyoruz 🙌`;
 }
 
