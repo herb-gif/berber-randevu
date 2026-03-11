@@ -90,24 +90,28 @@ Görüşmek üzere 🙏`;
 // Admin panel: IBAN/Alıcı/Açıklama içeren depozito mesajı
 export function buildDepositPaymentMessage(appt: AppointmentISOInput, payment: PaymentInfo) {
   const when = formatDateTimeTR(appt.dateISO);
-  const acc = payment.account_name ? `Alıcı: ${payment.account_name}\n` : "";
-  const note = payment.note ? `Not: ${payment.note}\n` : "";
+  const acc = payment.account_name ? `👤 Alıcı: ${payment.account_name}\n` : "";
+  const note = payment.note ? `📝 Not: ${payment.note}\n` : "";
 
   return (
-`Merhaba ${appt.customerName},
+`Merhaba ${appt.customerName} 👋
 
 Randevunuz oluşturuldu. Depozito bilgileri aşağıdadır:
 
-🕒 ${when}
-🧾 ${appt.serviceSummary}
+📅 Tarih/Saat: ${when}
+💈 Hizmet: ${appt.serviceSummary}
 💳 Depozito: ${appt.depositAmount ?? 0} TL
 
-${payment.bank_name}
-${payment.iban}
-${acc}${note}Açıklama: Randevu - ${appt.customerName} - ${when}
+🏦 Banka: ${payment.bank_name}
+🔢 IBAN: ${payment.iban}
+${acc}${note}📝 Açıklama: Randevu - ${appt.customerName} - ${when}
 
-📎 Ödeme dekontunu bu WhatsApp üzerinden iletebilir misiniz?
-✅ Ödeme onayı admin tarafından verilecektir.`
+📎 Ödeme yaptıktan sonra dekontu bu WhatsApp hattına gönderir misiniz?
+
+📍 Konum
+https://maps.app.goo.gl/oLb8EAMRXNK77TPp6?g_st=ic
+
+Teşekkür ederiz 🙏`
   );
 }
 
