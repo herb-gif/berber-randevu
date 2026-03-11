@@ -101,7 +101,7 @@ export async function GET(req: Request) {
   const niyaziBusy = (niyaziBusyRes.data ?? []).map((a: any) => ({ s: Date.parse(a.start_at), e: Date.parse(a.end_at) }));
   const externalBusy = (externalBusyRes.data ?? []).map((a: any) => ({ s: Date.parse(a.start_at), e: Date.parse(a.end_at) }));
 
-  const stepMin = 15;
+  const stepMin = 60;
   const slots: string[] = [];
 
   // Son başlangıç: hair-only daha erken kapanır.
