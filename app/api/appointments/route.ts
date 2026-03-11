@@ -3,6 +3,7 @@ import { normalizePhone } from "@/lib/phone";
 import { getWorkWindow } from "@/lib/workHours";
 import { supabase } from "@/lib/supabase";
 import { buildSegments, overlaps, sortServices, type ServiceRow, normalizeType, resourceFor, hhmmToMinute } from "@/lib/scheduling";
+import { sendTelegramMessage } from "@/lib/telegram";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -254,6 +255,16 @@ export async function POST(req: Request) {
     if (ins.error) return NextResponse.json({ error: ins.error.message }, { status: 400 });
 
     const appointment_id = String(ins.data.id);
+      const telegramText =
+        `🔔 Yeni Randevu\n\n` +
+        `👤 Müşteri: ${customer_name}\n` +
+        `📞 Telefon: ${pn.raw || pn.e164}\n` +
+        `📅 Tarih: ${date}\n` +
+        `⏰ Saat: ${time}\n` +
+        `💈 Hizmet: ${final_service_summary}\n` +
+        `💳 Depozito: ${deposit_amount} TL\n\n` +
+        `Admin: https://mancavefamagusta.com/admin`;
+      void sendTelegramMessage(telegramText);
 
     // 2) appointment_services insert
     const segRows = (segments as any[]).map((seg) => ({
