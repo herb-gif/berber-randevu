@@ -23,26 +23,6 @@ https://mancavefamagusta.com
 
 ---
 
-# 📸 Preview
-
-Add screenshots here:
-
-```
-/public/screenshots/booking.png
-/public/screenshots/services.png
-/public/screenshots/timeslots.png
-/public/screenshots/admin-dashboard.png
-```
-
-Example:
-
-Booking interface
-Service selection
-Available time slots
-Admin dashboard
-
----
-
 # 🚀 Tech Stack
 
 ### Frontend
