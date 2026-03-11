@@ -338,7 +338,7 @@ price,
 
   return (
     <tr className="bg-transparent hover:bg-white/5 transition">
-      <td className="hidden md:table-cell p-2 md:p-4 align-middle">
+      <td className="p-2 md:p-4 align-middle">
         <input className="w-full rounded-lg border border-white/10 bg-white/5 px-2.5 md:px-3 py-1.5 md:py-2 text-neutral-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-mc-bronze/40 focus:border-mc-bronze" value={name} onChange={(e) => setName(e.target.value)} />
       </td>
 
