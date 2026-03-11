@@ -855,7 +855,19 @@ return (
                       {tabBtn("evening", "Akşam", evening.length)}
                     </div>
 
-                    <div className="mt-3 grid grid-cols-3 sm:grid-cols-4 gap-2">
+                    
+<div className="mt-3 text-xs text-white/60 flex items-center gap-3">
+  <span className="flex items-center gap-1">
+    <span className="h-2 w-2 rounded-full bg-emerald-400"></span>
+    Müsait
+  </span>
+  <span className="flex items-center gap-1">
+    <span className="h-2 w-2 rounded-full bg-rose-400"></span>
+    Dolu
+  </span>
+</div>
+
+<div className="mt-3 grid grid-cols-3 sm:grid-cols-4 gap-2">
                       {list.map((t) => {
                         const available = availableSet.has(t) && !takenSlots.has(t);
                         const disabled = loadingSlots || !available;
