@@ -810,56 +810,80 @@ return (
                 return h * 60 + m;
               };
 
-              const morning = filteredSlots.filter((t) => toMin(t) < 12 * 60);
-              const noon = filteredSlots.filter((t) => toMin(t) >= 12 * 60 && toMin(t) < 17 * 60);
-              const evening = filteredSlots.filter((t) => toMin(t) >= 17 * 60);
+                const makeHourlySlots = (startHour: number, endHour: number) =>
+                  Array.from({ length: endHour - startHour + 1 }, (_, i) =>
+                    `${String(startHour + i).padStart(2, "0")}:00`
+                  );
 
-              const list =
-                timeTab === "morning" ? morning : timeTab === "noon" ? noon : evening;
+                const morningAll = makeHourlySlots(9, 11);
+                const noonAll = makeHourlySlots(12, 16);
+                const eveningAll = makeHourlySlots(17, 20);
 
-              const tabBtn = (key: "morning" | "noon" | "evening", label: string, count: number) => (
-                <button
-                  type="button"
-                  onClick={() => setTimeTab(key)}
-                  className={[
-                    "flex-1 rounded-xl px-3 py-2 text-[13px] font-semibold transition active:scale-[0.99]",
-                    timeTab === key
-                      ? "bg-neutral-950 text-mc-bronze border border-mc-bronze"
-                      : "bg-white/5 text-white/70 border border-white/10 hover:bg-white/10 hover:border-white/20",
-                  ].join(" ")}
-                >
-                  {label}
-                </button>
-              );
+                const morning = filteredSlots.filter((t) => toMin(t) < 12 * 60);
+                const noon = filteredSlots.filter((t) => toMin(t) >= 12 * 60 && toMin(t) < 17 * 60);
+                const evening = filteredSlots.filter((t) => toMin(t) >= 17 * 60);
 
-              return (
-                <div className="mt-3 rounded-2xl border border-white/10 bg-white/5 p-3 mc-fade-up">
-                  <div className="flex gap-2">
-                    {tabBtn("morning", "Sabah", morning.length)}
-                    {tabBtn("noon", "Öğle", noon.length)}
-                    {tabBtn("evening", "Akşam", evening.length)}
+                const list =
+                  timeTab === "morning"
+                    ? morningAll
+                    : timeTab === "noon"
+                      ? noonAll
+                      : eveningAll;
+
+                const availableSet = new Set(filteredSlots);
+
+                const tabBtn = (key: "morning" | "noon" | "evening", label: string, count: number) => (
+                  <button
+                    type="button"
+                    onClick={() => setTimeTab(key)}
+                    className={[
+                      "flex-1 rounded-xl px-3 py-2 text-[13px] font-semibold transition active:scale-[0.99]",
+                      timeTab === key
+                        ? "bg-neutral-950 text-mc-bronze border border-mc-bronze"
+                        : "bg-white/5 text-white/70 border border-white/10 hover:bg-white/10 hover:border-white/20",
+                    ].join(" ")}
+                  >
+                    {label}
+                  </button>
+                );
+
+                return (
+                  <div className="mt-3 rounded-2xl border border-white/10 bg-white/5 p-3 mc-fade-up">
+                    <div className="flex gap-2">
+                      {tabBtn("morning", "Sabah", morning.length)}
+                      {tabBtn("noon", "Öğle", noon.length)}
+                      {tabBtn("evening", "Akşam", evening.length)}
+                    </div>
+
+                    <div className="mt-3 grid grid-cols-3 sm:grid-cols-4 gap-2">
+                      {list.map((t) => {
+                        const available = availableSet.has(t) && !takenSlots.has(t);
+                        const disabled = loadingSlots || !available;
+
+                        const className =
+                          picked === t
+                            ? "rounded-xl px-3 py-2 text-sm border transition bg-neutral-950 text-mc-bronze border-mc-bronze"
+                            : available
+                              ? "rounded-xl px-3 py-2 text-sm border transition bg-emerald-500/10 border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/15"
+                              : "rounded-xl px-3 py-2 text-sm border transition bg-rose-500/10 border-rose-500/30 text-rose-300 opacity-60 cursor-not-allowed";
+
+                        return (
+                          <button
+                            key={t}
+                            type="button"
+                            onClick={() => {
+                              if (!disabled) setPicked(t);
+                            }}
+                            disabled={disabled}
+                            className={className}
+                          >
+                            {t}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-
-                  <div className="mt-3 grid grid-cols-3 sm:grid-cols-4 gap-2">
-                    {list.length === 0 ? (
-                      <div className="w-full rounded-xl border border-dashed border-white/10 bg-white/5 px-4 py-4 text-sm text-white/60">
-                        Bu aralıkta uygun saat yok.
-                      </div>
-                    ) : (
-                      list.map((t) => (
-                        <button
-                          key={t}
-                          type="button"
-                          onClick={() => setPicked(t)} disabled={loadingSlots || takenSlots.has(t)}
-                          className={slotBtnClass(t, loadingSlots || takenSlots.has(t))}
-                        >
-                          {t}
-                        </button>
-                      ))
-                    )}
-                  </div>
-                </div>
-              );
+                );
             })()}
 
 
