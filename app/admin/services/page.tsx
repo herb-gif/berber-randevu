@@ -241,7 +241,7 @@ async function load() {
               </div>
 
               <div>
-                <div className="text-xs font-semibold text-white/70 mb-1">Fiyat (TL)</div>
+                <div className="text-xs font-semibold text-white/70 mb-1">Hizmet Fiyatı (TL)</div>
                 <input
                   className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-neutral-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-mc-bronze/40 focus:border-mc-bronze"
                   type="number"
@@ -269,7 +269,7 @@ async function load() {
                 <th className="text-neutral-100 font-semibold p-3 text-left">Kaynak</th>
                 <th className="text-neutral-100 font-semibold p-3 text-left">Aktif</th>
                 <th className="text-neutral-100 font-semibold p-3 text-left">Süre</th>
-                <th className="text-neutral-100 font-semibold p-3 text-left">Fiyat (TL)</th>
+                <th className="text-neutral-100 font-semibold p-3 text-left">Hizmet Fiyatı (TL)</th>
                 <th className="text-neutral-100 font-semibold p-3 text-right">İşlem</th>
               </tr>
             </thead>
