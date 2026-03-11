@@ -118,5 +118,16 @@ Teşekkür ederiz 🙏`
 export function buildWhatsAppWebUrl(phoneE164: string, message: string) {
   const clean = (phoneE164 || "").replace(/[^0-9]/g, "");
   const encoded = encodeURIComponent(message);
+
+  if (typeof navigator !== "undefined") {
+    const ua = navigator.userAgent || "";
+    const isMobile =
+      /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(ua);
+
+    if (isMobile) {
+      return `whatsapp://send?phone=${clean}&text=${encoded}`;
+    }
+  }
+
   return `https://wa.me/${clean}?text=${encoded}`;
 }
