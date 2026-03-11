@@ -190,7 +190,7 @@ async function load() {
               <div className="md:col-span-2">
                 <div className="text-xs font-semibold text-white/70 mb-1">Ad</div>
                 <input
-                  className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-neutral-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-mc-bronze/40 focus:border-mc-bronze"
+                  className="w-full rounded-lg border border-white/10 bg-white/5 px-2.5 md:px-3 py-1.5 md:py-2 text-neutral-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-mc-bronze/40 focus:border-mc-bronze"
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   placeholder="Örn: Wax / Ağda"
@@ -200,7 +200,7 @@ async function load() {
               <div>
                 <div className="text-xs font-semibold text-white/70 mb-1">Tür</div>
                 <select
-                  className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-neutral-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-mc-bronze/40 focus:border-mc-bronze"
+                  className="w-full rounded-lg border border-white/10 bg-white/5 px-2.5 md:px-3 py-1.5 md:py-2 text-neutral-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-mc-bronze/40 focus:border-mc-bronze"
                   value={newType}
                   onChange={(e) => setNewType(e.target.value)}
                 >
@@ -215,7 +215,7 @@ async function load() {
               <div>
                 <div className="text-xs font-semibold text-white/70 mb-1">Kaynak</div>
                 <select
-                  className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-neutral-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-mc-bronze/40 focus:border-mc-bronze"
+                  className="w-full rounded-lg border border-white/10 bg-white/5 px-2.5 md:px-3 py-1.5 md:py-2 text-neutral-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-mc-bronze/40 focus:border-mc-bronze"
                   value={newRG ?? "external"}
                   onChange={(e) => {
                     const v = e.target.value.trim();
@@ -232,7 +232,7 @@ async function load() {
               <div>
                 <div className="text-xs font-semibold text-white/70 mb-1">Süre (dk)</div>
                 <input
-                  className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-neutral-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-mc-bronze/40 focus:border-mc-bronze"
+                  className="w-full rounded-lg border border-white/10 bg-white/5 px-2.5 md:px-3 py-1.5 md:py-2 text-neutral-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-mc-bronze/40 focus:border-mc-bronze"
                   type="number"
                   min={1}
                   value={newDur}
@@ -243,7 +243,7 @@ async function load() {
               <div>
                 <div className="text-xs font-semibold text-white/70 mb-1">Hizmet Fiyatı (TL)</div>
                 <input
-                  className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-neutral-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-mc-bronze/40 focus:border-mc-bronze"
+                  className="w-full rounded-lg border border-white/10 bg-white/5 px-2.5 md:px-3 py-1.5 md:py-2 text-neutral-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-mc-bronze/40 focus:border-mc-bronze"
                   type="number"
                   min={0}
                   value={newPrice}
@@ -338,13 +338,13 @@ price,
 
   return (
     <tr className="bg-transparent hover:bg-white/5 transition">
-      <td className="hidden md:table-cell p-4 align-middle">
-        <input className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-neutral-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-mc-bronze/40 focus:border-mc-bronze" value={name} onChange={(e) => setName(e.target.value)} />
+      <td className="hidden md:table-cell p-2 md:p-4 align-middle">
+        <input className="w-full rounded-lg border border-white/10 bg-white/5 px-2.5 md:px-3 py-1.5 md:py-2 text-neutral-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-mc-bronze/40 focus:border-mc-bronze" value={name} onChange={(e) => setName(e.target.value)} />
       </td>
 
-      <td className="hidden md:table-cell p-4 align-middle">
+      <td className="hidden md:table-cell p-2 md:p-4 align-middle">
           <select
-            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-neutral-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-mc-bronze/40 focus:border-mc-bronze"
+            className="w-full rounded-lg border border-white/10 bg-white/5 px-2.5 md:px-3 py-1.5 md:py-2 text-neutral-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-mc-bronze/40 focus:border-mc-bronze"
             value={serviceType}
             onChange={(e) => setServiceType(e.target.value)}
           >
@@ -356,9 +356,9 @@ price,
           </select>
         </td>
 
-      <td className="p-4 align-middle">
+      <td className="p-2 md:p-4 align-middle">
         <select
-          className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-neutral-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-mc-bronze/40 focus:border-mc-bronze"
+          className="w-full rounded-lg border border-white/10 bg-white/5 px-2.5 md:px-3 py-1.5 md:py-2 text-neutral-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-mc-bronze/40 focus:border-mc-bronze"
           value={resourceGroup ?? ""}
           onChange={(e) => {
             const v = e.target.value.trim();
@@ -370,25 +370,25 @@ price,
           <option value="niyazi">Niyazi</option>
           <option value="external">External</option>
         </select>
-        <div className="mt-1 text-[11px] text-white/50">
+        <div className="hidden md:block mt-1 text-[11px] text-white/50">
           ⚠️ Kaynak değişikliği çakışma kurallarını etkiler.
         </div>
       </td>
 
-      <td className="p-4 align-middle">
+      <td className="p-2 md:p-4 align-middle">
         <label className="inline-flex items-center gap-2 select-none">
           <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />
           <span className="text-sm text-white/70">{isActive ? "Aktif" : "Pasif"}</span>
         </label>
       </td>
 
-      <td className="p-4 align-middle">
+      <td className="p-2 md:p-4 align-middle">
         <input className="w-28 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-neutral-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-mc-bronze/40 focus:border-mc-bronze" type="number" min={1} value={durationMin} onChange={(e) => setDurationMin(Number(e.target.value))} />
       </td>
 
-      <td className="p-4 align-middle">
+      <td className="p-2 md:p-4 align-middle">
         <input
-          className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-neutral-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-mc-bronze/40 focus:border-mc-bronze"
+          className="w-full rounded-lg border border-white/10 bg-white/5 px-2.5 md:px-3 py-1.5 md:py-2 text-neutral-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-mc-bronze/40 focus:border-mc-bronze"
           type="number"
           value={price}
           onChange={(e) => setPrice(Number(e.target.value))}
