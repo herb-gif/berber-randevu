@@ -649,7 +649,7 @@ return (
                                       pmt
                                     );
                                     const phone = (r.customer_phone_e164 || r.customer_phone || "");
-                                    window.open(buildWhatsAppWebUrl(phone, msg), "_blank");
+                                    window.location.href = buildWhatsAppWebUrl(phone, msg);
                                   }}
                                 >
                                   Ödeme Mesajı Aç
