@@ -525,7 +525,14 @@ return (sortedRows || []).filter((r) => {
             <option value={60}>60 gün</option>
           </select>
 
-          <button onClick={load} className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-2 text-sm text-neutral-100 hover:border-mc-bronze transition text-neutral-100 text-neutral-100">Yenile</button>
+          <a
+            href="/admin/scheduler"
+            className="rounded-xl border border-mc-bronze bg-mc-black px-4 py-2 text-sm text-mc-bronze hover:bg-mc-bronze hover:text-neutral-100 transition"
+          >
+            Scheduler
+          </a>
+
+          <button onClick={() => { load(); loadBlocks(); }} className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-2 text-sm text-neutral-100 hover:border-mc-bronze transition">Yenile</button>
           <button onClick={logout} className="rounded-lg bg-black px-3 py-2 text-white">Çıkış</button>
         </div>
       </div>
@@ -711,14 +718,25 @@ return (sortedRows || []).filter((r) => {
             )}
           </div>
 
-          <a
-            href="/admin/manual-appointment"
-            className="md:hidden fixed bottom-5 right-5 z-40 inline-flex h-14 w-14 items-center justify-center rounded-full border border-mc-bronze bg-mc-black text-2xl text-mc-bronze shadow-[0_8px_30px_rgba(0,0,0,0.35)] hover:bg-mc-bronze hover:text-neutral-100 transition"
-            aria-label="Yeni randevu ekle"
-            title="Yeni randevu ekle"
-          >
-            +
-          </a>  <div className="mt-4 space-y-3 md:hidden">
+          <div className="md:hidden fixed bottom-5 right-5 z-40 flex items-center gap-3">
+            <a
+              href="/admin/scheduler"
+              className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-neutral-900 text-lg text-neutral-100 shadow-[0_8px_30px_rgba(0,0,0,0.35)] hover:border-mc-bronze hover:text-mc-bronze transition"
+              aria-label="Scheduler"
+              title="Scheduler"
+            >
+              ⛔
+            </a>
+
+            <a
+              href="/admin/manual-appointment"
+              className="inline-flex h-14 w-14 items-center justify-center rounded-full border border-mc-bronze bg-mc-black text-2xl text-mc-bronze shadow-[0_8px_30px_rgba(0,0,0,0.35)] hover:bg-mc-bronze hover:text-neutral-100 transition"
+              aria-label="Yeni randevu ekle"
+              title="Yeni randevu ekle"
+            >
+              +
+            </a>
+          </div>  <div className="mt-4 space-y-3 md:hidden">
     {loading && (
       <div className="rounded-2xl border border-white/10 bg-neutral-900 p-4 text-sm text-neutral-400">
         Yükleniyor…
