@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { buildDepositPaymentMessage, buildApprovalMessage, buildReminderMessage, buildWhatsAppWebUrl } from "@/lib/whatsapp";
 import { useRouter, useSearchParams } from "next/navigation";
 import { DISPLAY_TZ } from "@/lib/timezone";
+import { supabaseBrowser } from "@/lib/supabaseBrowser";
 
 type Block = {
   resource: "hair" | "niyazi" | "external" | string;
@@ -237,6 +238,39 @@ async function load() {
 
     const id = window.setInterval(tick, 30000);
     return () => window.clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [days]);
+
+  useEffect(() => {
+    let refreshTimer: number | null = null;
+
+    const scheduleRefresh = () => {
+      if (document.visibilityState !== "visible") return;
+      if (refreshTimer) window.clearTimeout(refreshTimer);
+      refreshTimer = window.setTimeout(() => {
+        load();
+        loadBlocks();
+      }, 600);
+    };
+
+    const channel = supabaseBrowser
+      .channel("admin-dashboard-live")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "appointments" },
+        () => scheduleRefresh()
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "admin_blocks" },
+        () => scheduleRefresh()
+      )
+      .subscribe();
+
+    return () => {
+      if (refreshTimer) window.clearTimeout(refreshTimer);
+      supabaseBrowser.removeChannel(channel);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [days]);
 
