@@ -287,7 +287,7 @@ export default function AdminManualAppointmentPage() {
     <main className="min-h-screen bg-neutral-950 p-6 text-neutral-100">
       <div className="mx-auto max-w-3xl space-y-4">
         <div className="flex items-center justify-between gap-3">
-          <h1 className="text-2xl font-heading text-mc-bronze">
+          <h1 className="text-xl md:text-2xl font-heading leading-tight text-mc-bronze">
             {mode === "manual" ? "Yeni Randevu Ekle (Manuel)" : "Saat Kapat / Blok Koy"}
           </h1>
           <AdminNavTabs />
@@ -595,7 +595,7 @@ export default function AdminManualAppointmentPage() {
                 >
                   <option value="hair">Berber</option>
                   <option value="niyazi">Niyazi</option>
-                  <option value="external">External</option>
+                  <option value="external">Harici</option>
                 </select>
               </div>
 
