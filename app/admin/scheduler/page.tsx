@@ -21,6 +21,7 @@ type SlotRow = {
   time: string;
   status: "available" | "booked" | "blocked" | "outside_hours";
   label: string;
+  blockId?: string;
 };
 
 function normalizeType(s: Service): "hair" | "laser" | "facial" | "brow" | "other" {
@@ -35,8 +36,7 @@ function normalizeType(s: Service): "hair" | "laser" | "facial" | "brow" | "othe
 }
 
 function slotClass(status: SlotRow["status"], selected: boolean) {
-  const base =
-    "rounded-2xl border px-3 py-3 text-sm font-medium transition text-left shadow-sm";
+  const base = "rounded-2xl border px-3 py-3 text-sm font-medium transition text-left shadow-sm";
   const ring = selected ? " ring-2 ring-mc-bronze/40" : "";
 
   if (status === "available") {
@@ -86,15 +86,8 @@ export default function AdminSchedulerPage() {
     return () => clearTimeout(t);
   }, [toast]);
 
-  const activeServices = useMemo(
-    () => (services || []).filter((s) => s.is_active),
-    [services]
-  );
-
-  const activeBarbers = useMemo(
-    () => (barbers || []).filter((b) => b.is_active),
-    [barbers]
-  );
+  const activeServices = useMemo(() => (services || []).filter((s) => s.is_active), [services]);
+  const activeBarbers = useMemo(() => (barbers || []).filter((b) => b.is_active), [barbers]);
 
   const selectedServices = useMemo(
     () => activeServices.filter((s) => selectedServiceIds.includes(s.id)),
@@ -109,6 +102,29 @@ export default function AdminSchedulerPage() {
   useEffect(() => {
     if (!hairSelected) setSelectedBarberId("");
   }, [hairSelected]);
+
+  async function removeBlockFromScheduler(selectedSlotRow: SlotRow | null) {
+    if (!selectedSlotRow?.blockId) return setToast("Blok bulunamadı");
+
+    setSavingBlock(true);
+    try {
+      const res = await fetch(`/api/admin/blocks/${selectedSlotRow.blockId}`, {
+        method: "DELETE",
+        credentials: "include",
+        cache: "no-store",
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        return setToast(data.error || "Blok kaldırılamadı");
+      }
+
+      setToast("Blok kaldırıldı ✅");
+      await loadSlots();
+    } finally {
+      setSavingBlock(false);
+    }
+  }
 
   async function loadSlots() {
     if (!date) return setToast("Tarih seç");
@@ -145,7 +161,6 @@ export default function AdminSchedulerPage() {
     [slots, selectedSlot]
   );
 
-
   async function createBlockFromScheduler() {
     if (!date) return setToast("Tarih seç");
     if (!selectedSlotRow) return setToast("Slot seç");
@@ -158,6 +173,12 @@ export default function AdminSchedulerPage() {
 
     setSavingBlock(true);
     try {
+      const resource = hairSelected
+        ? "hair"
+        : selectedServices.some((s) => String(s.resource_group || "").toLowerCase() === "niyazi")
+          ? "niyazi"
+          : "external";
+
       const res = await fetch("/api/admin/blocks", {
         method: "POST",
         credentials: "include",
@@ -167,11 +188,7 @@ export default function AdminSchedulerPage() {
           date,
           time: selectedSlotRow.time,
           duration_min: blockDurationMin,
-          resource: hairSelected
-            ? "hair"
-            : (selectedServices.some((s) => (s.resource_group || "").toLowerCase() === "niyazi")
-                ? "niyazi"
-                : "external"),
+          resource,
           barber_id: hairSelected ? selectedBarberId : null,
           reason: blockReason,
           note: blockNote,
@@ -197,9 +214,7 @@ export default function AdminSchedulerPage() {
         <div className="flex items-center justify-between gap-3">
           <div>
             <h1 className="text-xl md:text-2xl font-heading text-mc-bronze">Admin Scheduler</h1>
-            <div className="mt-1 text-sm text-white/60">
-              Airbnb tarzı hızlı planlama görünümü
-            </div>
+            <div className="mt-1 text-sm text-white/60">Airbnb tarzı hızlı planlama görünümü</div>
           </div>
 
           <div className="flex items-center gap-2">
@@ -274,7 +289,7 @@ export default function AdminSchedulerPage() {
                 onChange={(e) => setSelectedBarberId(e.target.value)}
                 disabled={!hairSelected}
               >
-                <option value="">{hairSelected ? "Seçiniz" : "Hair servis seçin"}</option>
+                <option value="">{hairSelected ? "Seçiniz" : "Saç hizmeti seçin"}</option>
                 {activeBarbers.map((b) => (
                   <option key={b.id} value={b.id}>
                     {b.name}
@@ -327,9 +342,7 @@ export default function AdminSchedulerPage() {
             <div className="mb-3 flex items-center justify-between gap-3">
               <div>
                 <div className="text-sm font-semibold text-neutral-100">Saat Grid</div>
-                <div className="text-xs text-white/50">
-                  Slot seçimi ile hızlı planlama
-                </div>
+                <div className="text-xs text-white/50">Slot seçimi ile hızlı planlama</div>
               </div>
               <div className="text-xs text-white/50">
                 {slots.length ? `${slots.length} slot` : "Henüz yüklenmedi"}
@@ -367,14 +380,12 @@ export default function AdminSchedulerPage() {
               <div className="mt-3 space-y-3">
                 <div className="rounded-xl border border-white/10 bg-white/5 p-3">
                   <div className="text-xs text-white/50">Saat</div>
-                  <div className="mt-1 text-lg font-semibold text-neutral-100">
-                    {selectedSlotRow.time}
-                  </div>
+                  <div className="mt-1 text-lg font-semibold text-neutral-100">{selectedSlotRow.time}</div>
                   <div className="mt-1 text-sm text-white/60">{selectedSlotRow.label}</div>
                 </div>
 
                 <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-                  <div className="text-xs text-white/50">Mod</div>
+                  <div className="text-xs text-white/50">İşlem</div>
                   <div className="mt-1 text-sm font-medium text-neutral-100">Hızlı Saat Kapatma</div>
                 </div>
 
@@ -418,19 +429,30 @@ export default function AdminSchedulerPage() {
                   />
                 </div>
 
-                <button
-                  type="button"
-                  onClick={createBlockFromScheduler}
-                  disabled={
-                    savingBlock ||
-                    !selectedSlotRow ||
-                    selectedSlotRow.status !== "available" ||
-                    (hairSelected && !selectedBarberId)
-                  }
-                  className="w-full rounded-xl border border-mc-bronze bg-mc-black px-4 py-3 text-sm font-medium text-mc-bronze hover:bg-mc-bronze hover:text-neutral-100 transition disabled:opacity-50"
-                >
-                  {savingBlock ? "Kaydediliyor…" : "Saati Kapat"}
-                </button>
+                {selectedSlotRow.status === "blocked" ? (
+                  <button
+                    type="button"
+                    onClick={() => removeBlockFromScheduler(selectedSlotRow)}
+                    disabled={savingBlock || !selectedSlotRow.blockId}
+                    className="w-full rounded-xl border border-rose-400/40 bg-neutral-950 px-4 py-3 text-sm font-medium text-rose-300 hover:bg-rose-500/10 transition disabled:opacity-50"
+                  >
+                    {savingBlock ? "İşleniyor…" : "Bloğu Kaldır"}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={createBlockFromScheduler}
+                    disabled={
+                      savingBlock ||
+                      !selectedSlotRow ||
+                      selectedSlotRow.status !== "available" ||
+                      (hairSelected && !selectedBarberId)
+                    }
+                    className="w-full rounded-xl border border-mc-bronze bg-mc-black px-4 py-3 text-sm font-medium text-mc-bronze hover:bg-mc-bronze hover:text-neutral-100 transition disabled:opacity-50"
+                  >
+                    {savingBlock ? "Kaydediliyor…" : "Saati Kapat"}
+                  </button>
+                )}
 
                 <div className="rounded-xl border border-white/10 bg-white/5 p-3">
                   <div className="text-xs text-white/50">Durum notu</div>
@@ -440,7 +462,7 @@ export default function AdminSchedulerPage() {
                       : selectedSlotRow.status === "booked"
                         ? "Bu slot dolu olduğu için bloklanamaz."
                         : selectedSlotRow.status === "blocked"
-                          ? "Bu slot zaten bloklu."
+                          ? "Bu slot zaten bloklu. İstersen kaldırabilirsin."
                           : "Bu slot mesai dışı."}
                   </div>
                 </div>

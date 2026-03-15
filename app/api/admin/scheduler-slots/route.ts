@@ -4,7 +4,6 @@ import { supabaseAdmin } from "@/lib/supabase";
 import { getWorkWindow } from "@/lib/workHours";
 import { buildSegments, overlaps, sortServices, type ServiceRow, resourceFor } from "@/lib/scheduling";
 import { zonedDateTimeToUtcMs } from "@/lib/datetime";
-import { getAdminBlockBusy } from "@/lib/adminBlocks";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -86,7 +85,7 @@ export async function GET(req: Request) {
       niyaziCapacity = cap.data?.value ?? 1;
     }
 
-    const [hairBusyRes, niyaziBusyRes, externalBusyRes] = await Promise.all([
+    const [hairBusyRes, niyaziBusyRes, externalBusyRes, rawBlocksRes] = await Promise.all([
       needsHair
         ? supabaseAdmin
             .from("appointment_services")
@@ -117,40 +116,39 @@ export async function GET(req: Request) {
             .lt("start_at", dayEndISO)
             .gt("end_at", dayStartISO)
         : Promise.resolve({ data: [], error: null } as any),
+
+      supabaseAdmin
+        .from("admin_blocks")
+        .select("id,resource,barber_id,start_at,end_at,is_active")
+        .eq("is_active", true)
+        .lt("start_at", dayEndISO)
+        .gt("end_at", dayStartISO),
     ]);
 
     if (hairBusyRes.error) return NextResponse.json({ error: hairBusyRes.error.message }, { status: 400 });
     if (niyaziBusyRes.error) return NextResponse.json({ error: niyaziBusyRes.error.message }, { status: 400 });
     if (externalBusyRes.error) return NextResponse.json({ error: externalBusyRes.error.message }, { status: 400 });
+    if (rawBlocksRes.error) return NextResponse.json({ error: rawBlocksRes.error.message }, { status: 400 });
 
     const apptHairBusy = (hairBusyRes.data ?? []).map((a: any) => ({ s: Date.parse(a.start_at), e: Date.parse(a.end_at) }));
     const apptNiyaziBusy = (niyaziBusyRes.data ?? []).map((a: any) => ({ s: Date.parse(a.start_at), e: Date.parse(a.end_at) }));
     const apptExternalBusy = (externalBusyRes.data ?? []).map((a: any) => ({ s: Date.parse(a.start_at), e: Date.parse(a.end_at) }));
 
-    const blockBusy = await getAdminBlockBusy({
-      dayStartISO,
-      dayEndISO,
-      needsHair,
-      needsNiyazi,
-      needsExternal,
-      barberId,
-      useAdmin: true,
-    });
-    if (blockBusy.error) return NextResponse.json({ error: blockBusy.error }, { status: 400 });
-
-    const hairBusy = [...apptHairBusy];
-    const niyaziBusy = [...apptNiyaziBusy];
-    const externalBusy = [...apptExternalBusy];
-
-    const hairBlocked = [...blockBusy.hairBusy];
-    const niyaziBlocked = [...blockBusy.niyaziBusy];
-    const externalBlocked = [...blockBusy.externalBusy];
+    const rawBlocks = (rawBlocksRes.data ?? []) as Array<{
+      id: string;
+      resource: string;
+      barber_id: string | null;
+      start_at: string;
+      end_at: string;
+      is_active: boolean;
+    }>;
 
     const stepMin = 60;
     const slots: Array<{
       time: string;
       status: "available" | "booked" | "blocked" | "outside_hours";
       label: string;
+      blockId?: string;
     }> = [];
 
     const isMixed = needsHair && (needsNiyazi || needsExternal);
@@ -175,39 +173,55 @@ export async function GET(req: Request) {
 
       let blocked = false;
       let booked = false;
+      let blockId: string | undefined = undefined;
 
       for (const seg of segments as any[]) {
         if (seg.resource === "hair") {
-          if (hairBlocked.some((b) => overlaps(seg.startMs, seg.endMs, b.s, b.e))) {
+          const matchedBlock = rawBlocks.find((b: any) =>
+            String(b.resource) === "hair" &&
+            String(b.barber_id || "") === String(barberId || "") &&
+            overlaps(seg.startMs, seg.endMs, Date.parse(b.start_at), Date.parse(b.end_at))
+          );
+          if (matchedBlock) {
             blocked = true;
+            blockId = String(matchedBlock.id);
             break;
           }
-          if (hairBusy.some((b) => overlaps(seg.startMs, seg.endMs, b.s, b.e))) {
+          if (apptHairBusy.some((b: { s: number; e: number }) => overlaps(seg.startMs, seg.endMs, b.s, b.e))) {
             booked = true;
           }
         } else if (seg.resource === "niyazi") {
-          const blockCount = niyaziBlocked.filter((b) => overlaps(seg.startMs, seg.endMs, b.s, b.e)).length;
-          if (blockCount >= niyaziCapacity) {
+          const matchedBlock = rawBlocks.find((b: any) =>
+            String(b.resource) === "niyazi" &&
+            overlaps(seg.startMs, seg.endMs, Date.parse(b.start_at), Date.parse(b.end_at))
+          );
+          if (matchedBlock) {
             blocked = true;
+            blockId = String(matchedBlock.id);
             break;
           }
-          const busyCount = niyaziBusy.filter((b) => overlaps(seg.startMs, seg.endMs, b.s, b.e)).length;
+          const busyCount = apptNiyaziBusy.filter((b: { s: number; e: number }) => overlaps(seg.startMs, seg.endMs, b.s, b.e)).length;
           if (busyCount >= niyaziCapacity) {
             booked = true;
           }
         } else {
-          if (externalBlocked.some((b) => overlaps(seg.startMs, seg.endMs, b.s, b.e))) {
+          const matchedBlock = rawBlocks.find((b: any) =>
+            String(b.resource) === "external" &&
+            overlaps(seg.startMs, seg.endMs, Date.parse(b.start_at), Date.parse(b.end_at))
+          );
+          if (matchedBlock) {
             blocked = true;
+            blockId = String(matchedBlock.id);
             break;
           }
-          if (externalBusy.some((b) => overlaps(seg.startMs, seg.endMs, b.s, b.e))) {
+          if (apptExternalBusy.some((b: { s: number; e: number }) => overlaps(seg.startMs, seg.endMs, b.s, b.e))) {
             booked = true;
           }
         }
       }
 
       if (blocked) {
-        slots.push({ time: hhmm, status: "blocked", label: "Bloklu" });
+        slots.push({ time: hhmm, status: "blocked", label: "Bloklu", blockId });
       } else if (booked) {
         slots.push({ time: hhmm, status: "booked", label: "Dolu" });
       } else {

@@ -659,7 +659,7 @@ return (sortedRows || []).filter((r) => {
 
           <div ref={tableTopRef} />
 
-          <div className="mt-4 rounded-2xl border border-white/10 bg-neutral-900/90 p-3 shadow-sm">
+          <div className="hidden md:block mt-4 rounded-2xl border border-white/10 bg-neutral-900/90 p-3 shadow-sm">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <div className="text-sm font-semibold text-neutral-100">Aktif Bloklar</div>
