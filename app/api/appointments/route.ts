@@ -4,6 +4,7 @@ import { getWorkWindow } from "@/lib/workHours";
 import { supabase } from "@/lib/supabase";
 import { buildSegments, overlaps, sortServices, type ServiceRow, normalizeType, resourceFor, hhmmToMinute } from "@/lib/scheduling";
 import { sendTelegramMessage } from "@/lib/telegram";
+import { getTZDateKey, zonedDateTimeToUtcMs } from "@/lib/datetime";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -52,14 +53,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "time formatı HH:MM olmalı" }, { status: 400 });
     }
 
-    // Kıbrıs +02:00
-    const baseMs = Date.parse(`${date}T00:00:00+02:00`);
+        const baseMs = zonedDateTimeToUtcMs(date, "00:00");
     if (!Number.isFinite(baseMs)) {
       return NextResponse.json({ error: "date formatı YYYY-MM-DD olmalı" }, { status: 400 });
     }
 
 
-    const startMs = baseMs + startMin * 60_000;
+    const startMs = zonedDateTimeToUtcMs(date, time);
 
       /* GRACE_GUARD: slot başladıktan sonra 20 dk tolerans */
     {

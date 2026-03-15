@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { buildSegments, overlaps, sortServices, type ServiceRow, normalizeType, resourceFor } from "@/lib/scheduling";
 import { getWorkWindow } from "@/lib/workHours";
+import { getTZDateKey, zonedDateTimeToUtcMs } from "@/lib/datetime";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -29,7 +30,7 @@ export async function GET(req: Request) {
   const barberId = barberIdRaw && UUID_RE.test(barberIdRaw.trim()) ? barberIdRaw.trim() : null;
 
   const win = getWorkWindow(date);
-  const baseMs = Date.parse(`${date}T00:00:00+02:00`);
+  const baseMs = zonedDateTimeToUtcMs(date, "00:00");
   const dayStartISO = new Date(baseMs + win.openMin * 60_000).toISOString();
   const dayEndISO = new Date(baseMs + 24 * 60 * 60_000).toISOString();
 
@@ -112,8 +113,7 @@ export async function GET(req: Request) {
     : win.lastStartOtherMin;
 
 
-  // TR(+03) "bugün" ISO (YYYY-MM-DD)
-  const todayTR = new Date(Date.now() + 2 * 60 * 60_000).toISOString().slice(0, 10);
+  const todayTR = getTZDateKey();
 
   for (let m = win.openMin; m <= lastStartMin; m += stepMin) {
     const startMs = baseMs + m * 60_000;

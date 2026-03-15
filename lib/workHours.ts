@@ -1,3 +1,5 @@
+import { getWeekdayInTZ } from "@/lib/datetime";
+
 export type WorkWindow = {
   openMin: number;            // 09:00 => 540
   lastStartHairMin: number;   // hair için son başlangıç
@@ -5,14 +7,8 @@ export type WorkWindow = {
   isThursday: boolean;
 };
 
-// ✅ Gün kaymasını engellemek için TR(+03) öğlen kullan
-function getWeekdayTR(dateYYYYMMDD: string): number {
-  const d = new Date(`${dateYYYYMMDD}T12:00:00+03:00`);
-  return d.getUTCDay(); // 0=Pazar ... 4=Perşembe
-}
-
 export function getWorkWindow(dateYYYYMMDD: string): WorkWindow {
-  const day = getWeekdayTR(dateYYYYMMDD);
+  const day = getWeekdayInTZ(dateYYYYMMDD);
   const isThursday = day === 4;
 
   // Açılış: 09:00

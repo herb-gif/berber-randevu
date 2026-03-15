@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { buildDepositPaymentMessage, buildWhatsAppWebUrl } from "@/lib/whatsapp";
 import { DISPLAY_TZ } from "@/lib/timezone";
+import { getTZNowParts } from "@/lib/datetime";
 
 type Service = {
   id: string; // UUID
@@ -94,16 +95,15 @@ export default function BookingWidget() {
 
     const SLOT_GRACE_MIN = 20;
 
+    const nowParts = getTZNowParts(DISPLAY_TZ);
+    const nowMin = nowParts.hour * 60 + nowParts.minute;
+
     return slots.filter((hhmm) => {
       const m = /^(\d{1,2}):(\d{2})$/.exec(hhmm);
       if (!m) return true;
 
-      const slot = new Date(now);
-      slot.setHours(Number(m[1]), Number(m[2]), 0, 0);
-
-      // slot zamanı + 20dk'ya kadar "alınabilir"
-      const slotCutoff = new Date(slot.getTime() + SLOT_GRACE_MIN * 60 * 1000);
-      return now <= slotCutoff;
+      const slotMin = Number(m[1]) * 60 + Number(m[2]);
+      return nowMin <= slotMin + SLOT_GRACE_MIN;
     });
   }, [slots, date]);
 
