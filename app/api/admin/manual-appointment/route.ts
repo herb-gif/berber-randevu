@@ -283,17 +283,7 @@ if (segIns.error) {
     }
 
     return NextResponse.json(
-      {
-        ok: true,
-        id: appointment_id,
-        deposit_status,
-        deposit_amount: safe_deposit_amount,
-        total_price,
-        debug_segments: segRows,
-        debug_start_at: startISO,
-        debug_end_at: endISO,
-        debug_barber_id: needsHair ? barberId : null,
-      },
+      { ok: true, id: appointment_id, deposit_status, deposit_amount: safe_deposit_amount, total_price },
       { headers: { "Cache-Control": "no-store" } }
     );
   } catch (e: any) {
