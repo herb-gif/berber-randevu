@@ -21,6 +21,7 @@ type SlotRow = {
   time: string;
   status: "available" | "booked" | "blocked" | "outside_hours";
   label: string;
+  blockId?: string;
 };
 
 function normalizeType(s: Service): "hair" | "laser" | "facial" | "brow" | "other" {
@@ -109,6 +110,29 @@ export default function AdminSchedulerPage() {
   useEffect(() => {
     if (!hairSelected) setSelectedBarberId("");
   }, [hairSelected]);
+
+  async function removeBlockFromScheduler() {
+    if (!selectedSlotRow?.blockId) return setToast("Blok bulunamadı");
+
+    setSavingBlock(true);
+    try {
+      const res = await fetch(`/api/admin/blocks/${selectedSlotRow.blockId}`, {
+        method: "DELETE",
+        credentials: "include",
+        cache: "no-store",
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        return setToast(data.error || "Blok kaldırılamadı");
+      }
+
+      setToast("Blok kaldırıldı ✅");
+      await loadSlots();
+    } finally {
+      setSavingBlock(false);
+    }
+  }
 
   async function loadSlots() {
     if (!date) return setToast("Tarih seç");
@@ -418,19 +442,30 @@ export default function AdminSchedulerPage() {
                   />
                 </div>
 
-                <button
-                  type="button"
-                  onClick={createBlockFromScheduler}
-                  disabled={
-                    savingBlock ||
-                    !selectedSlotRow ||
-                    selectedSlotRow.status !== "available" ||
-                    (hairSelected && !selectedBarberId)
-                  }
-                  className="w-full rounded-xl border border-mc-bronze bg-mc-black px-4 py-3 text-sm font-medium text-mc-bronze hover:bg-mc-bronze hover:text-neutral-100 transition disabled:opacity-50"
-                >
-                  {savingBlock ? "Kaydediliyor…" : "Saati Kapat"}
-                </button>
+                {selectedSlotRow?.status === "blocked" ? (
+                  <button
+                    type="button"
+                    onClick={removeBlockFromScheduler}
+                    disabled={savingBlock || !selectedSlotRow?.blockId}
+                    className="w-full rounded-xl border border-rose-400/40 bg-neutral-950 px-4 py-3 text-sm font-medium text-rose-300 hover:bg-rose-500/10 transition disabled:opacity-50"
+                  >
+                    {savingBlock ? "İşleniyor…" : "Bloğu Kaldır"}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={createBlockFromScheduler}
+                    disabled={
+                      savingBlock ||
+                      !selectedSlotRow ||
+                      selectedSlotRow.status !== "available" ||
+                      (hairSelected && !selectedBarberId)
+                    }
+                    className="w-full rounded-xl border border-mc-bronze bg-mc-black px-4 py-3 text-sm font-medium text-mc-bronze hover:bg-mc-bronze hover:text-neutral-100 transition disabled:opacity-50"
+                  >
+                    {savingBlock ? "Kaydediliyor…" : "Saati Kapat"}
+                  </button>
+                )}
 
                 <div className="rounded-xl border border-white/10 bg-white/5 p-3">
                   <div className="text-xs text-white/50">Durum notu</div>
@@ -440,7 +475,7 @@ export default function AdminSchedulerPage() {
                       : selectedSlotRow.status === "booked"
                         ? "Bu slot dolu olduğu için bloklanamaz."
                         : selectedSlotRow.status === "blocked"
-                          ? "Bu slot zaten bloklu."
+                          ? "Bu slot zaten bloklu. İstersen kaldırabilirsin."
                           : "Bu slot mesai dışı."}
                   </div>
                 </div>
