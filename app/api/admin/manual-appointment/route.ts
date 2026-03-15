@@ -4,6 +4,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 import { normalizePhone } from "@/lib/phone";
 import { buildSegments, overlaps, sortServices, type ServiceRow, normalizeType, resourceFor, hhmmToMinute } from "@/lib/scheduling";
 import { zonedDateTimeToUtcMs } from "@/lib/datetime";
+import { getAdminBlockBusy } from "@/lib/adminBlocks";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -143,9 +144,24 @@ export async function POST(req: Request) {
     if (niyaziBusyRes.error) return NextResponse.json({ error: niyaziBusyRes.error.message }, { status: 400 });
     if (externalBusyRes.error) return NextResponse.json({ error: externalBusyRes.error.message }, { status: 400 });
 
-    const hairBusy: Array<{ s: number; e: number }> = (hairBusyRes.data ?? []).map((a: any) => ({ s: Date.parse(a.start_at), e: Date.parse(a.end_at) }));
-    const niyaziBusy: Array<{ s: number; e: number }> = (niyaziBusyRes.data ?? []).map((a: any) => ({ s: Date.parse(a.start_at), e: Date.parse(a.end_at) }));
-    const externalBusy: Array<{ s: number; e: number }> = (externalBusyRes.data ?? []).map((a: any) => ({ s: Date.parse(a.start_at), e: Date.parse(a.end_at) }));
+    const apptHairBusy: Array<{ s: number; e: number }> = (hairBusyRes.data ?? []).map((a: any) => ({ s: Date.parse(a.start_at), e: Date.parse(a.end_at) }));
+    const apptNiyaziBusy: Array<{ s: number; e: number }> = (niyaziBusyRes.data ?? []).map((a: any) => ({ s: Date.parse(a.start_at), e: Date.parse(a.end_at) }));
+    const apptExternalBusy: Array<{ s: number; e: number }> = (externalBusyRes.data ?? []).map((a: any) => ({ s: Date.parse(a.start_at), e: Date.parse(a.end_at) }));
+
+    const blockBusy = await getAdminBlockBusy({
+      dayStartISO,
+      dayEndISO,
+      needsHair,
+      needsNiyazi,
+      needsExternal,
+      barberId,
+      useAdmin: true,
+    });
+    if (blockBusy.error) return NextResponse.json({ error: blockBusy.error }, { status: 400 });
+
+    const hairBusy: Array<{ s: number; e: number }> = [...apptHairBusy, ...blockBusy.hairBusy];
+    const niyaziBusy: Array<{ s: number; e: number }> = [...apptNiyaziBusy, ...blockBusy.niyaziBusy];
+    const externalBusy: Array<{ s: number; e: number }> = [...apptExternalBusy, ...blockBusy.externalBusy];
 
     for (const seg of segments as any[]) {
       if (seg.resource === "hair") {

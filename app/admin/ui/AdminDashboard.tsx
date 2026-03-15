@@ -44,6 +44,19 @@ type Payment = {
   whatsapp_phone_e164?: string | null;
 };
 
+type AdminBlockRow = {
+  id: string;
+  resource: "hair" | "niyazi" | "external" | string;
+  barber_id?: string | null;
+  barber_name?: string | null;
+  start_at: string;
+  end_at: string;
+  reason?: string | null;
+  note?: string | null;
+  is_active: boolean;
+  created_at: string;
+};
+
 const TZ = DISPLAY_TZ;
 const dtf = new Intl.DateTimeFormat("tr-TR", { timeZone: TZ, dateStyle: "short", timeStyle: "short" });
 const tf = new Intl.DateTimeFormat("tr-TR", { timeZone: TZ, hour: "2-digit", minute: "2-digit" });
@@ -125,8 +138,10 @@ function minutesBetween(a: string, b: string) {
 
 export default function AdminDashboard() {
   const [rows, setRows] = useState<Row[]>([]);
+  const [blocks, setBlocks] = useState<AdminBlockRow[]>([]);
   const [days, setDays] = useState(30);
   const [loading, setLoading] = useState(true);
+  const [blocksLoading, setBlocksLoading] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
     const [filterQ, setFilterQ] = useState("");
     const [filterStatus, setFilterStatus] = useState("all");
@@ -155,7 +170,35 @@ async function load() {
     setLoading(false);
   }
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [days]);
+  async function loadBlocks() {
+    setBlocksLoading(true);
+    try {
+      const res = await fetch(`/api/admin/blocks?days=${days}`, { cache: "no-store" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        alert(data.error || "Bloklar alınamadı");
+        return;
+      }
+      setBlocks(data.rows ?? []);
+    } finally {
+      setBlocksLoading(false);
+    }
+  }
+
+  async function removeBlock(id: string) {
+    if (!confirm("Bu blok kaldırılsın mı?")) return;
+
+    const res = await fetch(`/api/admin/blocks/${id}`, {
+      method: "DELETE",
+      cache: "no-store",
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) return alert(data.error || "Blok kaldırılamadı");
+
+    setBlocks((prev) => (prev || []).filter((b) => b.id !== id));
+  }
+
+  useEffect(() => { load(); loadBlocks(); /* eslint-disable-next-line */ }, [days]);
 
 
     useEffect(() => {
@@ -1129,7 +1172,7 @@ return (
                         ) : (
                           <div className="mt-3 space-y-2">
                             {(r.blocks ?? []).map((b, idx) => (
-                              <div key={`${b.resource}-${b.start_at}-${idx}`} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-white p-2 text-sm">
+                              <div key={`${b.resource}-${b.start_at}-${idx}`} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-white/10 bg-neutral-900 p-2 text-sm text-neutral-100">
                                 <div className="font-medium">{b.service_name ?? "—"}</div>
                                 <div className="text-white/70">{fmtT(b.start_at)} – {fmtT(b.end_at)}</div>
                                 <div className="text-xs text-white/60">

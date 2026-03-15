@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { buildSegments, overlaps, sortServices, type ServiceRow, normalizeType, resourceFor } from "@/lib/scheduling";
 import { getWorkWindow } from "@/lib/workHours";
+import { getAdminBlockBusy } from "@/lib/adminBlocks";
 import { getTZDateKey, zonedDateTimeToUtcMs } from "@/lib/datetime";
 
 const UUID_RE =
@@ -98,9 +99,24 @@ export async function GET(req: Request) {
   if (niyaziBusyRes.error) return NextResponse.json({ error: niyaziBusyRes.error.message }, { status: 400 });
   if (externalBusyRes.error) return NextResponse.json({ error: externalBusyRes.error.message }, { status: 400 });
 
-  const hairBusy = (hairBusyRes.data ?? []).map((a: any) => ({ s: Date.parse(a.start_at), e: Date.parse(a.end_at) }));
-  const niyaziBusy = (niyaziBusyRes.data ?? []).map((a: any) => ({ s: Date.parse(a.start_at), e: Date.parse(a.end_at) }));
-  const externalBusy = (externalBusyRes.data ?? []).map((a: any) => ({ s: Date.parse(a.start_at), e: Date.parse(a.end_at) }));
+  const apptHairBusy = (hairBusyRes.data ?? []).map((a: any) => ({ s: Date.parse(a.start_at), e: Date.parse(a.end_at) }));
+  const apptNiyaziBusy = (niyaziBusyRes.data ?? []).map((a: any) => ({ s: Date.parse(a.start_at), e: Date.parse(a.end_at) }));
+  const apptExternalBusy = (externalBusyRes.data ?? []).map((a: any) => ({ s: Date.parse(a.start_at), e: Date.parse(a.end_at) }));
+
+  const blockBusy = await getAdminBlockBusy({
+    dayStartISO,
+    dayEndISO,
+    needsHair,
+    needsNiyazi,
+    needsExternal,
+    barberId,
+    useAdmin: false,
+  });
+  if (blockBusy.error) return NextResponse.json({ error: blockBusy.error }, { status: 400 });
+
+  const hairBusy = [...apptHairBusy, ...blockBusy.hairBusy];
+  const niyaziBusy = [...apptNiyaziBusy, ...blockBusy.niyaziBusy];
+  const externalBusy = [...apptExternalBusy, ...blockBusy.externalBusy];
 
   const stepMin = 60;
   const slots: string[] = [];
