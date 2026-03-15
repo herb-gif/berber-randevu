@@ -595,6 +595,65 @@ return (sortedRows || []).filter((r) => {
 
           <div ref={tableTopRef} />
 
+          <div className="mt-4 rounded-2xl border border-white/10 bg-neutral-900/90 p-3 shadow-sm">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <div className="text-sm font-semibold text-neutral-100">Aktif Bloklar</div>
+                <div className="text-xs text-white/50">Mola, özel iş ve kapatılan saatler</div>
+              </div>
+              <div className="text-xs text-white/50">
+                {blocksLoading ? "Yükleniyor…" : `${blocks.length} blok`}
+              </div>
+            </div>
+
+            {blocksLoading ? (
+              <div className="mt-3 text-sm text-white/50">Bloklar yükleniyor…</div>
+            ) : blocks.length === 0 ? (
+              <div className="mt-3 rounded-xl border border-white/10 bg-white/5 p-3 text-sm text-white/60">
+                Aktif blok yok.
+              </div>
+            ) : (
+              <div className="mt-3 grid grid-cols-1 gap-2">
+                {blocks.map((b) => (
+                  <div
+                    key={b.id}
+                    className="rounded-xl border border-white/10 bg-neutral-950/80 p-3 text-sm text-neutral-100"
+                  >
+                    <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                      <div>
+                        <div className="font-semibold">
+                          {fmtT(b.start_at)} – {fmtT(b.end_at)}
+                        </div>
+                        <div className="mt-1 text-xs text-white/50">
+                          {(b.start_at || "").slice(0, 10)}
+                          {" • "}
+                          {blockResourceLabel(b.resource, b.barber_name)}
+                          {b.reason ? ` • ${blockReasonLabel(b.reason)}` : ""}
+                        </div>
+                        {b.note && (
+                          <div className="mt-2 text-xs text-white/70">{b.note}</div>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex items-center rounded-full border border-mc-bronze/30 bg-mc-bronze/10 px-2 py-1 text-[11px] text-mc-bronze">
+                          Blok
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removeBlock(b.id)}
+                          className="rounded-lg border border-white/10 bg-neutral-900 px-3 py-1.5 text-xs text-neutral-100 hover:border-rose-400 hover:text-rose-300 transition"
+                        >
+                          Bloğu Kaldır
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           <a
             href="/admin/manual-appointment"
             className="md:hidden fixed bottom-5 right-5 z-40 inline-flex h-14 w-14 items-center justify-center rounded-full border border-mc-bronze bg-mc-black text-2xl text-mc-bronze shadow-[0_8px_30px_rgba(0,0,0,0.35)] hover:bg-mc-bronze hover:text-neutral-100 transition"
