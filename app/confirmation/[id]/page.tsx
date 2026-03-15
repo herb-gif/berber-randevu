@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { DISPLAY_TZ } from "@/lib/timezone";
 
 type Appointment = {
   id: string;
@@ -28,7 +29,7 @@ type Payment =
     }
   | null;
 
-const TZ = "Europe/Istanbul";
+const TZ = DISPLAY_TZ;
 const dtf = new Intl.DateTimeFormat("tr-TR", { timeZone: TZ, dateStyle: "short", timeStyle: "short" });
 const tf = new Intl.DateTimeFormat("tr-TR", { timeZone: TZ, hour: "2-digit", minute: "2-digit" });
 
@@ -71,9 +72,6 @@ export default function ConfirmationPage() {
 
   const [showConfetti, setShowConfetti] = useState(true);
   const [remainingSec, setRemainingSec] = useState<number | null>(null);
-
-
-  
   const DEPOSIT_TOTAL_SEC = 20 * 60;
 
 
@@ -200,27 +198,53 @@ const isPaid = useMemo(() => {
 
   // Deposit countdown: starts when appointment is loaded (stops when paid)
   useEffect(() => {
-    if (!appt) return;
 
+    // If already paid, stop countdown
     if (isPaid) {
+      try {
+        if (id) localStorage.removeItem(`confirm_exp_`);
+      } catch {}
       setRemainingSec(null);
       return;
     }
 
-    const TOTAL = DEPOSIT_TOTAL_SEC ?? (20 * 60);
-    setRemainingSec(TOTAL);
+    // Need id + appt loaded
+    if (!id || !appt) {
+      setRemainingSec(null);
+      return;
+    }
 
-    const it = setInterval(() => {
-      setRemainingSec((prev) => {
-        if (typeof prev !== "number") return TOTAL;
-        return Math.max(0, prev - 1);
-      });
-    }, 1000);
+    const key = `confirm_exp_${id}`;
 
-    return () => clearInterval(it);
-  }, [appt?.id, isPaid]);
+    // Reuse persisted expiry so refresh won't reset
+    let expiresAtMs: number | null = null;
+    try {
+      const raw = localStorage.getItem(key);
+      const v = raw ? Number(raw) : NaN;
+      if (Number.isFinite(v) && v > 0) expiresAtMs = v;
+    } catch {}
 
+    // If not persisted yet, derive from appt.created_at (fallback to now) and persist once
+    if (!expiresAtMs) {
+      const created = (appt as any)?.created_at ?? (appt as any)?.createdAt;
+      const createdMs = created ? new Date(created).getTime() : NaN;
+      const baseMs = Number.isFinite(createdMs) ? createdMs : Date.now();
+      expiresAtMs = baseMs + DEPOSIT_TOTAL_SEC * 1000;
 
+      try {
+        localStorage.setItem(key, String(expiresAtMs));
+      } catch {}
+    }
+
+    const tick = () => {
+      const left = Math.max(0, Math.floor((expiresAtMs! - Date.now()) / 1000));
+      setRemainingSec(left);
+    };
+
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [id, appt, isPaid]);
 
   const cleanPhone = useMemo(() => {
     if (!payment?.whatsapp_phone_e164) return "";
@@ -259,17 +283,21 @@ const isPaid = useMemo(() => {
           {showConfetti && <ConfettiBurst />}
 
             <div className="mb-8 flex justify-center">
+
+          <div className="mx-auto flex h-28 w-28 items-center justify-center rounded-full border border-mc-bronze/40 bg-black/30 shadow-[0_0_0_1px_rgba(192,138,90,0.20),0_0_24px_rgba(192,138,90,0.18)]">
+            <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-black/40">
+              <span className="absolute inset-0 rounded-full animate-pulse bg-mc-bronze/10" />
               <img
-                src="/brand/logo-bronze.png"
-                alt="Man Cave Logo"
-                className="h-20 w-auto object-contain opacity-95"
+                src="/brand/logo-bronze-transparent.png"
+                alt="Man Cave"
+                className="relative h-20 w-20 object-contain opacity-95"
               />
             </div>
-
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-mc-bronze/40 bg-mc-bronze/15 text-mc-bronze shadow-[0_0_0_6px_rgba(192,138,90,0.08)]">
-            <span className="text-3xl leading-none">✓</span>
           </div>
-          <h1 className="mt-5 font-heading text-4xl text-mc-bronze">Randevunuz Oluşturuldu</h1>
+
+            </div>
+
+          <h1 className="mt-3 font-heading text-3xl sm:text-3xl sm:text-3xl sm:text-4xl text-mc-bronze">Randevunuz Oluşturuldu</h1>
           <p className="mt-2 text-sm text-neutral-300">Depozito ödemeniz sonrası randevunuz kesinleşecektir.</p>
         </div>
 
@@ -284,7 +312,7 @@ const isPaid = useMemo(() => {
             <div className="h-1 bg-mc-bronze" />
             <div className="p-6 space-y-3">
               <Row k="Tarih/Saat" v={fmtDT(appt.start_at)} />
-              <Row k="Bitiş" v={fmtT(appt.end_at)} />
+              <Row k="Süre" v={`${Math.max(0, Math.round((new Date(appt.end_at).getTime() - new Date(appt.start_at).getTime()) / 60000))} dk`} />
               {appt.barber_name && <Row k="Berber" v={appt.barber_name} />}
               <ServiceRow summary={appt.service_summary || "—"} />
               <Row k="Toplam" v={`${appt.total_price || 0} TL`} />
@@ -347,27 +375,19 @@ const isPaid = useMemo(() => {
           </div>
         )}
 
-        {waWebUrl && (
-          <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <a
-              href={waWebUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex w-full items-center justify-center rounded-xl px-6 py-3 bg-neutral-900 text-neutral-100 font-semibold border border-white/10 hover:border-mc-bronze hover:bg-neutral-800 transition"
-            >
-              WhatsApp Web’de Aç
-            </a>
-            <a
-              href={waAppUrl}
-              className="inline-flex w-full items-center justify-center rounded-xl px-6 py-3 bg-mc-bronze text-black font-semibold hover:opacity-90 transition"
-            >
-              Uygulamada Aç
-            </a>
-          </div>
-        )}
+          {waWebUrl && (
+            <div className="mt-6">
+              <a
+                href={waAppUrl}
+                className="inline-flex w-full items-center justify-center rounded-xl px-6 py-3 bg-mc-bronze text-black font-semibold hover:opacity-90 transition"
+              >
+                Uygulamada Aç
+              </a>
+            </div>
+          )}
 
         {appt && (
-          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="mt-4">
             <a
               href={(() => {
                 const text = encodeURIComponent("Man Cave Randevu");
@@ -386,23 +406,16 @@ const isPaid = useMemo(() => {
             >
               Google Takvime Ekle
             </a>
-
-            <a
-              href={`/api/appointment-ics?id=${encodeURIComponent(id)}`}
-              className="inline-flex w-full items-center justify-center rounded-xl px-6 py-3 bg-neutral-900 text-neutral-100 font-semibold border border-white/10 hover:border-mc-bronze hover:bg-neutral-800 transition"
-            >
-              Apple / ICS İndir
-            </a>
           </div>
         )}
 
-        <Link href="/"  className="mt-4 block text-center text-sm text-neutral-300 underline">
+        <Link href="/" className="mt-4 block text-center text-sm text-neutral-300 underline">
           Yeni randevu oluştur
         </Link>
       </div>
-    </main>
-  );
-}
+        </main>
+    );
+  }
 
 function Row({ k, v, strong }: { k: string; v: string; strong?: boolean }) {
   const isDeposit = k.toLowerCase().includes("depozito");

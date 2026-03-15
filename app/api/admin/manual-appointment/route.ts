@@ -56,8 +56,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "time formatı HH:MM olmalı" }, { status: 400 });
     }
 
-    // İstanbul +03:00
-    const baseMs = Date.parse(`${date}T00:00:00+03:00`);
+    // İstanbul +02:00
+    const baseMs = Date.parse(`${date}T00:00:00+02:00`);
     if (!Number.isFinite(baseMs)) {
       return NextResponse.json({ error: "date formatı YYYY-MM-DD olmalı" }, { status: 400 });
     }

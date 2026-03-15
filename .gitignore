@@ -45,3 +45,18 @@ next-env.d.ts
 *.bak.*
 out/admin-snapshot-*.txt
 *.restorebak.*
+
+# Local cookie exports
+cookies.txt
+# backup files
+*.bak
+*.bak_*
+*.backup
+
+# temp patch files
+/tmp/*
+patch_*.py
+
+# mac / editor
+.DS_Store
+

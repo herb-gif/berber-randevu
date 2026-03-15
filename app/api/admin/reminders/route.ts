@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { supabaseAdmin } from "@/lib/supabase";
 import { buildReminderMessage, buildWhatsAppWebUrl } from "@/lib/whatsapp";
+import { DISPLAY_TZ } from "@/lib/timezone";
 
-const TZ = "Europe/Istanbul";
+const TZ = DISPLAY_TZ;
 
 function trPartsFromISO(iso: string) {
   const parts = new Intl.DateTimeFormat("tr-TR", {

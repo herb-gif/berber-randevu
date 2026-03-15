@@ -94,8 +94,8 @@ async function save(id: string, patch: Partial<Row>) {
   }, [rows]);
 
   return (
-    <main className="min-h-screen bg-mc-black p-6 text-white">
-      <div className="mx-auto max-w-5xl space-y-4 rounded-2xl bg-white p-6 text-black shadow-sm border border-mc-border">
+    <main className="min-h-screen bg-neutral-950 p-6 text-neutral-100">
+      <div className="mx-auto max-w-5xl space-y-4 rounded-2xl bg-neutral-900 p-6 text-neutral-100 shadow-sm border border-white/10">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-heading text-mc-bronze">Lazer Bölge Fiyatları</h1>
           <AdminNavTabs />
@@ -106,7 +106,7 @@ async function save(id: string, patch: Partial<Row>) {
 
           {toast && (
             <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-xl px-4">
-              <div className="rounded-xl border border-mc-bronze/30 bg-[rgba(192,138,90,0.10)] px-4 py-3 text-sm text-neutral-900 shadow-sm">
+              <div className="rounded-xl border border-mc-bronze/30 bg-[rgba(192,138,90,0.10)] px-4 py-3 text-sm text-neutral-100 shadow-sm">
                 {toast}
               </div>
             </div>
@@ -123,14 +123,14 @@ async function save(id: string, patch: Partial<Row>) {
         )}
 
         {!unauth && (
-          <div className="text-sm text-neutral-600">
+          <div className="text-sm text-white/60">
             Aktif bölge sayısı: <b>{totalActive}</b>
           </div>
         )}
 
-        <div className="rounded-2xl border border-mc-border bg-white shadow-sm p-4">
+        <div className="rounded-2xl border border-white/10 bg-white/5 shadow-sm p-4">
             {loading && (
-              <div className="p-6 text-neutral-500 text-sm">Yükleniyor…</div>
+              <div className="p-6 text-white/50 text-sm">Yükleniyor…</div>
             )}
 
             {!loading && !unauth && (
@@ -142,7 +142,7 @@ async function save(id: string, patch: Partial<Row>) {
             )}
           </div>
 
-        <p className="text-xs text-neutral-500">
+        <p className="text-xs text-white/50">
           Not: “Tüm vücut” seçeneği müşteride diğer seçimleri kilitler.
         </p>
       </div>
@@ -165,18 +165,18 @@ function LaserCard({
   
     const [saving, setSaving] = useState(false);
 return (
-      <div className="rounded-2xl border border-mc-border bg-white p-5 shadow-sm hover:shadow transition">
-      <div className="text-base font-semibold text-neutral-900">{row.name}</div>
+      <div className="rounded-2xl border border-white/10 bg-neutral-900 p-5 shadow-sm hover:shadow transition">
+      <div className="text-base font-semibold text-neutral-100">{row.name}</div>
 
         <div className="mt-2 flex flex-wrap gap-2">
-          <span className="text-xs px-2 py-1 rounded-lg border border-mc-border bg-white text-neutral-700">Sıra: {sort}</span>
-          <span className="text-xs px-2 py-1 rounded-lg border border-mc-border bg-white text-neutral-700">{active ? "Aktif" : "Pasif"}</span>
+          <span className="text-xs px-2 py-1 rounded-lg border border-white/10 bg-white/5 text-white/70">Sıra: {sort}</span>
+          <span className="text-xs px-2 py-1 rounded-lg border border-white/10 bg-white/5 text-white/70">{active ? "Aktif" : "Pasif"}</span>
         </div>
 
       <div className="mt-4 grid grid-cols-3 gap-3">
           <div>
-            <div className="text-xs text-neutral-500">Fiyat (TL)</div>
-            <input className="mt-1 w-full rounded-lg border border-mc-border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-mc-bronze\/40 focus:border-mc-bronze"
+            <div className="text-xs text-white/50">Fiyat (TL)</div>
+            <input className="mt-1 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-neutral-100 focus:outline-none focus:ring-2 focus:ring-mc-bronze\/40 focus:border-mc-bronze"
           type="number"
           value={price}
           onChange={(e) => setPrice(Number(e.target.value))}
@@ -184,8 +184,8 @@ return (
       </div>
 
           <div>
-            <div className="text-xs text-neutral-500">Süre (dk)</div>
-            <input className="mt-1 w-full rounded-lg border border-mc-border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-mc-bronze\/40 focus:border-mc-bronze"
+            <div className="text-xs text-white/50">Süre (dk)</div>
+            <input className="mt-1 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-neutral-100 focus:outline-none focus:ring-2 focus:ring-mc-bronze\/40 focus:border-mc-bronze"
           type="number"
           value={dur}
           onChange={(e) => setDur(Number(e.target.value))}
@@ -193,8 +193,8 @@ return (
       </div>
 
           <div>
-            <div className="text-xs text-neutral-500">Sıra</div>
-            <input className="mt-1 w-full rounded-lg border border-mc-border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-mc-bronze\/40 focus:border-mc-bronze"
+            <div className="text-xs text-white/50">Sıra</div>
+            <input className="mt-1 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-neutral-100 focus:outline-none focus:ring-2 focus:ring-mc-bronze\/40 focus:border-mc-bronze"
           type="number"
           value={sort}
           onChange={(e) => setSort(Number(e.target.value))}
@@ -202,13 +202,13 @@ return (
       </div>
         </div>
 
-        <label className="mt-4 inline-flex items-center gap-2 text-sm text-neutral-700">
+        <label className="mt-4 inline-flex items-center gap-2 text-sm text-white/70">
           <input className="h-4 w-4 accent-black" type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} />
           Aktif
         </label>
 
       <div className="mt-4">
-          <button className="w-full rounded-xl px-4 py-2 text-sm bg-mc-black text-mc-bronze border border-mc-bronze hover:bg-mc-bronze hover:text-black transition"
+          <button className="w-full rounded-xl px-4 py-2 text-sm bg-mc-black text-mc-bronze border border-mc-bronze hover:bg-mc-bronze hover:text-neutral-100 transition"
           onClick={async () => {
             if (saving) return;
             setSaving(true);
