@@ -136,9 +136,30 @@ function minutesBetween(a: string, b: string) {
   return Math.max(0, Math.round((y - x) / 60000));
 }
 
+function blockReasonLabel(v?: string | null) {
+  const x = String(v || "").toLowerCase().trim();
+  if (!x) return "Blok";
+  if (x === "mola") return "Mola";
+  if (x === "ozel_is") return "Özel İş";
+  if (x === "aile") return "Aile";
+  if (x === "kisisel") return "Kişisel";
+  if (x === "kapali") return "Kapalı";
+  if (x === "diger") return "Diğer";
+  return v ?? "Blok";
+}
+
+function blockResourceLabel(resource?: string | null, barberName?: string | null) {
+  const x = String(resource || "").toLowerCase().trim();
+  if (x === "hair") return barberName ? `Berber: ${barberName}` : "Berber";
+  if (x === "niyazi") return "Niyazi";
+  if (x === "external") return "Harici";
+  return resource ?? "—";
+}
+
 export default function AdminDashboard() {
   const [rows, setRows] = useState<Row[]>([]);
   const [blocks, setBlocks] = useState<AdminBlockRow[]>([]);
+  const [toast, setToast] = useState<string>("");
   const [days, setDays] = useState(30);
   const [loading, setLoading] = useState(true);
   const [blocksLoading, setBlocksLoading] = useState(false);
@@ -179,7 +200,10 @@ async function load() {
         alert(data.error || "Bloklar alınamadı");
         return;
       }
-      setBlocks(data.rows ?? []);
+      const next = [...(data.rows ?? [])].sort(
+        (a, b) => Date.parse(a.start_at) - Date.parse(b.start_at)
+      );
+      setBlocks(next);
     } finally {
       setBlocksLoading(false);
     }
@@ -196,6 +220,7 @@ async function load() {
     if (!res.ok) return alert(data.error || "Blok kaldırılamadı");
 
     setBlocks((prev) => (prev || []).filter((b) => b.id !== id));
+    setToast("Blok kaldırıldı ✅");
   }
 
   useEffect(() => { load(); loadBlocks(); /* eslint-disable-next-line */ }, [days]);
@@ -253,6 +278,12 @@ const qs = params.toString();
 
 
     useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(""), 1800);
+    return () => clearTimeout(t);
+  }, [toast]);
+
+  useEffect(() => {
       function handleClick(e: MouseEvent) {
         const t = e.target as HTMLElement;
         if (!t.closest(".wa-dropdown")) setWaMenuId(null);
@@ -416,6 +447,12 @@ return (sortedRows || []).filter((r) => {
   }
 
   return (    <div className="rounded-2xl border border-neutral-800 bg-neutral-950 text-neutral-100 p-6 shadow-sm">
+      {toast && (
+        <div className="mb-4 rounded-xl border border-mc-bronze/30 bg-[rgba(192,138,90,0.10)] px-4 py-3 text-sm text-neutral-100 shadow-sm">
+          {toast}
+        </div>
+      )}
+
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-lg md:text-xl font-semibold">Admin Panel</h1>
