@@ -160,6 +160,7 @@ export default function AdminDashboard() {
   const [rows, setRows] = useState<Row[]>([]);
   const [blocks, setBlocks] = useState<AdminBlockRow[]>([]);
   const [toast, setToast] = useState<string>("");
+  const [lastRefreshAt, setLastRefreshAt] = useState<string>("");
   const [days, setDays] = useState(30);
   const [loading, setLoading] = useState(true);
   const [blocksLoading, setBlocksLoading] = useState(false);
@@ -221,10 +222,23 @@ async function load() {
 
     setBlocks((prev) => (prev || []).filter((b) => b.id !== id));
     setToast("Blok kaldırıldı ✅");
+    load();
+    loadBlocks();
   }
 
   useEffect(() => { load(); loadBlocks(); /* eslint-disable-next-line */ }, [days]);
 
+  useEffect(() => {
+    const tick = () => {
+      if (document.visibilityState !== "visible") return;
+      load();
+      loadBlocks();
+    };
+
+    const id = window.setInterval(tick, 30000);
+    return () => window.clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [days]);
 
     useEffect(() => {
       if (didInitFiltersRef.current) return;
@@ -399,6 +413,8 @@ return (sortedRows || []).filter((r) => {
           };
         })
       );
+      load();
+      loadBlocks();
     }
 
 
@@ -413,6 +429,8 @@ return (sortedRows || []).filter((r) => {
       if (!res.ok) return alert(data.error || "Depozito güncellenemedi");
 
       setRows((prev) => (prev || []).map((r) => (r.id === id ? { ...r, deposit_status: "paid" } : r)));
+      load();
+      loadBlocks();
     }
 
     async function markNoShow(id: string) {
@@ -437,6 +455,8 @@ return (sortedRows || []).filter((r) => {
           };
         })
       );
+      load();
+      loadBlocks();
     }
 
 
@@ -457,6 +477,9 @@ return (sortedRows || []).filter((r) => {
         <div>
           <h1 className="text-lg md:text-xl font-semibold">Admin Panel</h1>
           <div className="hidden md:block text-sm text-white/60">Randevular + depozito + WhatsApp mesaj</div>
+          {lastRefreshAt && (
+            <div className="mt-1 text-xs text-white/40">Son güncelleme: {lastRefreshAt}</div>
+          )}
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
