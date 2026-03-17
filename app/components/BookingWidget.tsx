@@ -172,77 +172,46 @@ export default function BookingWidget() {
           : `bg-white/5 text-neutral-100 border-white/10 hover:bg-white/10 hover:-translate-y-0.5 hover:border-mc-bronze hover:shadow-[0_0_0_2px_rgba(192,138,90,0.15)] hover:shadow-sm`);
 
 
-  function BarberSelectModal() {
-    const [open, setOpen] = useState(false);
-
-    const selected = activeBarbers.find((b) => b.id === selectedBarberId);
-
+  function BarberSelectInline() {
     return (
-      <>
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="mt-3 flex w-full items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left hover:bg-white/10 hover:border-mc-bronze hover:shadow-[0_0_0_2px_rgba(192,138,90,0.10)] transition disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <div className="min-w-0">
-            <div className="truncate text-sm font-semibold text-neutral-100">
-              {selected ? selected.name : "Berber seç"}
-            </div>
-</div>
-          <span className="text-neutral-400">▾</span>
-        </button>
+      <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {activeBarbers.map((b) => {
+          const active = b.id === selectedBarberId;
+          return (
+            <button
+              key={b.id}
+              type="button"
+              onClick={() => setSelectedBarberId(b.id)}
+              className={[
+                "flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition",
+                active
+                  ? "border-mc-bronze bg-[rgba(192,138,90,0.08)] text-mc-bronze shadow-[0_0_0_2px_rgba(192,138,90,0.18)]"
+                  : "border-white/10 bg-white/5 text-neutral-100 hover:bg-white/10 hover:border-mc-bronze/60",
+              ].join(" ")}
+            >
+              <div className="min-w-0">
+                <div className="truncate text-sm font-semibold">
+                  {b.name}
+                </div>
+                <div className="mt-1 text-xs text-white/50">
+                  {active ? "Seçildi" : "Berber olarak seç"}
+                </div>
+              </div>
 
-        {open && (
-          <div className="fixed inset-0 z-50">
-            {/* Backdrop */}
-              <button
-                type="button"
-                className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-                onClick={() => setOpen(false)}
-                aria-label="Kapat"
+              <div
+                className={[
+                  "ml-3 h-5 w-5 rounded-full border transition",
+                  active
+                    ? "border-mc-bronze bg-mc-bronze shadow-[0_0_0_3px_rgba(192,138,90,0.15)]"
+                    : "border-white/20 bg-transparent",
+                ].join(" ")}
               />
-
-
-
-            {/* Bottom sheet / modal */}
-            <div className="absolute bottom-0 left-0 right-0 max-h-[75vh] rounded-t-3xl bg-neutral-950/95 p-4 text-neutral-100 shadow-2xl border border-white/10 overflow-hidden">
-              <div className="mb-3 flex items-center justify-between">
-                <div className="text-sm font-semibold text-neutral-100">Berber Seç</div>
-              </div>
-
-              <div className="space-y-2 max-h-[60vh] overflow-y-auto pb-2">
-                {activeBarbers.map((b) => {
-                  const active = b.id === selectedBarberId;
-                  return (
-                    <button
-                      key={b.id}
-                      type="button"
-                      onClick={() => {
-                        setSelectedBarberId(b.id);
-                        setOpen(false);
-                      }}
-                      className={[
-                        "flex w-full items-center justify-between rounded-2xl border p-3 text-left transition disabled:opacity-50 disabled:cursor-not-allowed",
-                        active
-                          ? "border-mc-bronze bg-[rgba(192,138,90,0.08)]"
-                          : "border-white/10 bg-white/5 text-neutral-100 hover:bg-white/10 hover:border-mc-bronze/60 hover:bg-white/10 hover:border-mc-bronze/60",
-                      ].join(" ")}
-                    >
-                      <div className="min-w-0">
-                        <div className="truncate text-sm font-semibold text-neutral-100">{b.name}</div>
-</div>
-                      {active && <span className="text-sm font-semibold text-mc-bronze">✓</span>}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        )}
-      </>
+            </button>
+          );
+        })}
+      </div>
     );
   }
-
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
 
@@ -519,7 +488,7 @@ export default function BookingWidget() {
       const needsLaser = !!laserServiceId;
       const laserOk = !needsLaser || selectedLaserOptionIds.length > 0;
 
-      const needsBarber = hairSelected && activeBarbers.length > 1;
+      const needsBarber = hairSelected;
       const barberOk = !needsBarber || !!selectedBarberId;
 
       const hasDate = !!date;
@@ -557,7 +526,7 @@ export default function BookingWidget() {
     const steps = [
       "Hizmet",
       laserServiceId ? "Lazer" : null,
-      hairSelected && activeBarbers.length > 1 ? "Berber" : null,
+      hairSelected ? "Berber" : null,
       "Saat",
       "Bilgi",
       "Tamamla",
@@ -729,10 +698,10 @@ return (
     </div>
   )}
 
-      {hairSelected && activeBarbers.length > 1 && (
+      {hairSelected && (
           <>
             <h2 className="mt-8 text-xl font-semibold">Berber seç</h2>
-            <BarberSelectModal />
+            <BarberSelectInline />
           </>
         )}
 
